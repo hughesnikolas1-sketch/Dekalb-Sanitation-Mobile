@@ -12,6 +12,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import Animated, {
   FadeInDown,
@@ -23,99 +24,67 @@ import Animated, {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, WasteColors } from "@/constants/theme";
+import { useAuth } from "@/hooks/useAuth";
+import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
-import {
-  generateUpcomingPickups,
-  getNextPickup,
-  formatPickupDate,
-  getDaysUntil,
-  getPickupTypeIcon,
-  getPickupTypeColor,
-  PickupSchedule,
-} from "@/lib/pickupData";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function NextPickupCard({ pickup }: { pickup: PickupSchedule | null }) {
-  const { theme, isDark } = useTheme();
-  const scale = useSharedValue(1);
+interface ServiceCategory {
+  id: string;
+  title: string;
+  description: string;
+  icon: keyof typeof Feather.glyphMap;
+  color: string;
+  gradientColors: [string, string];
+}
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+const serviceCategories: ServiceCategory[] = [
+  {
+    id: "residential",
+    title: "Residential Services",
+    description: "Trash, recycling, and yard waste pickup for homes",
+    icon: "home",
+    color: BrandColors.blue,
+    gradientColors: [BrandColors.blue, BrandColors.blueDark],
+  },
+  {
+    id: "commercial",
+    title: "Commercial Services",
+    description: "Business and commercial waste management solutions",
+    icon: "briefcase",
+    color: BrandColors.green,
+    gradientColors: [BrandColors.green, BrandColors.greenDark],
+  },
+];
 
-  if (!pickup) {
-    return (
-      <View
-        style={[
-          styles.nextPickupCard,
-          { backgroundColor: theme.backgroundDefault },
-        ]}
-      >
-        <ThemedText type="body" style={{ opacity: 0.7 }}>
-          No upcoming pickups scheduled
-        </ThemedText>
-      </View>
-    );
-  }
-
-  const daysUntil = getDaysUntil(pickup.date);
-  const pickupColor = getPickupTypeColor(pickup.type, isDark);
+function WelcomeHeader({ userName }: { userName: string }) {
+  const { theme } = useTheme();
 
   return (
-    <Animated.View
-      entering={FadeInDown.delay(100).duration(400)}
-      style={[
-        styles.nextPickupCard,
-        { backgroundColor: theme.backgroundDefault },
-        animatedStyle,
-      ]}
-    >
-      <View style={styles.nextPickupHeader}>
-        <View style={[styles.pickupIconLarge, { backgroundColor: pickupColor }]}>
-          <Feather
-            name={getPickupTypeIcon(pickup.type) as any}
-            size={32}
-            color="#FFFFFF"
-          />
-        </View>
-        <View style={styles.nextPickupInfo}>
-          <ThemedText type="small" style={{ opacity: 0.7 }}>
-            Next Pickup
-          </ThemedText>
-          <ThemedText type="h2">{formatPickupDate(pickup.date)}</ThemedText>
-          <ThemedText type="body" style={{ color: pickupColor }}>
-            {pickup.label}
-          </ThemedText>
-        </View>
+    <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.welcomeHeader}>
+      <View>
+        <ThemedText type="body" style={{ color: theme.textSecondary }}>
+          Welcome back,
+        </ThemedText>
+        <ThemedText type="h2">{userName}</ThemedText>
       </View>
-      <View style={styles.countdownContainer}>
-        <View style={[styles.countdownBadge, { backgroundColor: pickupColor }]}>
-          <ThemedText
-            type="h1"
-            style={{ color: "#FFFFFF", fontWeight: "700" }}
-          >
-            {daysUntil}
-          </ThemedText>
-          <ThemedText type="small" style={{ color: "#FFFFFF", opacity: 0.9 }}>
-            {daysUntil === 1 ? "day" : "days"}
-          </ThemedText>
-        </View>
+      <View style={[styles.avatarContainer, { backgroundColor: BrandColors.blue }]}>
+        <Feather name="user" size={24} color="#FFFFFF" />
       </View>
     </Animated.View>
   );
 }
 
-function PickupListItem({
-  pickup,
+function ServiceCategoryCard({
+  category,
   index,
+  onPress,
 }: {
-  pickup: PickupSchedule;
+  category: ServiceCategory;
   index: number;
+  onPress: () => void;
 }) {
-  const { theme, isDark } = useTheme();
-  const pickupColor = getPickupTypeColor(pickup.type, isDark);
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -123,7 +92,74 @@ function PickupListItem({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(0.97, { damping: 15, stiffness: 150 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 150 });
+  };
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress();
+  };
+
+  return (
+    <Animated.View entering={FadeInDown.delay(200 + index * 100).duration(500)}>
+      <AnimatedPressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[styles.categoryCard, animatedStyle]}
+      >
+        <LinearGradient
+          colors={category.gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.categoryGradient}
+        >
+          <View style={styles.categoryIconContainer}>
+            <Feather name={category.icon} size={40} color="#FFFFFF" />
+          </View>
+          <View style={styles.categoryContent}>
+            <ThemedText type="h3" style={styles.categoryTitle}>
+              {category.title}
+            </ThemedText>
+            <ThemedText type="body" style={styles.categoryDescription}>
+              {category.description}
+            </ThemedText>
+          </View>
+          <View style={styles.categoryArrow}>
+            <Feather name="chevron-right" size={28} color="rgba(255,255,255,0.8)" />
+          </View>
+        </LinearGradient>
+      </AnimatedPressable>
+    </Animated.View>
+  );
+}
+
+function QuickActionCard({
+  icon,
+  title,
+  onPress,
+  color,
+  delay,
+}: {
+  icon: keyof typeof Feather.glyphMap;
+  title: string;
+  onPress: () => void;
+  color: string;
+  delay: number;
+}) {
+  const { theme } = useTheme();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
@@ -131,34 +167,26 @@ function PickupListItem({
   };
 
   return (
-    <Animated.View entering={FadeInDown.delay(200 + index * 50).duration(400)}>
+    <Animated.View entering={FadeInDown.delay(delay).duration(500)} style={{ flex: 1 }}>
       <AnimatedPressable
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onPress();
+        }}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         style={[
-          styles.pickupItem,
+          styles.quickActionCard,
           { backgroundColor: theme.backgroundDefault },
           animatedStyle,
         ]}
       >
-        <View style={[styles.pickupIcon, { backgroundColor: pickupColor }]}>
-          <Feather
-            name={getPickupTypeIcon(pickup.type) as any}
-            size={20}
-            color="#FFFFFF"
-          />
+        <View style={[styles.quickActionIcon, { backgroundColor: color }]}>
+          <Feather name={icon} size={24} color="#FFFFFF" />
         </View>
-        <View style={styles.pickupItemInfo}>
-          <ThemedText type="h4">{pickup.label}</ThemedText>
-          <ThemedText type="small" style={{ opacity: 0.7 }}>
-            {formatPickupDate(pickup.date)}
-          </ThemedText>
-        </View>
-        <View style={styles.pickupItemDays}>
-          <ThemedText type="h4" style={{ color: pickupColor }}>
-            {getDaysUntil(pickup.date)}d
-          </ThemedText>
-        </View>
+        <ThemedText type="h4" style={styles.quickActionTitle}>
+          {title}
+        </ThemedText>
       </AnimatedPressable>
     </Animated.View>
   );
@@ -168,42 +196,88 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
-  const { theme, isDark } = useTheme();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { theme } = useTheme();
+  const { user } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [pickups, setPickups] = useState(generateUpcomingPickups);
-  const [nextPickup, setNextPickup] = useState(getNextPickup);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setTimeout(() => {
-      setPickups(generateUpcomingPickups());
-      setNextPickup(getNextPickup());
       setRefreshing(false);
     }, 800);
   }, []);
 
+  const handleCategoryPress = useCallback((categoryId: string) => {
+    navigation.navigate("Main", { screen: "ServicesTab", params: { category: categoryId } });
+  }, [navigation]);
+
   const handleReportIssue = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     navigation.navigate("ReportIssue");
   }, [navigation]);
 
-  const upcomingPickups = pickups.slice(1, 5);
+  const userName = user?.firstName || "Guest";
 
   const renderHeader = () => (
     <View>
-      <NextPickupCard pickup={nextPickup} />
+      <WelcomeHeader userName={userName} />
 
-      {upcomingPickups.length > 0 ? (
-        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
-          <ThemedText type="h3" style={styles.sectionTitle}>
-            Upcoming Schedule
-          </ThemedText>
-        </Animated.View>
-      ) : null}
+      <Animated.View entering={FadeInDown.delay(150).duration(500)}>
+        <ThemedText type="h3" style={styles.sectionTitle}>
+          Our Services
+        </ThemedText>
+      </Animated.View>
+
+      {serviceCategories.map((category, index) => (
+        <ServiceCategoryCard
+          key={category.id}
+          category={category}
+          index={index}
+          onPress={() => handleCategoryPress(category.id)}
+        />
+      ))}
+
+      <Animated.View entering={FadeInDown.delay(450).duration(500)}>
+        <ThemedText type="h3" style={[styles.sectionTitle, { marginTop: Spacing["2xl"] }]}>
+          Quick Actions
+        </ThemedText>
+      </Animated.View>
+
+      <View style={styles.quickActionsRow}>
+        <QuickActionCard
+          icon="alert-circle"
+          title="Report Issue"
+          onPress={handleReportIssue}
+          color={BrandColors.blue}
+          delay={500}
+        />
+        <QuickActionCard
+          icon="calendar"
+          title="View Schedule"
+          onPress={() => handleCategoryPress("residential")}
+          color={BrandColors.green}
+          delay={550}
+        />
+      </View>
+
+      <View style={styles.quickActionsRow}>
+        <QuickActionCard
+          icon="phone"
+          title="Contact Us"
+          onPress={() => {}}
+          color="#7B1FA2"
+          delay={600}
+        />
+        <QuickActionCard
+          icon="help-circle"
+          title="Help & FAQ"
+          onPress={() => {}}
+          color="#F57C00"
+          delay={650}
+        />
+      </View>
     </View>
   );
 
@@ -213,16 +287,14 @@ export default function HomeScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: headerHeight + Spacing.xl,
-          paddingBottom: tabBarHeight + Spacing["5xl"] + 60,
-          paddingHorizontal: Spacing.lg,
+          paddingBottom: tabBarHeight + Spacing.xl,
+          paddingHorizontal: Spacing.xl,
         }}
         scrollIndicatorInsets={{ bottom: insets.bottom }}
-        data={upcomingPickups}
-        keyExtractor={(item) => item.id}
+        data={[]}
+        keyExtractor={() => "header"}
         ListHeaderComponent={renderHeader}
-        renderItem={({ item, index }) => (
-          <PickupListItem pickup={item} index={index} />
-        )}
+        renderItem={null}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -233,14 +305,6 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
-
-      <AnimatedPressable
-        onPress={handleReportIssue}
-        style={[styles.fab, { backgroundColor: theme.primary }]}
-      >
-        <Feather name="alert-circle" size={24} color="#FFFFFF" />
-        <ThemedText style={styles.fabText}>Report Issue</ThemedText>
-      </AnimatedPressable>
     </ThemedView>
   );
 }
@@ -249,82 +313,84 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  nextPickupCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
-    marginBottom: Spacing.xl,
-  },
-  nextPickupHeader: {
+  welcomeHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing["2xl"],
   },
-  pickupIconLarge: {
-    width: 64,
-    height: 64,
-    borderRadius: BorderRadius.md,
+  avatarContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sectionTitle: {
+    marginBottom: Spacing.lg,
+  },
+  categoryCard: {
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.lg,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  categoryGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.xl,
+    minHeight: 120,
+  },
+  categoryIconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: "rgba(255,255,255,0.2)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.lg,
   },
-  nextPickupInfo: {
+  categoryContent: {
     flex: 1,
   },
-  countdownContainer: {
-    position: "absolute",
-    top: Spacing.xl,
-    right: Spacing.xl,
+  categoryTitle: {
+    color: "#FFFFFF",
+    marginBottom: Spacing.xs,
   },
-  countdownBadge: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    minWidth: 60,
+  categoryDescription: {
+    color: "rgba(255,255,255,0.85)",
   },
-  sectionTitle: {
+  categoryArrow: {
+    marginLeft: Spacing.sm,
+  },
+  quickActionsRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
     marginBottom: Spacing.md,
-    marginTop: Spacing.sm,
   },
-  pickupItem: {
-    flexDirection: "row",
+  quickActionCard: {
     alignItems: "center",
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  pickupIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.sm,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.md,
-  },
-  pickupItemInfo: {
-    flex: 1,
-  },
-  pickupItemDays: {
-    alignItems: "flex-end",
-  },
-  fab: {
-    position: "absolute",
-    bottom: 100,
-    right: Spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.full,
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.lg,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
   },
-  fabText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    marginLeft: Spacing.sm,
+  quickActionIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.md,
+  },
+  quickActionTitle: {
+    textAlign: "center",
   },
 });

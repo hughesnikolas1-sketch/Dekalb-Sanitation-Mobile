@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, FlatList, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -17,7 +17,7 @@ import Animated, {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
 import { ServicesStackParamList } from "@/navigation/ServicesStackNavigator";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -27,53 +27,132 @@ interface ServiceItem {
   title: string;
   description: string;
   icon: keyof typeof Feather.glyphMap;
-  color: string;
+  category: "residential" | "commercial";
 }
 
-const services: ServiceItem[] = [
+const allServices: ServiceItem[] = [
   {
-    id: "schedule",
-    title: "Collection Schedule",
-    description: "View your weekly pickup calendar",
-    icon: "calendar",
-    color: "#2D7A3E",
+    id: "trash-pickup",
+    title: "Trash Pickup",
+    description: "Weekly curbside trash collection service",
+    icon: "trash-2",
+    category: "residential",
   },
   {
-    id: "whatgoeswhere",
-    title: "What Goes Where",
-    description: "Learn how to sort your waste properly",
-    icon: "help-circle",
-    color: "#1976D2",
+    id: "recycling",
+    title: "Recycling",
+    description: "Bi-weekly recycling pickup for paper, plastic, and more",
+    icon: "refresh-cw",
+    category: "residential",
   },
   {
-    id: "bulk",
+    id: "yard-waste",
+    title: "Yard Waste",
+    description: "Seasonal collection of leaves, branches, and debris",
+    icon: "feather",
+    category: "residential",
+  },
+  {
+    id: "bulk-pickup",
     title: "Bulk Item Pickup",
-    description: "Request pickup for large items",
+    description: "Schedule pickup for large items like furniture",
     icon: "package",
-    color: "#F57C00",
+    category: "residential",
   },
   {
-    id: "holiday",
+    id: "holiday-schedule",
     title: "Holiday Schedule",
-    description: "View schedule changes for holidays",
-    icon: "star",
-    color: "#7B1FA2",
+    description: "View pickup schedule changes during holidays",
+    icon: "calendar",
+    category: "residential",
   },
   {
-    id: "special",
-    title: "Special Services",
-    description: "Electronics, hazardous waste & more",
-    icon: "shield",
-    color: "#D32F2F",
+    id: "dumpster-rental",
+    title: "Dumpster Rental",
+    description: "Temporary dumpster rental for businesses",
+    icon: "box",
+    category: "commercial",
   },
   {
-    id: "guidelines",
-    title: "Preparation Guidelines",
-    description: "How to prepare waste for collection",
-    icon: "check-square",
-    color: "#00897B",
+    id: "scheduled-pickup",
+    title: "Scheduled Pickup",
+    description: "Regular commercial waste collection",
+    icon: "clock",
+    category: "commercial",
+  },
+  {
+    id: "recycling-program",
+    title: "Recycling Program",
+    description: "Commercial recycling solutions",
+    icon: "refresh-cw",
+    category: "commercial",
+  },
+  {
+    id: "compactor-service",
+    title: "Compactor Service",
+    description: "Waste compactor rental and service",
+    icon: "minimize-2",
+    category: "commercial",
+  },
+  {
+    id: "construction-waste",
+    title: "Construction Waste",
+    description: "Debris removal for construction sites",
+    icon: "tool",
+    category: "commercial",
   },
 ];
+
+type CategoryTab = "all" | "residential" | "commercial";
+
+function CategoryTabs({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: CategoryTab;
+  onTabChange: (tab: CategoryTab) => void;
+}) {
+  const { theme } = useTheme();
+
+  const tabs: { id: CategoryTab; label: string }[] = [
+    { id: "all", label: "All" },
+    { id: "residential", label: "Residential" },
+    { id: "commercial", label: "Commercial" },
+  ];
+
+  return (
+    <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.tabsContainer}>
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.id;
+        return (
+          <Pressable
+            key={tab.id}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onTabChange(tab.id);
+            }}
+            style={[
+              styles.tab,
+              {
+                backgroundColor: isActive ? BrandColors.blue : theme.backgroundDefault,
+                borderColor: isActive ? BrandColors.blue : theme.divider,
+              },
+            ]}
+          >
+            <ThemedText
+              type="h4"
+              style={{
+                color: isActive ? "#FFFFFF" : theme.text,
+              }}
+            >
+              {tab.label}
+            </ThemedText>
+          </Pressable>
+        );
+      })}
+    </Animated.View>
+  );
+}
 
 function ServiceCard({
   item,
@@ -83,8 +162,7 @@ function ServiceCard({
   index: number;
 }) {
   const { theme } = useTheme();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<ServicesStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<ServicesStackParamList>>();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -107,8 +185,10 @@ function ServiceCard({
     });
   };
 
+  const iconColor = item.category === "residential" ? BrandColors.blue : BrandColors.green;
+
   return (
-    <Animated.View entering={FadeInDown.delay(100 + index * 50).duration(400)}>
+    <Animated.View entering={FadeInDown.delay(150 + index * 50).duration(400)}>
       <AnimatedPressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -119,8 +199,8 @@ function ServiceCard({
           animatedStyle,
         ]}
       >
-        <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
-          <Feather name={item.icon} size={24} color="#FFFFFF" />
+        <View style={[styles.iconContainer, { backgroundColor: iconColor }]}>
+          <Feather name={item.icon} size={26} color="#FFFFFF" />
         </View>
         <View style={styles.serviceInfo}>
           <ThemedText type="h4">{item.title}</ThemedText>
@@ -131,11 +211,7 @@ function ServiceCard({
             {item.description}
           </ThemedText>
         </View>
-        <Feather
-          name="chevron-right"
-          size={20}
-          color={theme.textSecondary}
-        />
+        <Feather name="chevron-right" size={24} color={theme.textSecondary} />
       </AnimatedPressable>
     </Animated.View>
   );
@@ -147,6 +223,27 @@ export default function ServicesScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
 
+  const [activeTab, setActiveTab] = useState<CategoryTab>("all");
+
+  const filteredServices = activeTab === "all"
+    ? allServices
+    : allServices.filter((s) => s.category === activeTab);
+
+  const renderHeader = () => (
+    <View>
+      <CategoryTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <Animated.View entering={FadeInDown.delay(120).duration(400)}>
+        <ThemedText type="h3" style={styles.sectionTitle}>
+          {activeTab === "all"
+            ? "All Services"
+            : activeTab === "residential"
+            ? "Residential Services"
+            : "Commercial Services"}
+        </ThemedText>
+      </Animated.View>
+    </View>
+  );
+
   return (
     <ThemedView style={styles.container}>
       <FlatList
@@ -154,11 +251,12 @@ export default function ServicesScreen() {
         contentContainerStyle={{
           paddingTop: headerHeight + Spacing.xl,
           paddingBottom: tabBarHeight + Spacing.xl,
-          paddingHorizontal: Spacing.lg,
+          paddingHorizontal: Spacing.xl,
         }}
         scrollIndicatorInsets={{ bottom: insets.bottom }}
-        data={services}
+        data={filteredServices}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={renderHeader}
         renderItem={({ item, index }) => (
           <ServiceCard item={item} index={index} />
         )}
@@ -172,17 +270,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  tabsContainer: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  sectionTitle: {
+    marginBottom: Spacing.lg,
+  },
   serviceCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
     marginBottom: Spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius.sm,
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.lg,

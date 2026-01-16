@@ -6,7 +6,7 @@ import {
   Switch,
   Pressable,
   Platform,
-  Image,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -19,7 +19,8 @@ import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollV
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius } from "@/constants/theme";
+import { useAuth } from "@/hooks/useAuth";
+import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
 import {
   getUserSettings,
   saveUserAddress,
@@ -31,18 +32,20 @@ import {
 function SettingRow({
   icon,
   title,
+  iconColor,
   children,
 }: {
   icon: keyof typeof Feather.glyphMap;
   title: string;
+  iconColor?: string;
   children: React.ReactNode;
 }) {
   const { theme } = useTheme();
 
   return (
     <View style={[styles.settingRow, { backgroundColor: theme.backgroundDefault }]}>
-      <View style={[styles.settingIcon, { backgroundColor: theme.primary }]}>
-        <Feather name={icon} size={18} color="#FFFFFF" />
+      <View style={[styles.settingIcon, { backgroundColor: iconColor || theme.primary }]}>
+        <Feather name={icon} size={20} color="#FFFFFF" />
       </View>
       <ThemedText type="body" style={styles.settingTitle}>
         {title}
@@ -64,7 +67,8 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
+  const { user, signOut } = useAuth();
 
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [address, setAddress] = useState("");
@@ -77,7 +81,7 @@ export default function ProfileScreen() {
   const loadSettings = async () => {
     const savedSettings = await getUserSettings();
     setSettings(savedSettings);
-    setAddress(savedSettings.address);
+    setAddress(user?.serviceAddress || savedSettings.address);
     setIsLoading(false);
   };
 
@@ -100,6 +104,25 @@ export default function ProfileScreen() {
     [settings]
   );
 
+  const handleSignOut = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    if (Platform.OS === "web") {
+      if (confirm("Are you sure you want to sign out?")) {
+        signOut();
+      }
+    } else {
+      Alert.alert(
+        "Sign Out",
+        "Are you sure you want to sign out?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Sign Out", style: "destructive", onPress: signOut },
+        ]
+      );
+    }
+  }, [signOut]);
+
   if (isLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -112,6 +135,8 @@ export default function ProfileScreen() {
     );
   }
 
+  const userName = user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Guest";
+
   return (
     <ThemedView style={styles.container}>
       <KeyboardAwareScrollViewCompat
@@ -119,7 +144,7 @@ export default function ProfileScreen() {
         contentContainerStyle={{
           paddingTop: headerHeight + Spacing.xl,
           paddingBottom: tabBarHeight + Spacing.xl,
-          paddingHorizontal: Spacing.lg,
+          paddingHorizontal: Spacing.xl,
         }}
         scrollIndicatorInsets={{ bottom: insets.bottom }}
       >
@@ -127,19 +152,17 @@ export default function ProfileScreen() {
           entering={FadeInDown.delay(100).duration(400)}
           style={styles.avatarContainer}
         >
-          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-            <Image
-              source={require("../../assets/images/icon.png")}
-              style={styles.avatarImage}
-              resizeMode="contain"
-            />
+          <View style={[styles.avatar, { backgroundColor: BrandColors.blue }]}>
+            <Feather name="user" size={40} color="#FFFFFF" />
           </View>
-          <ThemedText type="h2" style={styles.appTitle}>
-            Dekalb County
+          <ThemedText type="h2" style={styles.userName}>
+            {userName}
           </ThemedText>
-          <ThemedText type="body" style={{ opacity: 0.7 }}>
-            Sanitation Services
-          </ThemedText>
+          {user?.email ? (
+            <ThemedText type="body" style={{ color: theme.textSecondary }}>
+              {user.email}
+            </ThemedText>
+          ) : null}
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(150).duration(400)}>
@@ -150,15 +173,15 @@ export default function ProfileScreen() {
               { backgroundColor: theme.backgroundDefault },
             ]}
           >
-            <View style={[styles.addressIcon, { backgroundColor: theme.primary }]}>
-              <Feather name="map-pin" size={20} color="#FFFFFF" />
+            <View style={[styles.addressIcon, { backgroundColor: BrandColors.green }]}>
+              <Feather name="map-pin" size={22} color="#FFFFFF" />
             </View>
             <TextInput
               style={[styles.addressInput, { color: theme.text }]}
               value={address}
               onChangeText={handleAddressChange}
               onBlur={handleAddressBlur}
-              placeholder="Enter your address"
+              placeholder="Enter your service address"
               placeholderTextColor={theme.textSecondary}
               testID="input-address"
             />
@@ -168,38 +191,38 @@ export default function ProfileScreen() {
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
           <SectionHeader title="NOTIFICATIONS" />
           <View style={styles.settingsGroup}>
-            <SettingRow icon="bell" title="Enable Notifications">
+            <SettingRow icon="bell" title="Enable Notifications" iconColor={BrandColors.blue}>
               <Switch
                 value={settings.notificationsEnabled}
                 onValueChange={() => toggleSetting("notificationsEnabled")}
                 trackColor={{
                   false: theme.backgroundTertiary,
-                  true: theme.primary,
+                  true: BrandColors.blue,
                 }}
                 thumbColor={Platform.OS === "ios" ? undefined : "#FFFFFF"}
                 testID="switch-notifications"
               />
             </SettingRow>
-            <SettingRow icon="calendar" title="Pickup Reminders">
+            <SettingRow icon="calendar" title="Pickup Reminders" iconColor={BrandColors.green}>
               <Switch
                 value={settings.pickupReminders}
                 onValueChange={() => toggleSetting("pickupReminders")}
                 trackColor={{
                   false: theme.backgroundTertiary,
-                  true: theme.primary,
+                  true: BrandColors.green,
                 }}
                 thumbColor={Platform.OS === "ios" ? undefined : "#FFFFFF"}
                 disabled={!settings.notificationsEnabled}
                 testID="switch-reminders"
               />
             </SettingRow>
-            <SettingRow icon="alert-circle" title="Service Alerts">
+            <SettingRow icon="alert-circle" title="Service Alerts" iconColor="#F57C00">
               <Switch
                 value={settings.serviceAlerts}
                 onValueChange={() => toggleSetting("serviceAlerts")}
                 trackColor={{
                   false: theme.backgroundTertiary,
-                  true: theme.primary,
+                  true: "#F57C00",
                 }}
                 thumbColor={Platform.OS === "ios" ? undefined : "#FFFFFF"}
                 disabled={!settings.notificationsEnabled}
@@ -210,24 +233,36 @@ export default function ProfileScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(250).duration(400)}>
-          <SectionHeader title="ABOUT" />
+          <SectionHeader title="SUPPORT" />
           <View style={styles.settingsGroup}>
-            <SettingRow icon="info" title="App Version">
-              <ThemedText type="small" style={{ opacity: 0.7 }}>
-                1.0.0
-              </ThemedText>
-            </SettingRow>
-            <SettingRow icon="phone" title="Contact Support">
-              <ThemedText type="small" style={{ color: theme.primary }}>
+            <SettingRow icon="phone" title="Contact Support" iconColor={BrandColors.blue}>
+              <ThemedText type="body" style={{ color: BrandColors.blue }}>
                 404-555-0123
               </ThemedText>
             </SettingRow>
-            <SettingRow icon="globe" title="Website">
-              <ThemedText type="small" style={{ color: theme.primary }}>
+            <SettingRow icon="globe" title="Website" iconColor={BrandColors.green}>
+              <ThemedText type="body" style={{ color: BrandColors.green }}>
                 dekalbcounty.gov
               </ThemedText>
             </SettingRow>
+            <SettingRow icon="info" title="App Version" iconColor="#7B1FA2">
+              <ThemedText type="body" style={{ color: theme.textSecondary }}>
+                1.0.0
+              </ThemedText>
+            </SettingRow>
           </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+          <Pressable
+            onPress={handleSignOut}
+            style={[styles.signOutButton, { borderColor: theme.error }]}
+          >
+            <Feather name="log-out" size={20} color={theme.error} />
+            <ThemedText type="button" style={{ color: theme.error, marginLeft: Spacing.sm }}>
+              Sign Out
+            </ThemedText>
+          </Pressable>
         </Animated.View>
       </KeyboardAwareScrollViewCompat>
     </ThemedView>
@@ -245,22 +280,17 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     alignItems: "center",
-    marginBottom: Spacing["3xl"],
+    marginBottom: Spacing["2xl"],
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: BorderRadius.lg,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.lg,
-    overflow: "hidden",
   },
-  avatarImage: {
-    width: 60,
-    height: 60,
-  },
-  appTitle: {
+  userName: {
     marginBottom: Spacing.xs,
   },
   sectionHeader: {
@@ -274,10 +304,34 @@ const styles = StyleSheet.create({
   addressCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: BorderRadius.md,
-    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
   },
   addressIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.lg,
+  },
+  addressInput: {
+    flex: 1,
+    fontSize: 18,
+    paddingVertical: Spacing.xs,
+  },
+  settingsGroup: {
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.xl,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(0,0,0,0.1)",
+  },
+  settingIcon: {
     width: 40,
     height: 40,
     borderRadius: BorderRadius.sm,
@@ -285,31 +339,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: Spacing.lg,
   },
-  addressInput: {
-    flex: 1,
-    fontSize: 16,
-    paddingVertical: Spacing.xs,
-  },
-  settingsGroup: {
-    borderRadius: BorderRadius.md,
-    overflow: "hidden",
-  },
-  settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: Spacing.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(0,0,0,0.1)",
-  },
-  settingIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: BorderRadius.xs,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.md,
-  },
   settingTitle: {
     flex: 1,
+  },
+  signOutButton: {
+    flexDirection: "row",
+    height: Spacing.buttonHeight,
+    borderRadius: BorderRadius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: Spacing["3xl"],
+    borderWidth: 2,
   },
 });
