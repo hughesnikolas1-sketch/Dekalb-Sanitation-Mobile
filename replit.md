@@ -2,25 +2,51 @@
 
 ## Overview
 
-A React Native/Expo mobile application for Dekalb County residents to manage waste collection services. The app allows users to view pickup schedules, receive notifications, report issues, and access service information. Built with a civic-focused, accessible design using the county's green branding colors (#2D7A3E).
+A React Native/Expo mobile application for Dekalb County residents and businesses to manage waste collection services. The app allows users to view pickup schedules, browse residential and commercial services with pricing, receive notifications, report issues, and access service information. Built with a beautiful blue (#1565C0) and green (#2E7D32) dual-color theme, designed specifically for senior-friendly accessibility with large fonts, high contrast, and big tap targets.
 
-The project uses a monorepo structure with an Expo mobile client and an Express.js backend server. The mobile app runs on iOS, Android, and web platforms.
+The project uses a monorepo structure with an Expo mobile client and an Express.js backend server. The mobile app runs on iOS, Android, and web platforms. The app connects to a web app backend API for user authentication and service data.
 
-## Current Features (MVP)
+## Current Features
 
-- **Home Screen**: Next pickup countdown widget, upcoming schedule list, Report Issue FAB
-- **Services Screen**: Browse service information cards (Collection Schedule, What Goes Where, Bulk Pickup, Holiday Schedule, Special Services, Guidelines)
-- **Profile Screen**: Service address input, notification toggle settings (Enable Notifications, Pickup Reminders, Service Alerts), contact info
-- **Report Issue Modal**: Issue type selection (Missed Pickup, Damaged Container, Other), description input, submit functionality
-- **Data Persistence**: AsyncStorage for user settings and reported issues
+### Authentication
+- **Welcome Screen**: Beautiful blue/green gradient header with DeKalb Sanitation branding, three feature highlight cards (Reliable Pickup, Green Recycling, Yard Waste), and large Create Account/Sign In buttons
+- **Sign In Screen**: Email and password inputs with senior-friendly large text and buttons
+- **Create Account Screen**: Full registration form (first name, last name, email, phone, service address, password)
+- **API Integration**: Connects to web app backend at `https://dekalb-county-sanitation--hughesnikolas1.replit.app`
+
+### Home Dashboard
+- **Welcome Header**: Personalized greeting with user's name
+- **Service Categories**: Two main cards - Residential Services (blue) and Commercial Services (green)
+- **Quick Actions**: Report Issue, View Schedule, Contact Us, Help & FAQ
+
+### Services
+- **Residential Services**: Trash Pickup, Recycling, Yard Waste, Bulk Item Pickup, Holiday Schedule
+- **Commercial Services**: Dumpster Rental, Scheduled Pickup, Recycling Program, Compactor Service, Construction Waste
+- **Service Details**: Each service shows pricing, sizes, and scheduling options
+
+### Profile
+- **User Info**: Avatar with name and email display
+- **Service Address**: Editable address input
+- **Notifications**: Toggle settings for Enable Notifications, Pickup Reminders, Service Alerts
+- **Support**: Contact phone, website, and app version
+- **Sign Out**: Red outlined sign out button
+
+### Other Features
+- **Report Issue Modal**: Issue type selection and description input
+- **Data Persistence**: AsyncStorage for user settings and auth tokens
 
 ## Recent Changes
 
-- January 2026: Initial MVP implementation with all core screens and features
+- January 2026: Added authentication flow with Welcome, Sign In, and Create Account screens
+- January 2026: Implemented blue/green dual-color theme with senior-friendly accessibility
+- January 2026: Reorganized dashboard with Residential Services and Commercial Services categories
+- January 2026: Added comprehensive pricing and scheduling data for all 10 services
+- January 2026: Connected mobile app to web app backend API for authentication
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Design preference: Senior-friendly with large fonts, big buttons, high contrast, simple navigation.
 
 ## System Architecture
 
@@ -29,24 +55,33 @@ Preferred communication style: Simple, everyday language.
 **Framework**: React Native with Expo SDK 54, using the New Architecture (Fabric renderer)
 
 **Navigation Structure**:
-- Root Stack Navigator (modal presentations like ReportIssue)
-  - Main Tab Navigator (3 tabs: Home, Services, Profile)
-    - Each tab has its own Stack Navigator for drill-down screens
+- Root Stack Navigator
+  - Auth Stack Navigator (when not authenticated)
+    - Welcome Screen
+    - Sign In Screen
+    - Create Account Screen
+  - Main Tab Navigator (when authenticated)
+    - Home Tab (HomeStackNavigator)
+    - Services Tab (ServicesStackNavigator)
+    - Profile Tab (ProfileStackNavigator)
+  - Report Issue Modal
 
 **State Management**:
 - TanStack React Query for server state and API caching
-- AsyncStorage for local persistence (user settings, address)
-- No global state library - uses React's built-in state
+- AsyncStorage for local persistence (user settings, auth tokens)
+- AuthProvider context for authentication state (client/hooks/useAuth.tsx)
 
 **Styling Approach**:
 - React Native StyleSheet with theme constants in `client/constants/theme.ts`
+- Blue (#1565C0) and Green (#2E7D32) dual-color brand theme
+- Senior-friendly typography: 18px body font, 60px button height, 56px input height
 - Light/dark mode support via `useColorScheme` hook
 - Reanimated for smooth animations and micro-interactions
-- expo-blur for iOS glassmorphism effects on headers/tab bars
+- expo-linear-gradient for gradient backgrounds
 
 **Key Design Patterns**:
 - Themed components (`ThemedText`, `ThemedView`) for consistent styling
-- Custom hooks for screen options and theme access
+- Custom hooks for screen options, theme, and authentication
 - Path aliases: `@/` maps to `client/`, `@shared/` maps to `shared/`
 
 ### Backend Architecture
@@ -55,12 +90,12 @@ Preferred communication style: Simple, everyday language.
 
 **API Design**: RESTful endpoints prefixed with `/api` (routes defined in `server/routes.ts`)
 
+**External API**: Connects to web app backend at `https://dekalb-county-sanitation--hughesnikolas1.replit.app` for authentication
+
 **Storage Layer**: 
 - Abstract `IStorage` interface in `server/storage.ts`
 - Currently uses in-memory `MemStorage` implementation
 - Drizzle ORM configured for PostgreSQL (schema in `shared/schema.ts`)
-
-**Database Schema**: Currently minimal - just a users table with id, username, password
 
 ### Build & Development
 
@@ -75,6 +110,17 @@ Preferred communication style: Simple, everyday language.
 
 **Database Migrations**: `npm run db:push` uses Drizzle Kit to push schema changes
 
+## Key Files
+
+- `client/screens/WelcomeScreen.tsx` - Landing page with feature cards and auth buttons
+- `client/screens/SignInScreen.tsx` - Email/password login form
+- `client/screens/CreateAccountScreen.tsx` - Full registration form
+- `client/screens/HomeScreen.tsx` - Dashboard with service category cards
+- `client/screens/ServicesScreen.tsx` - Service listing with category tabs
+- `client/screens/ServiceDetailScreen.tsx` - Individual service with pricing
+- `client/hooks/useAuth.tsx` - Authentication context and hooks
+- `client/constants/theme.ts` - Colors, spacing, typography with senior-friendly values
+
 ## External Dependencies
 
 ### Core Mobile Dependencies
@@ -82,6 +128,7 @@ Preferred communication style: Simple, everyday language.
 - **React Navigation 7**: Native stack and bottom tab navigation
 - **React Native Reanimated**: High-performance animations running on UI thread
 - **React Native Gesture Handler**: Native gesture recognition
+- **expo-linear-gradient**: Gradient backgrounds for headers and cards
 
 ### Backend & Data
 - **PostgreSQL**: Primary database (via `pg` driver)
@@ -89,8 +136,8 @@ Preferred communication style: Simple, everyday language.
 - **TanStack React Query**: Data fetching, caching, and synchronization
 
 ### Storage & Persistence
-- **AsyncStorage**: Local key-value storage for user preferences
-- No authentication required - all settings stored locally
+- **AsyncStorage**: Local key-value storage for user preferences and auth tokens
+- **Authentication**: Token-based auth stored in AsyncStorage
 
 ### UI Components
 - **expo-blur**: Native blur effects for iOS
