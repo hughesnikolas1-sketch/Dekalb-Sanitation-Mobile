@@ -1,72 +1,111 @@
 import { Platform } from "react-native";
 
-// Dekalb County Sanitation brand colors - Blue and Green
-const primaryBlue = "#1565C0";
-const primaryBlueDark = "#0D47A1";
-const primaryGreen = "#2E7D32";
-const primaryGreenDark = "#1B5E20";
-const accentBlue = "#42A5F5";
-const accentGreen = "#66BB6A";
+// Futuristic 4D Theme - Bright, Inviting Neon Colors
+const neonCyan = "#00E5FF";
+const neonCyanDark = "#00B8D4";
+const neonMagenta = "#E040FB";
+const neonMagentaDark = "#AA00FF";
+const neonGreen = "#00E676";
+const neonGreenDark = "#00C853";
+const neonBlue = "#2979FF";
+const neonBlueDark = "#2962FF";
+const neonOrange = "#FF9100";
+const neonYellow = "#FFEA00";
+const electricPurple = "#7C4DFF";
+const glowWhite = "#F0F4FF";
+
+// Service category colors - bright and inviting
+const residentialBlue = "#00B0FF";
+const residentialBlueDark = "#0091EA";
+const commercialGreen = "#00E676";
+const commercialGreenDark = "#00C853";
 
 // Semantic colors for waste types
 export const WasteColors = {
-  trash: "#424242",
-  recycling: primaryBlue,
-  yardWaste: primaryGreen,
-  alert: "#D32F2F",
-  warning: "#F57C00",
+  trash: "#78909C",
+  recycling: neonBlue,
+  yardWaste: neonGreen,
+  alert: "#FF5252",
+  warning: neonOrange,
 };
 
-// Brand colors for easy access
+// Brand colors for easy access - Futuristic palette
 export const BrandColors = {
-  blue: primaryBlue,
-  blueDark: primaryBlueDark,
-  blueLight: accentBlue,
-  green: primaryGreen,
-  greenDark: primaryGreenDark,
-  greenLight: accentGreen,
+  blue: residentialBlue,
+  blueDark: residentialBlueDark,
+  blueLight: neonCyan,
+  green: commercialGreen,
+  greenDark: commercialGreenDark,
+  greenLight: "#69F0AE",
+  residential: residentialBlue,
+  commercial: commercialGreen,
+  accent: neonMagenta,
+  glow: neonCyan,
+};
+
+// Futuristic gradient presets
+export const FuturisticGradients = {
+  residential: [residentialBlue, neonCyan, "#40C4FF"],
+  commercial: [commercialGreen, "#69F0AE", neonYellow],
+  hero: [neonBlueDark, electricPurple, neonMagenta],
+  card: ["#1A237E", "#311B92", electricPurple],
+  sunset: [neonOrange, neonMagenta, electricPurple],
+  ocean: [neonBlueDark, neonCyan, neonGreen],
+  aurora: [neonGreen, neonCyan, neonBlue, electricPurple],
 };
 
 export const Colors = {
   light: {
-    text: "#212121",
-    textSecondary: "#616161",
+    text: "#1A1A2E",
+    textSecondary: "#4A4A6A",
     buttonText: "#FFFFFF",
-    tabIconDefault: "#687076",
-    tabIconSelected: primaryBlue,
-    link: primaryBlue,
-    primary: primaryBlue,
-    primaryDark: primaryBlueDark,
-    secondary: primaryGreen,
-    secondaryDark: primaryGreenDark,
-    backgroundRoot: "#FFFFFF",
-    backgroundDefault: "#F8F9FA",
-    backgroundSecondary: "#ECEFF1",
-    backgroundTertiary: "#E0E0E0",
-    divider: "#E0E0E0",
-    cardBorder: "#E0E0E0",
-    success: primaryGreen,
-    error: "#D32F2F",
+    tabIconDefault: "#7986CB",
+    tabIconSelected: neonBlue,
+    link: neonBlue,
+    primary: residentialBlue,
+    primaryDark: residentialBlueDark,
+    secondary: commercialGreen,
+    secondaryDark: commercialGreenDark,
+    accent: neonMagenta,
+    backgroundRoot: "#FAFBFF",
+    backgroundDefault: "#F0F4FF",
+    backgroundSecondary: "#E8EEFF",
+    backgroundTertiary: "#D4DDFF",
+    divider: "#C5CAE9",
+    cardBorder: "#B3C0FF",
+    success: neonGreen,
+    error: "#FF5252",
+    glow: neonCyan,
+    neonCyan: neonCyan,
+    neonMagenta: neonMagenta,
+    neonGreen: neonGreen,
+    neonBlue: neonBlue,
   },
   dark: {
     text: "#FFFFFF",
-    textSecondary: "#B3B3B3",
+    textSecondary: "#B0BEC5",
     buttonText: "#FFFFFF",
-    tabIconDefault: "#9BA1A6",
-    tabIconSelected: accentBlue,
-    link: accentBlue,
-    primary: accentBlue,
-    primaryDark: primaryBlue,
-    secondary: accentGreen,
-    secondaryDark: primaryGreen,
-    backgroundRoot: "#121212",
-    backgroundDefault: "#1E1E1E",
-    backgroundSecondary: "#252525",
-    backgroundTertiary: "#2C2C2C",
-    divider: "#2C2C2C",
-    cardBorder: "#333333",
-    success: accentGreen,
-    error: "#EF5350",
+    tabIconDefault: "#7986CB",
+    tabIconSelected: neonCyan,
+    link: neonCyan,
+    primary: neonCyan,
+    primaryDark: neonCyanDark,
+    secondary: neonGreen,
+    secondaryDark: neonGreenDark,
+    accent: neonMagenta,
+    backgroundRoot: "#0A0A1A",
+    backgroundDefault: "#12122A",
+    backgroundSecondary: "#1A1A3A",
+    backgroundTertiary: "#252550",
+    divider: "#2A2A5A",
+    cardBorder: "#3D3D7A",
+    success: neonGreen,
+    error: "#FF5252",
+    glow: neonCyan,
+    neonCyan: neonCyan,
+    neonMagenta: neonMagenta,
+    neonGreen: neonGreen,
+    neonBlue: neonBlue,
   },
 };
 
@@ -144,6 +183,66 @@ export const Typography = {
     fontWeight: "600" as const,
   },
 };
+
+// Futuristic glow/shadow effects
+export const GlowEffects = {
+  small: {
+    shadowColor: neonCyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  medium: {
+    shadowColor: neonCyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  large: {
+    shadowColor: neonCyan,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 25,
+    elevation: 12,
+  },
+  neonBlue: {
+    shadowColor: neonBlue,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  neonGreen: {
+    shadowColor: neonGreen,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+  neonMagenta: {
+    shadowColor: neonMagenta,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+};
+
+// Friendly service reminder messages
+export const ServiceReminders = [
+  "We're here to help keep DeKalb beautiful!",
+  "Your satisfaction is our priority!",
+  "Questions? We're just a call away!",
+  "Together, we make DeKalb shine!",
+  "Thank you for keeping DeKalb green!",
+  "We appreciate you choosing DeKalb Sanitation!",
+  "Happy to serve our community!",
+  "Making waste management easy for you!",
+  "Your neighbors trust us, and so can you!",
+  "Cleaner streets, happier community!",
+];
 
 export const Fonts = Platform.select({
   ios: {

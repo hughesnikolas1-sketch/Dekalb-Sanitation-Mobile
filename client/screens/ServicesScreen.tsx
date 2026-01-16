@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, FlatList, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -6,18 +6,31 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import Animated, {
   FadeInDown,
+  FadeInUp,
+  ZoomIn,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
+import {
+  Spacing,
+  BorderRadius,
+  BrandColors,
+  FuturisticGradients,
+  GlowEffects,
+  ServiceReminders,
+} from "@/constants/theme";
 import { ServicesStackParamList } from "@/navigation/ServicesStackNavigator";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -30,8 +43,7 @@ interface ServiceItem {
   category: "residential" | "commercial";
 }
 
-const allServices: ServiceItem[] = [
-  // Residential Services
+const residentialServices: ServiceItem[] = [
   {
     id: "res-missed-trash",
     title: "Missed Trash Pickup",
@@ -74,7 +86,9 @@ const allServices: ServiceItem[] = [
     icon: "package",
     category: "residential",
   },
-  // Commercial Services
+];
+
+const commercialServices: ServiceItem[] = [
   {
     id: "com-missed-trash",
     title: "Missed Trash Pickup",
@@ -98,8 +112,8 @@ const allServices: ServiceItem[] = [
   },
   {
     id: "com-roll-cart",
-    title: "Roll Cart Request",
-    description: "Request commercial roll cart service",
+    title: "Roll Cart Services",
+    description: "Commercial roll cart service options",
     icon: "box",
     category: "commercial",
   },
@@ -112,14 +126,14 @@ const allServices: ServiceItem[] = [
   },
   {
     id: "com-new-requirements",
-    title: "Requirements for Establishing New Commercial",
+    title: "Requirements for Establishing Commercial Service",
     description: "Learn requirements for new commercial accounts",
     icon: "file-text",
     category: "commercial",
   },
   {
     id: "com-payment-options",
-    title: "Commercial Garbage and Recycling Payment Options",
+    title: "Payment Options",
     description: "View payment options for commercial services",
     icon: "credit-card",
     category: "commercial",
@@ -156,12 +170,12 @@ const allServices: ServiceItem[] = [
     id: "com-hand-pick",
     title: "Commercial Hand-Pick Up",
     description: "Commercial hand-pick up service",
-    icon: "hand",
+    icon: "clipboard",
     category: "commercial",
   },
 ];
 
-type CategoryTab = "all" | "residential" | "commercial";
+type CategoryTab = "residential" | "commercial";
 
 function CategoryTabs({
   activeTab,
@@ -170,12 +184,11 @@ function CategoryTabs({
   activeTab: CategoryTab;
   onTabChange: (tab: CategoryTab) => void;
 }) {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
 
-  const tabs: { id: CategoryTab; label: string }[] = [
-    { id: "all", label: "All" },
-    { id: "residential", label: "Residential" },
-    { id: "commercial", label: "Commercial" },
+  const tabs: { id: CategoryTab; label: string; gradient: string[]; icon: keyof typeof Feather.glyphMap }[] = [
+    { id: "residential", label: "Residential", gradient: FuturisticGradients.residential, icon: "home" },
+    { id: "commercial", label: "Commercial", gradient: FuturisticGradients.commercial, icon: "briefcase" },
   ];
 
   return (
@@ -186,25 +199,40 @@ function CategoryTabs({
           <Pressable
             key={tab.id}
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               onTabChange(tab.id);
             }}
-            style={[
-              styles.tab,
-              {
-                backgroundColor: isActive ? BrandColors.blue : theme.backgroundDefault,
-                borderColor: isActive ? BrandColors.blue : theme.divider,
-              },
-            ]}
+            style={styles.tabWrapper}
           >
-            <ThemedText
-              type="h4"
-              style={{
-                color: isActive ? "#FFFFFF" : theme.text,
-              }}
-            >
-              {tab.label}
-            </ThemedText>
+            {isActive ? (
+              <LinearGradient
+                colors={tab.gradient as [string, string, ...string[]]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.tab}
+              >
+                <Feather name={tab.icon} size={20} color="#FFFFFF" />
+                <ThemedText type="h4" style={styles.tabTextActive}>
+                  {tab.label}
+                </ThemedText>
+              </LinearGradient>
+            ) : (
+              <View
+                style={[
+                  styles.tab,
+                  {
+                    backgroundColor: colors.backgroundSecondary,
+                    borderColor: colors.cardBorder,
+                    borderWidth: 1.5,
+                  },
+                ]}
+              >
+                <Feather name={tab.icon} size={20} color={colors.textSecondary} />
+                <ThemedText type="h4" style={{ color: colors.text }}>
+                  {tab.label}
+                </ThemedText>
+              </View>
+            )}
           </Pressable>
         );
       })}
@@ -212,23 +240,79 @@ function CategoryTabs({
   );
 }
 
+function ServiceReminder({ index }: { index: number }) {
+  const { colors } = useTheme();
+  const reminderIndex = index % ServiceReminders.length;
+  const sparkle = useSharedValue(1);
+
+  useEffect(() => {
+    sparkle.value = withRepeat(
+      withSequence(
+        withTiming(1.15, { duration: 800 }),
+        withTiming(1, { duration: 800 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const sparkleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sparkle.value }],
+  }));
+
+  return (
+    <Animated.View
+      entering={FadeInUp.delay(200).duration(500)}
+      style={[styles.reminderCard, { backgroundColor: BrandColors.glow + "15", borderColor: BrandColors.glow + "40" }]}
+    >
+      <Animated.View style={sparkleStyle}>
+        <Feather name="heart" size={20} color={BrandColors.green} />
+      </Animated.View>
+      <ThemedText type="small" style={[styles.reminderText, { color: colors.text }]}>
+        {ServiceReminders[reminderIndex]}
+      </ThemedText>
+      <Animated.View style={sparkleStyle}>
+        <Feather name="star" size={16} color="#FFD600" />
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
 function ServiceCard({
   item,
   index,
+  isResidential,
 }: {
   item: ServiceItem;
   index: number;
+  isResidential: boolean;
 }) {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<ServicesStackParamList>>();
   const scale = useSharedValue(1);
+  const glowIntensity = useSharedValue(0.2);
+
+  useEffect(() => {
+    glowIntensity.value = withRepeat(
+      withSequence(
+        withTiming(0.5, { duration: 1500 }),
+        withTiming(0.2, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: glowIntensity.value,
+  }));
+
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(0.94, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
@@ -243,14 +327,17 @@ function ServiceCard({
     });
   };
 
-  const isResidential = item.category === "residential";
-  const cardBgColor = isResidential ? "#E3F2FD" : "#E8F5E9";
-  const iconBgColor = isResidential ? BrandColors.blue : BrandColors.green;
-  const borderColor = isResidential ? "#90CAF9" : "#A5D6A7";
+  const gradientColors = isResidential
+    ? ["#E3F2FD", "#BBDEFB", "#90CAF9"]
+    : ["#E8F5E9", "#C8E6C9", "#A5D6A7"];
+  const iconGradient = isResidential
+    ? FuturisticGradients.residential
+    : FuturisticGradients.commercial;
+  const glowColor = isResidential ? BrandColors.blue : BrandColors.green;
 
   return (
-    <Animated.View 
-      entering={FadeInDown.delay(100 + index * 40).duration(400)}
+    <Animated.View
+      entering={ZoomIn.delay(100 + index * 60).duration(400).springify()}
       style={styles.gridItem}
     >
       <AnimatedPressable
@@ -259,19 +346,35 @@ function ServiceCard({
         onPressOut={handlePressOut}
         style={[
           styles.serviceCardGrid,
-          { 
-            backgroundColor: cardBgColor,
-            borderColor: borderColor,
-          },
           animatedStyle,
+          glowStyle,
+          {
+            shadowColor: glowColor,
+            ...GlowEffects.small,
+          },
         ]}
       >
-        <View style={[styles.iconContainerGrid, { backgroundColor: iconBgColor }]}>
-          <Feather name={item.icon} size={28} color="#FFFFFF" />
-        </View>
-        <ThemedText type="h4" style={styles.cardTitle} numberOfLines={2}>
-          {item.title}
-        </ThemedText>
+        <LinearGradient
+          colors={gradientColors as [string, string, ...string[]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.cardGradient}
+        >
+          <LinearGradient
+            colors={iconGradient as [string, string, ...string[]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.iconContainerGrid}
+          >
+            <Feather name={item.icon} size={28} color="#FFFFFF" />
+          </LinearGradient>
+          <ThemedText type="h4" style={styles.cardTitle} numberOfLines={2}>
+            {item.title}
+          </ThemedText>
+          <View style={styles.cardArrow}>
+            <Feather name="chevron-right" size={18} color={glowColor} />
+          </View>
+        </LinearGradient>
       </AnimatedPressable>
     </Animated.View>
   );
@@ -281,27 +384,71 @@ export default function ServicesScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
-  const { theme } = useTheme();
+  const { colors } = useTheme();
+  const route = useRoute<RouteProp<{ params: { category?: string } }, "params">>();
 
-  const [activeTab, setActiveTab] = useState<CategoryTab>("all");
+  const initialTab = route.params?.category === "commercial" ? "commercial" : "residential";
+  const [activeTab, setActiveTab] = useState<CategoryTab>(initialTab);
 
-  const filteredServices = activeTab === "all"
-    ? allServices
-    : allServices.filter((s) => s.category === activeTab);
+  const services = activeTab === "residential" ? residentialServices : commercialServices;
+  const sectionGradient = activeTab === "residential"
+    ? FuturisticGradients.residential
+    : FuturisticGradients.commercial;
 
   const renderHeader = () => (
     <View>
       <CategoryTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      <Animated.View entering={FadeInDown.delay(120).duration(400)}>
-        <ThemedText type="h3" style={styles.sectionTitle}>
-          {activeTab === "all"
-            ? "All Services"
-            : activeTab === "residential"
-            ? "Residential Services"
-            : "Commercial Services"}
-        </ThemedText>
+
+      <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+        <LinearGradient
+          colors={sectionGradient as [string, string, ...string[]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.sectionHeader}
+        >
+          <Feather
+            name={activeTab === "residential" ? "home" : "briefcase"}
+            size={28}
+            color="#FFFFFF"
+          />
+          <View style={styles.sectionHeaderContent}>
+            <ThemedText type="h2" style={styles.sectionTitle}>
+              {activeTab === "residential" ? "Residential Services" : "Commercial Services"}
+            </ThemedText>
+            <ThemedText type="small" style={styles.sectionSubtitle}>
+              {activeTab === "residential"
+                ? "6 services for your home"
+                : "12 services for your business"}
+            </ThemedText>
+          </View>
+        </LinearGradient>
       </Animated.View>
+
+      <ServiceReminder index={activeTab === "residential" ? 0 : 5} />
     </View>
+  );
+
+  const renderFooter = () => (
+    <Animated.View
+      entering={FadeInUp.delay(600).duration(400)}
+      style={[styles.helpCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.cardBorder }]}
+    >
+      <View style={styles.helpIconWrapper}>
+        <LinearGradient
+          colors={["#7C4DFF", "#651FFF"]}
+          style={styles.helpIcon}
+        >
+          <Feather name="phone-call" size={24} color="#FFFFFF" />
+        </LinearGradient>
+      </View>
+      <View style={styles.helpContent}>
+        <ThemedText type="h4">Need Help Choosing?</ThemedText>
+        <ThemedText type="small" style={{ color: colors.textSecondary }}>
+          Our friendly team is ready to assist you!
+        </ThemedText>
+      </View>
+      <Feather name="chevron-right" size={22} color={colors.textSecondary} />
+    </Animated.View>
   );
 
   return (
@@ -309,18 +456,19 @@ export default function ServicesScreen() {
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingTop: headerHeight + Spacing.xl,
+          paddingTop: headerHeight + Spacing.lg,
           paddingBottom: tabBarHeight + Spacing.xl,
           paddingHorizontal: Spacing.lg,
         }}
         scrollIndicatorInsets={{ bottom: insets.bottom }}
-        data={filteredServices}
+        data={services}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
         numColumns={2}
         columnWrapperStyle={styles.gridRow}
         renderItem={({ item, index }) => (
-          <ServiceCard item={item} index={index} />
+          <ServiceCard item={item} index={index} isResidential={activeTab === "residential"} />
         )}
         showsVerticalScrollIndicator={false}
       />
@@ -334,21 +482,55 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.xs,
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  tabWrapper: {
+    flex: 1,
   },
   tab: {
-    flex: 1,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
+    justifyContent: "center",
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.sm,
+  },
+  tabTextActive: {
+    color: "#FFFFFF",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    marginBottom: Spacing.md,
+    gap: Spacing.lg,
+  },
+  sectionHeaderContent: {
+    flex: 1,
   },
   sectionTitle: {
+    color: "#FFFFFF",
+    marginBottom: Spacing.xs,
+  },
+  sectionSubtitle: {
+    color: "rgba(255,255,255,0.9)",
+  },
+  reminderCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
     marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.xs,
+    borderWidth: 1.5,
+    gap: Spacing.sm,
+  },
+  reminderText: {
+    flex: 1,
+    textAlign: "center",
+    fontStyle: "italic",
   },
   gridRow: {
     justifyContent: "space-between",
@@ -358,17 +540,19 @@ const styles = StyleSheet.create({
     width: "48%",
   },
   serviceCardGrid: {
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.xl,
+    overflow: "hidden",
+  },
+  cardGradient: {
     padding: Spacing.lg,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 140,
-    borderWidth: 1.5,
+    minHeight: 160,
   },
   iconContainerGrid: {
-    width: 56,
-    height: 56,
-    borderRadius: BorderRadius.md,
+    width: 60,
+    height: 60,
+    borderRadius: BorderRadius.lg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.md,
@@ -377,5 +561,42 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 15,
     lineHeight: 20,
+  },
+  cardArrow: {
+    position: "absolute",
+    top: Spacing.sm,
+    right: Spacing.sm,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  helpCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    marginTop: Spacing.lg,
+    borderWidth: 1.5,
+    gap: Spacing.md,
+  },
+  helpIconWrapper: {
+    shadowColor: "#7C4DFF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  helpIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: BorderRadius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  helpContent: {
+    flex: 1,
   },
 });

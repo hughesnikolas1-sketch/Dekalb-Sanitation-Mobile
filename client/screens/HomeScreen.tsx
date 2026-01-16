@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   FlatList,
@@ -16,16 +16,29 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import Animated, {
   FadeInDown,
+  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
+  ZoomIn,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
-import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
+import {
+  Spacing,
+  BorderRadius,
+  BrandColors,
+  FuturisticGradients,
+  GlowEffects,
+  ServiceReminders,
+} from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -35,43 +48,149 @@ interface ServiceCategory {
   title: string;
   description: string;
   icon: keyof typeof Feather.glyphMap;
-  color: string;
-  gradientColors: [string, string];
+  gradientColors: string[];
+  glowColor: string;
 }
 
 const serviceCategories: ServiceCategory[] = [
   {
     id: "residential",
     title: "Residential Services",
-    description: "Trash, recycling, and yard waste pickup for homes",
+    description: "Trash, recycling, and yard waste pickup for your home",
     icon: "home",
-    color: BrandColors.blue,
-    gradientColors: [BrandColors.blue, BrandColors.blueDark],
+    gradientColors: FuturisticGradients.residential,
+    glowColor: BrandColors.blue,
   },
   {
     id: "commercial",
     title: "Commercial Services",
     description: "Business and commercial waste management solutions",
     icon: "briefcase",
-    color: BrandColors.green,
-    gradientColors: [BrandColors.green, BrandColors.greenDark],
+    gradientColors: FuturisticGradients.commercial,
+    glowColor: BrandColors.green,
   },
 ];
 
-function WelcomeHeader({ userName }: { userName: string }) {
-  const { theme } = useTheme();
+function FloatingOrb({ color, size, delay, x, y }: { color: string; size: number; delay: number; x: number; y: number }) {
+  const floatY = useSharedValue(0);
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    floatY.value = withRepeat(
+      withSequence(
+        withTiming(-15, { duration: 2000 + delay, easing: Easing.inOut(Easing.ease) }),
+        withTiming(15, { duration: 2000 + delay, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 1500 + delay }),
+        withTiming(0.3, { duration: 1500 + delay })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: floatY.value }],
+    opacity: opacity.value,
+  }));
 
   return (
-    <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.welcomeHeader}>
-      <View>
-        <ThemedText type="body" style={{ color: theme.textSecondary }}>
-          Welcome back,
-        </ThemedText>
-        <ThemedText type="h2">{userName}</ThemedText>
-      </View>
-      <View style={[styles.avatarContainer, { backgroundColor: BrandColors.blue }]}>
-        <Feather name="user" size={24} color="#FFFFFF" />
-      </View>
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          left: x,
+          top: y,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: color,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+function WelcomeHeader({ userName }: { userName: string }) {
+  const { colors } = useTheme();
+  const waveRotation = useSharedValue(0);
+  const [currentReminder, setCurrentReminder] = useState(0);
+
+  useEffect(() => {
+    waveRotation.value = withRepeat(
+      withSequence(
+        withTiming(15, { duration: 200 }),
+        withTiming(-15, { duration: 200 }),
+        withTiming(15, { duration: 200 }),
+        withTiming(0, { duration: 200 })
+      ),
+      -1,
+      false
+    );
+
+    const interval = setInterval(() => {
+      setCurrentReminder((prev) => (prev + 1) % ServiceReminders.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const waveStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${waveRotation.value}deg` }],
+  }));
+
+  return (
+    <Animated.View entering={FadeInDown.delay(100).duration(600).springify()}>
+      <LinearGradient
+        colors={FuturisticGradients.hero as unknown as [string, string, ...string[]]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.welcomeGradient}
+      >
+        <FloatingOrb color="#00E5FF" size={60} delay={0} x={-20} y={10} />
+        <FloatingOrb color="#E040FB" size={40} delay={300} x={280} y={30} />
+        <FloatingOrb color="#00E676" size={50} delay={600} x={200} y={80} />
+
+        <View style={styles.welcomeContent}>
+          <View style={styles.welcomeTop}>
+            <View>
+              <View style={styles.greetingRow}>
+                <ThemedText type="body" style={styles.welcomeSubtext}>
+                  Welcome back
+                </ThemedText>
+                <Animated.View style={waveStyle}>
+                  <ThemedText style={styles.waveEmoji}>Hello!</ThemedText>
+                </Animated.View>
+              </View>
+              <ThemedText type="h1" style={styles.welcomeName}>
+                {userName}
+              </ThemedText>
+            </View>
+            <View style={styles.avatarGlow}>
+              <View style={styles.avatarContainer}>
+                <Feather name="user" size={28} color="#FFFFFF" />
+              </View>
+            </View>
+          </View>
+
+          <Animated.View
+            key={currentReminder}
+            entering={FadeInUp.duration(400)}
+            style={styles.reminderBanner}
+          >
+            <Feather name="heart" size={18} color="#00E676" />
+            <ThemedText type="small" style={styles.reminderText}>
+              {ServiceReminders[currentReminder]}
+            </ThemedText>
+            <Feather name="star" size={16} color="#FFD600" />
+          </Animated.View>
+        </View>
+      </LinearGradient>
     </Animated.View>
   );
 }
@@ -86,13 +205,29 @@ function ServiceCategoryCard({
   onPress: () => void;
 }) {
   const scale = useSharedValue(1);
+  const glowIntensity = useSharedValue(0.3);
+
+  useEffect(() => {
+    glowIntensity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 1500 }),
+        withTiming(0.3, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: glowIntensity.value,
+  }));
+
   const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(0.96, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
@@ -105,32 +240,42 @@ function ServiceCategoryCard({
   };
 
   return (
-    <Animated.View entering={FadeInDown.delay(200 + index * 100).duration(500)}>
+    <Animated.View entering={ZoomIn.delay(300 + index * 150).duration(500).springify()}>
       <AnimatedPressable
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={[styles.categoryCard, animatedStyle]}
+        style={[
+          styles.categoryCard,
+          animatedStyle,
+          glowStyle,
+          {
+            shadowColor: category.glowColor,
+            ...GlowEffects.medium,
+          },
+        ]}
       >
         <LinearGradient
-          colors={category.gradientColors}
+          colors={category.gradientColors as [string, string, ...string[]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.categoryGradient}
         >
-          <View style={styles.categoryIconContainer}>
-            <Feather name={category.icon} size={40} color="#FFFFFF" />
+          <View style={styles.categoryIconWrapper}>
+            <View style={styles.categoryIconGlow}>
+              <Feather name={category.icon} size={44} color="#FFFFFF" />
+            </View>
           </View>
           <View style={styles.categoryContent}>
-            <ThemedText type="h3" style={styles.categoryTitle}>
+            <ThemedText type="h2" style={styles.categoryTitle}>
               {category.title}
             </ThemedText>
             <ThemedText type="body" style={styles.categoryDescription}>
               {category.description}
             </ThemedText>
           </View>
-          <View style={styles.categoryArrow}>
-            <Feather name="chevron-right" size={28} color="rgba(255,255,255,0.8)" />
+          <View style={styles.categoryArrowContainer}>
+            <Feather name="arrow-right" size={28} color="rgba(255,255,255,0.9)" />
           </View>
         </LinearGradient>
       </AnimatedPressable>
@@ -142,16 +287,16 @@ function QuickActionCard({
   icon,
   title,
   onPress,
-  color,
+  gradientColors,
   delay,
 }: {
   icon: keyof typeof Feather.glyphMap;
   title: string;
   onPress: () => void;
-  color: string;
+  gradientColors: string[];
   delay: number;
 }) {
-  const { theme } = useTheme();
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -159,7 +304,7 @@ function QuickActionCard({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(0.94, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
@@ -167,7 +312,7 @@ function QuickActionCard({
   };
 
   return (
-    <Animated.View entering={FadeInDown.delay(delay).duration(500)} style={{ flex: 1 }}>
+    <Animated.View entering={FadeInDown.delay(delay).duration(500).springify()} style={{ flex: 1 }}>
       <AnimatedPressable
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -177,13 +322,18 @@ function QuickActionCard({
         onPressOut={handlePressOut}
         style={[
           styles.quickActionCard,
-          { backgroundColor: theme.backgroundDefault },
+          { backgroundColor: colors.backgroundSecondary, borderColor: colors.cardBorder },
           animatedStyle,
         ]}
       >
-        <View style={[styles.quickActionIcon, { backgroundColor: color }]}>
-          <Feather name={icon} size={24} color="#FFFFFF" />
-        </View>
+        <LinearGradient
+          colors={gradientColors as [string, string, ...string[]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.quickActionIcon}
+        >
+          <Feather name={icon} size={26} color="#FFFFFF" />
+        </LinearGradient>
         <ThemedText type="h4" style={styles.quickActionTitle}>
           {title}
         </ThemedText>
@@ -192,11 +342,70 @@ function QuickActionCard({
   );
 }
 
+function FriendlyMascot() {
+  const bounce = useSharedValue(0);
+  const sparkle = useSharedValue(1);
+
+  useEffect(() => {
+    bounce.value = withRepeat(
+      withSequence(
+        withTiming(-8, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 600, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+    sparkle.value = withRepeat(
+      withSequence(
+        withTiming(1.2, { duration: 800 }),
+        withTiming(1, { duration: 800 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const bounceStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: bounce.value }],
+  }));
+
+  const sparkleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sparkle.value }],
+  }));
+
+  return (
+    <Animated.View
+      entering={ZoomIn.delay(800).duration(600).springify()}
+      style={styles.mascotContainer}
+    >
+      <LinearGradient
+        colors={["#00E676", "#00C853", "#69F0AE"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.mascotGradient}
+      >
+        <Animated.View style={[styles.mascotSparkle, { left: -10, top: -5 }, sparkleStyle]}>
+          <Feather name="star" size={16} color="#FFD600" />
+        </Animated.View>
+        <Animated.View style={[styles.mascotSparkle, { right: -8, top: 5 }, sparkleStyle]}>
+          <Feather name="star" size={12} color="#00E5FF" />
+        </Animated.View>
+        <Animated.View style={bounceStyle}>
+          <Feather name="truck" size={36} color="#FFFFFF" />
+        </Animated.View>
+      </LinearGradient>
+      <ThemedText type="small" style={styles.mascotText}>
+        Ready to help!
+      </ThemedText>
+    </Animated.View>
+  );
+}
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
-  const { theme } = useTheme();
+  const { colors } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -224,9 +433,16 @@ export default function HomeScreen() {
     <View>
       <WelcomeHeader userName={userName} />
 
-      <Animated.View entering={FadeInDown.delay(150).duration(500)}>
+      <View style={styles.mascotSection}>
+        <FriendlyMascot />
+      </View>
+
+      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
         <ThemedText type="h3" style={styles.sectionTitle}>
-          Our Services
+          Choose Your Service
+        </ThemedText>
+        <ThemedText type="body" style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+          Tap to explore all available options
         </ThemedText>
       </Animated.View>
 
@@ -239,7 +455,7 @@ export default function HomeScreen() {
         />
       ))}
 
-      <Animated.View entering={FadeInDown.delay(450).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(650).duration(500)}>
         <ThemedText type="h3" style={[styles.sectionTitle, { marginTop: Spacing["2xl"] }]}>
           Quick Actions
         </ThemedText>
@@ -250,15 +466,15 @@ export default function HomeScreen() {
           icon="alert-circle"
           title="Report Issue"
           onPress={handleReportIssue}
-          color={BrandColors.blue}
-          delay={500}
+          gradientColors={["#FF5252", "#FF1744"]}
+          delay={700}
         />
         <QuickActionCard
           icon="calendar"
           title="View Schedule"
           onPress={() => handleCategoryPress("residential")}
-          color={BrandColors.green}
-          delay={550}
+          gradientColors={FuturisticGradients.residential}
+          delay={750}
         />
       </View>
 
@@ -267,17 +483,31 @@ export default function HomeScreen() {
           icon="phone"
           title="Contact Us"
           onPress={() => {}}
-          color="#7B1FA2"
-          delay={600}
+          gradientColors={["#7C4DFF", "#651FFF"]}
+          delay={800}
         />
         <QuickActionCard
           icon="help-circle"
           title="Help & FAQ"
           onPress={() => {}}
-          color="#F57C00"
-          delay={650}
+          gradientColors={["#FF9100", "#FF6D00"]}
+          delay={850}
         />
       </View>
+
+      <Animated.View
+        entering={FadeInDown.delay(900).duration(500)}
+        style={[styles.helpBanner, { backgroundColor: colors.backgroundSecondary, borderColor: BrandColors.glow + "40" }]}
+      >
+        <Feather name="phone-call" size={24} color={BrandColors.glow} />
+        <View style={styles.helpBannerContent}>
+          <ThemedText type="h4">Need Assistance?</ThemedText>
+          <ThemedText type="small" style={{ color: colors.textSecondary }}>
+            Our team is here to help you 24/7
+          </ThemedText>
+        </View>
+        <Feather name="chevron-right" size={24} color={colors.textSecondary} />
+      </Animated.View>
     </View>
   );
 
@@ -286,9 +516,9 @@ export default function HomeScreen() {
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingTop: headerHeight + Spacing.xl,
+          paddingTop: headerHeight + Spacing.lg,
           paddingBottom: tabBarHeight + Spacing.xl,
-          paddingHorizontal: Spacing.xl,
+          paddingHorizontal: Spacing.lg,
         }}
         scrollIndicatorInsets={{ bottom: insets.bottom }}
         data={[]}
@@ -299,8 +529,8 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={theme.primary}
-            colors={[theme.primary]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -313,46 +543,123 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  welcomeHeader: {
+  welcomeGradient: {
+    borderRadius: BorderRadius["2xl"],
+    padding: Spacing.xl,
+    marginBottom: Spacing.lg,
+    overflow: "hidden",
+    minHeight: 180,
+  },
+  welcomeContent: {
+    zIndex: 10,
+  },
+  welcomeTop: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  greetingRow: {
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: Spacing["2xl"],
+    gap: Spacing.sm,
+  },
+  welcomeSubtext: {
+    color: "rgba(255,255,255,0.85)",
+  },
+  waveEmoji: {
+    fontSize: 16,
+    color: "#FFD600",
+  },
+  welcomeName: {
+    color: "#FFFFFF",
+    marginTop: Spacing.xs,
+  },
+  avatarGlow: {
+    shadowColor: "#00E5FF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
+    elevation: 8,
   },
   avatarContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(255,255,255,0.25)",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.4)",
+  },
+  reminderBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginTop: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  reminderText: {
+    flex: 1,
+    color: "#FFFFFF",
+    textAlign: "center",
+  },
+  mascotSection: {
+    alignItems: "center",
+    marginVertical: Spacing.md,
+  },
+  mascotContainer: {
+    alignItems: "center",
+  },
+  mascotGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#00E676",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  mascotSparkle: {
+    position: "absolute",
+  },
+  mascotText: {
+    marginTop: Spacing.sm,
+    fontWeight: "600",
   },
   sectionTitle: {
+    marginBottom: Spacing.xs,
+  },
+  sectionSubtitle: {
     marginBottom: Spacing.lg,
   },
   categoryCard: {
     borderRadius: BorderRadius.xl,
     marginBottom: Spacing.lg,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
   },
   categoryGradient: {
     flexDirection: "row",
     alignItems: "center",
     padding: Spacing.xl,
-    minHeight: 120,
+    minHeight: 140,
   },
-  categoryIconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: "rgba(255,255,255,0.2)",
+  categoryIconWrapper: {
+    marginRight: Spacing.lg,
+  },
+  categoryIconGlow: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.xl,
+    backgroundColor: "rgba(255,255,255,0.25)",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: Spacing.lg,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.3)",
   },
   categoryContent: {
     flex: 1,
@@ -362,10 +669,16 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   categoryDescription: {
-    color: "rgba(255,255,255,0.85)",
+    color: "rgba(255,255,255,0.9)",
+    lineHeight: 24,
   },
-  categoryArrow: {
-    marginLeft: Spacing.sm,
+  categoryArrowContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   quickActionsRow: {
     flexDirection: "row",
@@ -375,22 +688,30 @@ const styles = StyleSheet.create({
   quickActionCard: {
     alignItems: "center",
     padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1.5,
   },
   quickActionIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: BorderRadius.md,
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.lg,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.md,
   },
   quickActionTitle: {
     textAlign: "center",
+  },
+  helpBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    marginTop: Spacing.lg,
+    borderWidth: 1.5,
+    gap: Spacing.md,
+  },
+  helpBannerContent: {
+    flex: 1,
   },
 });
