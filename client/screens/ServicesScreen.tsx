@@ -228,7 +228,7 @@ function ServiceCard({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
@@ -243,33 +243,35 @@ function ServiceCard({
     });
   };
 
-  const iconColor = item.category === "residential" ? BrandColors.blue : BrandColors.green;
+  const isResidential = item.category === "residential";
+  const cardBgColor = isResidential ? "#E3F2FD" : "#E8F5E9";
+  const iconBgColor = isResidential ? BrandColors.blue : BrandColors.green;
+  const borderColor = isResidential ? "#90CAF9" : "#A5D6A7";
 
   return (
-    <Animated.View entering={FadeInDown.delay(150 + index * 50).duration(400)}>
+    <Animated.View 
+      entering={FadeInDown.delay(100 + index * 40).duration(400)}
+      style={styles.gridItem}
+    >
       <AnimatedPressable
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         style={[
-          styles.serviceCard,
-          { backgroundColor: theme.backgroundDefault },
+          styles.serviceCardGrid,
+          { 
+            backgroundColor: cardBgColor,
+            borderColor: borderColor,
+          },
           animatedStyle,
         ]}
       >
-        <View style={[styles.iconContainer, { backgroundColor: iconColor }]}>
-          <Feather name={item.icon} size={26} color="#FFFFFF" />
+        <View style={[styles.iconContainerGrid, { backgroundColor: iconBgColor }]}>
+          <Feather name={item.icon} size={28} color="#FFFFFF" />
         </View>
-        <View style={styles.serviceInfo}>
-          <ThemedText type="h4">{item.title}</ThemedText>
-          <ThemedText
-            type="small"
-            style={{ opacity: 0.7, marginTop: Spacing.xs }}
-          >
-            {item.description}
-          </ThemedText>
-        </View>
-        <Feather name="chevron-right" size={24} color={theme.textSecondary} />
+        <ThemedText type="h4" style={styles.cardTitle} numberOfLines={2}>
+          {item.title}
+        </ThemedText>
       </AnimatedPressable>
     </Animated.View>
   );
@@ -309,12 +311,14 @@ export default function ServicesScreen() {
         contentContainerStyle={{
           paddingTop: headerHeight + Spacing.xl,
           paddingBottom: tabBarHeight + Spacing.xl,
-          paddingHorizontal: Spacing.xl,
+          paddingHorizontal: Spacing.lg,
         }}
         scrollIndicatorInsets={{ bottom: insets.bottom }}
         data={filteredServices}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
+        numColumns={2}
+        columnWrapperStyle={styles.gridRow}
         renderItem={({ item, index }) => (
           <ServiceCard item={item} index={index} />
         )}
@@ -332,6 +336,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.sm,
     marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.xs,
   },
   tab: {
     flex: 1,
@@ -343,28 +348,34 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.xs,
   },
-  serviceCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
+  gridRow: {
+    justifyContent: "space-between",
     marginBottom: Spacing.md,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
-  iconContainer: {
+  gridItem: {
+    width: "48%",
+  },
+  serviceCardGrid: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 140,
+    borderWidth: 1.5,
+  },
+  iconContainerGrid: {
     width: 56,
     height: 56,
     borderRadius: BorderRadius.md,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  serviceInfo: {
-    flex: 1,
+  cardTitle: {
+    textAlign: "center",
+    fontSize: 15,
+    lineHeight: 20,
   },
 });
