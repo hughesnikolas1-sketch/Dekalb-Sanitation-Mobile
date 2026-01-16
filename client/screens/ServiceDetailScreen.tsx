@@ -28,7 +28,12 @@ interface ServiceOption {
   name: string;
   size?: string;
   price: string;
-  schedule: string;
+  schedule?: string;
+}
+
+interface ContentSection {
+  title: string;
+  content: string[];
 }
 
 interface ServiceInfo {
@@ -37,6 +42,10 @@ interface ServiceInfo {
   icon: keyof typeof Feather.glyphMap;
   color: string;
   options: ServiceOption[];
+  formQuestions?: string[];
+  contentSections?: ContentSection[];
+  additionalInfo?: string[];
+  links?: { text: string; url: string }[];
 }
 
 const serviceDetails: Record<string, ServiceInfo> = {
@@ -103,88 +112,181 @@ const serviceDetails: Record<string, ServiceInfo> = {
   // Commercial Services
   "com-missed-trash": {
     title: "Missed Trash Pickup",
-    description: "Report a missed commercial trash collection. Please provide details about your roll cart, pickup time, and upload a photo of items at curb.",
+    description: "Report a missed trash collection. Please complete all required fields below.",
     icon: "trash-2",
     color: BrandColors.green,
-    options: [
-      { id: "1", name: "Report Missed Collection", price: "Free", schedule: "Response within 24 hours" },
-      { id: "2", name: "Request Routeware Footage", price: "Free", schedule: "Available upon request" },
+    options: [],
+    formQuestions: [
+      "Service Location (Select your address)",
+      "Do you have a county issued roll cart? (Yes/No)",
+      "Did the roll cart have excess overflow? (Yes/No)",
+      "Was there anything in the roll cart that was not trash?",
+      "What time was the roll cart placed at the curb?",
+    ],
+    additionalInfo: [
+      "Would you like to know possible reasons you were missed?",
+      "Request Routeware Footage - View footage of collection vehicle at your location",
+      "Additional Details (Optional) - Provide any additional information",
+      "Photo Required - Take Photo or Choose File from your device",
     ],
   },
   "com-missed-recycling": {
     title: "Missed Recycling",
-    description: "Report a missed commercial recycling collection. Confirm if items are recyclable and provide details about boxes at curb.",
+    description: "Report a missed recycling collection. Please complete all required fields below.",
     icon: "refresh-cw",
     color: BrandColors.green,
-    options: [
-      { id: "1", name: "Report Missed Collection", price: "Free", schedule: "Response within 24 hours" },
-      { id: "2", name: "Request Routeware Footage", price: "Free", schedule: "Available upon request" },
+    options: [],
+    formQuestions: [
+      "Service Location (Select your address)",
+      "Is there any glass in your roll cart? (Yes/No)",
+      "Is everything inside the cart considered recyclable? (Yes/No/Not Sure)",
+      "How many boxes are at the curb?",
+    ],
+    additionalInfo: [
+      "Would you like to know possible reasons you were missed?",
+      "Request Routeware Footage - View footage of collection vehicle at your location",
+      "Additional Details (Optional) - Provide any additional information",
+      "Photo Required - Take Photo or Choose File from your device",
     ],
   },
   "com-missed-yard-waste": {
     title: "Missed Yard Waste",
-    description: "Report a missed yard waste collection. Specify debris type, number of bags, and confirm branches are cut to 4 feet or less.",
+    description: "Report a missed yard waste collection. Please complete all required fields below.",
     icon: "feather",
     color: BrandColors.green,
-    options: [
-      { id: "1", name: "Report Missed Collection", price: "Free", schedule: "Response within 24 hours" },
-      { id: "2", name: "Request Routeware Footage", price: "Free", schedule: "Available upon request" },
+    options: [],
+    formQuestions: [
+      "Service Location (Select your address)",
+      "What type of debris is it? (Select from dropdown)",
+      "How many bags are at the curb currently?",
+      "Are there any dirt in the bags? (Yes/No)",
+      "Are the bags biodegradable? (Yes/No/N/A loose pile)",
+      "Are the tree branches and limbs cut down to 4 feet or less? (Yes/No/N/A no branches)",
+      "What time were items placed at the curb?",
+    ],
+    additionalInfo: [
+      "Would you like to know possible reasons you were missed?",
+      "Additional Details (Optional) - Provide any additional information",
+      "Photo Required - Take Photo or Choose File from your device",
     ],
   },
   "com-roll-cart": {
     title: "Roll Cart Services",
-    description: "Request new, replacement, or additional roll carts. Annual prorated assessment fee may apply for additional carts.",
+    description: "An annual prorated assessment fee applies when receiving an additional cart. Select the service you need below.",
     icon: "box",
     color: BrandColors.green,
     options: [
-      { id: "1", name: "Complimentary 95-Gallon Trash Cart", size: "95 Gallon", price: "Free", schedule: "New customers" },
-      { id: "2", name: "Complimentary 45-Gallon Recycle Cart", size: "45 Gallon", price: "Free", schedule: "New customers" },
-      { id: "3", name: "Additional Trash Roll Cart", size: "95 Gallon", price: "$25", schedule: "5-7 days delivery" },
-      { id: "4", name: "New 45-Gallon Recycle Cart", size: "45 Gallon", price: "$42.50", schedule: "5-7 days delivery" },
-      { id: "5", name: "New 65-Gallon Recycle Cart", size: "65 Gallon", price: "$52.30", schedule: "5-7 days delivery" },
-      { id: "6", name: "New Trash Roll Cart", size: "95 Gallon", price: "$60.55", schedule: "5-7 days delivery" },
-      { id: "7", name: "Damaged Cart Replacement", size: "Refurbished", price: "Free", schedule: "5-7 days delivery" },
-      { id: "8", name: "Stolen Cart Replacement", size: "Refurbished", price: "Free", schedule: "5-7 days delivery" },
-      { id: "9", name: "Return Cart", size: "Schedule pickup", price: "Free", schedule: "By appointment" },
+      { id: "1", name: "Complimentary 95-Gallon Trash Cart", size: "One complimentary 95-gallon trash roll cart provided to each new residential customer", price: "Free" },
+      { id: "2", name: "Complimentary 45-Gallon Recycle Cart", size: "One complimentary 45-gallon recycle roll cart provided to each new residential customer", price: "Free" },
+      { id: "3", name: "Additional Trash Roll Cart", size: "Request an additional trash roll cart for your property", price: "$25" },
+      { id: "4", name: "New 45-Gallon Recycle Cart", size: "Request a new 45-gallon recycle cart", price: "$42.50" },
+      { id: "5", name: "New 65-Gallon Recycle Cart", size: "Request a new 65-gallon recycle cart", price: "$52.30" },
+      { id: "6", name: "New Trash Roll Cart", size: "Request a new trash roll cart", price: "$60.55" },
+      { id: "7", name: "Damaged Cart", size: "Repair or refurbished replacement provided at no charge", price: "Free" },
+      { id: "8", name: "Stolen Cart", size: "Refurbished replacement provided at no charge", price: "Free" },
+      { id: "9", name: "Return Cart", size: "Schedule a cart return or pickup", price: "Free" },
+    ],
+    links: [
+      { text: "View Annual Prorated Fee Assessments", url: "https://dekalbcountyga.gov" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://dekalbcountyga.gov" },
     ],
   },
   "com-roll-off": {
     title: "Roll Off Request",
-    description: "Commercial roll off containers available for 2-week rental periods. Fee applied when container is serviced and returned.",
+    description: "Roll off containers are available for 2-week rental periods. The roll off fee is applied once the container has been serviced by the driver and returned to the Sanitation Division.",
     icon: "truck",
     color: BrandColors.green,
     options: [
-      { id: "1", name: "10 Yard Container", size: "Small commercial projects", price: "$226", schedule: "2-week rental" },
-      { id: "2", name: "20 Yard Container", size: "Medium commercial projects", price: "$451", schedule: "2-week rental" },
-      { id: "3", name: "30 Yard Container", size: "Large commercial projects", price: "$677", schedule: "2-week rental" },
-      { id: "4", name: "40 Yard Container", size: "Major commercial projects", price: "$902", schedule: "2-week rental" },
-      { id: "5", name: "Request Early Pickup", size: "Container full before 2 weeks", price: "Included", schedule: "As needed" },
+      { id: "1", name: "10 Yard Container", size: "2-week rental period", price: "$226" },
+      { id: "2", name: "20 Yard Container", size: "2-week rental period", price: "$451" },
+      { id: "3", name: "30 Yard Container", size: "2-week rental period", price: "$677" },
+      { id: "4", name: "40 Yard Container", size: "2-week rental period", price: "$902" },
+      { id: "5", name: "Request Early Pickup", size: "If your container is full before the 2-week period ends, request an early pickup", price: "Included" },
+    ],
+    links: [
+      { text: "Pay via InvoiceCloud Portal", url: "https://dekalbcountyga.gov" },
     ],
   },
   "com-new-requirements": {
     title: "Requirements for Establishing Commercial Sanitation Service",
-    description: "Visit: 3720 Leroy Scott Drive, Decatur, GA 30032. Hours: Monday-Friday, 9 a.m. - 3 p.m.",
+    description: "Office Location: 3720 Leroy Scott Drive, Decatur, GA 30032\nOffice Hours: Monday - Friday, 9 a.m. - 3 p.m.",
     icon: "file-text",
     color: BrandColors.green,
-    options: [
-      { id: "1", name: "New Business Application", size: "Signed by Sanitation Division staff", price: "Required", schedule: "In-person" },
-      { id: "2", name: "Photo Identification", size: "Driver's license/State ID/Passport", price: "Required", schedule: "Bring to office" },
-      { id: "3", name: "Proof of Ownership or Lease", size: "Deed, title, or lease agreement", price: "Required", schedule: "Bring to office" },
-      { id: "4", name: "No Outstanding Debt", size: "Clear sanitation account", price: "Required", schedule: "Verified" },
-      { id: "5", name: "Dumpster Delivery & Removal Fee", size: "Per dumpster prepayment", price: "$150", schedule: "Plus first month" },
+    options: [],
+    contentSections: [
+      {
+        title: "New Commercial Business Owner",
+        content: [
+          "1. New commercial business application (signed by Sanitation Division staff only)",
+          "2. Photo identification: driver's license, state-issued identification card, or passport",
+          "3. Proof of ownership: deed, title, bill of sale or current property tax statement",
+          "4. No outstanding sanitation debt associated with property address",
+          "5. Prepayment of dumpster delivery and removal fee of $150 per dumpster, plus first month's collection",
+        ],
+      },
+      {
+        title: "Commercial Business Tenant/Lease",
+        content: [
+          "1. New commercial business application (signed by Sanitation Division staff only)",
+          "2. Photo identification: driver's license, state-issued identification card, or passport",
+          "3. Lease agreement; no subleases accepted",
+          "4. Proof of responsibility for sanitation services (included in lease or separate utility agreement)",
+          "5. Prepayment of dumpster delivery and removal fee of $150 per dumpster, plus first month's collection",
+        ],
+      },
+      {
+        title: "Change in Business Ownership",
+        content: [
+          "If you are purchasing an existing business, you must establish a new account in your name.",
+          "The previous owner's account will be closed upon transfer of ownership.",
+          "Please bring proof of purchase and all required documentation listed above.",
+        ],
+      },
+    ],
+    additionalInfo: [
+      "Ready to Apply?",
+      "Each business owner or tenant/renter is required to provide the above documentation at the administrative office.",
     ],
   },
   "com-payment-options": {
     title: "Commercial Garbage and Recycling Payment Options",
-    description: "A nonrefundable service charge applies to online, telephone, and in-office credit/debit card payments. Email confirmation to CommercialService@dekalbcountyga.gov",
+    description: "A nonrefundable service charge applies to online, telephone, and in-office credit/debit card payments.",
     icon: "credit-card",
     color: BrandColors.green,
-    options: [
-      { id: "1", name: "Online Payment", size: "Myaccount.dekalbcountyga.gov", price: "Service fee applies", schedule: "24/7 available" },
-      { id: "2", name: "Quick Pay", size: "Fast online option", price: "Service fee applies", schedule: "Instant" },
-      { id: "3", name: "InvoiceCloud Portal", size: "Alternative payment", price: "Service fee applies", schedule: "24/7 available" },
-      { id: "4", name: "Telephone Payment", size: "Call customer service", price: "Service fee applies", schedule: "Business hours" },
-      { id: "5", name: "In-Office Payment", size: "3720 Leroy Scott Drive", price: "Service fee applies", schedule: "Mon-Fri 9am-3pm" },
+    options: [],
+    contentSections: [
+      {
+        title: "Online Payments",
+        content: [
+          "Visit Myaccount.dekalbcountyga.gov",
+          "Click on the quick pay tab",
+          "Enter your account information",
+          "Complete payment with credit/debit card",
+        ],
+      },
+      {
+        title: "Telephone Payments",
+        content: [
+          "Call our customer service line during business hours",
+          "Have your account number ready",
+          "Complete payment with credit/debit card",
+        ],
+      },
+      {
+        title: "In-Office Payments",
+        content: [
+          "Visit: 3720 Leroy Scott Drive, Decatur, GA 30032",
+          "Hours: Monday - Friday, 9 a.m. - 3 p.m.",
+          "Accepted: Cash, check, credit/debit card",
+        ],
+      },
+    ],
+    additionalInfo: [
+      "Email confirmation to: CommercialService@dekalbcountyga.gov",
+    ],
+    links: [
+      { text: "Pay via InvoiceCloud Portal", url: "https://dekalbcountyga.gov" },
+      { text: "Visit Myaccount.dekalbcountyga.gov", url: "https://myaccount.dekalbcountyga.gov" },
     ],
   },
   "com-new-garbage": {
@@ -303,6 +405,9 @@ export default function ServiceDetailScreen() {
     options: [],
   };
 
+  const isFormService = service.formQuestions && service.formQuestions.length > 0;
+  const hasContentSections = service.contentSections && service.contentSections.length > 0;
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView
@@ -327,6 +432,87 @@ export default function ServiceDetailScreen() {
           </ThemedText>
         </Animated.View>
 
+        {isFormService ? (
+          <>
+            <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+              <ThemedText type="h3" style={styles.sectionTitle}>
+                Trash Collection Details
+              </ThemedText>
+            </Animated.View>
+
+            {service.formQuestions?.map((question, index) => (
+              <Animated.View
+                key={index}
+                entering={FadeInDown.delay(250 + index * 30).duration(400)}
+              >
+                <View style={[styles.formQuestionCard, { backgroundColor: theme.backgroundDefault, borderColor: theme.divider }]}>
+                  <Feather name="help-circle" size={18} color={service.color} style={{ marginRight: Spacing.sm }} />
+                  <ThemedText type="body" style={{ flex: 1 }}>{question}</ThemedText>
+                </View>
+              </Animated.View>
+            ))}
+
+            {service.additionalInfo ? (
+              <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+                <View style={[styles.infoCard, { backgroundColor: service.color + "15", borderColor: service.color + "30" }]}>
+                  {service.additionalInfo.map((info, index) => (
+                    <View key={index} style={styles.infoRow}>
+                      <Feather name="info" size={16} color={service.color} style={{ marginRight: Spacing.sm }} />
+                      <ThemedText type="body" style={{ flex: 1 }}>{info}</ThemedText>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            ) : null}
+
+            <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+              <Pressable
+                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+                style={[styles.submitButton, { backgroundColor: service.color }]}
+              >
+                <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>
+                  Submit Request
+                </ThemedText>
+              </Pressable>
+            </Animated.View>
+          </>
+        ) : null}
+
+        {hasContentSections ? (
+          <>
+            {service.contentSections?.map((section, sectionIndex) => (
+              <Animated.View
+                key={sectionIndex}
+                entering={FadeInDown.delay(200 + sectionIndex * 100).duration(400)}
+              >
+                <View style={[styles.contentSection, { backgroundColor: theme.backgroundDefault, borderColor: theme.divider }]}>
+                  <ThemedText type="h4" style={[styles.contentSectionTitle, { color: service.color }]}>
+                    {section.title}
+                  </ThemedText>
+                  {section.content.map((item, itemIndex) => (
+                    <View key={itemIndex} style={styles.contentItem}>
+                      <ThemedText type="body" style={styles.contentText}>{item}</ThemedText>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            ))}
+
+            {service.additionalInfo ? (
+              <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+                <View style={[styles.infoCard, { backgroundColor: service.color + "15", borderColor: service.color + "30" }]}>
+                  {service.additionalInfo.map((info, index) => (
+                    <View key={index} style={styles.infoRow}>
+                      <Feather name="check-circle" size={16} color={service.color} style={{ marginRight: Spacing.sm }} />
+                      <ThemedText type="body" style={{ flex: 1, fontWeight: index === 0 ? "600" : "400" }}>{info}</ThemedText>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            ) : null}
+          </>
+        ) : null}
+
         {service.options.length > 0 ? (
           <>
             <Animated.View entering={FadeInDown.delay(200).duration(400)}>
@@ -346,13 +532,31 @@ export default function ServiceDetailScreen() {
           </>
         ) : null}
 
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+        {service.links && service.links.length > 0 ? (
+          <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+            <ThemedText type="h4" style={[styles.sectionTitle, { marginTop: Spacing.lg }]}>
+              Quick Links
+            </ThemedText>
+            {service.links.map((link, index) => (
+              <Pressable
+                key={index}
+                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                style={[styles.linkButton, { borderColor: service.color }]}
+              >
+                <Feather name="external-link" size={18} color={service.color} style={{ marginRight: Spacing.sm }} />
+                <ThemedText type="body" style={{ color: service.color }}>{link.text}</ThemedText>
+              </Pressable>
+            ))}
+          </Animated.View>
+        ) : null}
+
+        <Animated.View entering={FadeInDown.delay(700).duration(400)}>
           <Pressable
             onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
             style={[styles.contactButton, { backgroundColor: service.color }]}
           >
             <Feather name="phone" size={22} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
-            <ThemedText type="button" style={{ color: "#FFFFFF" }}>
+            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>
               Contact Us for More Info
             </ThemedText>
           </Pressable>
@@ -412,5 +616,56 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: Spacing.xl,
+  },
+  formQuestionCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+  },
+  infoCard: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: Spacing.sm,
+  },
+  submitButton: {
+    height: Spacing.buttonHeight,
+    borderRadius: BorderRadius.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: Spacing.lg,
+  },
+  contentSection: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+  },
+  contentSectionTitle: {
+    marginBottom: Spacing.md,
+    fontWeight: "600",
+  },
+  contentItem: {
+    marginBottom: Spacing.sm,
+  },
+  contentText: {
+    lineHeight: 24,
+  },
+  linkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    marginBottom: Spacing.sm,
   },
 });
