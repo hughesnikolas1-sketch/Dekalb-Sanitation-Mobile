@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -15,37 +15,193 @@ import * as Haptics from "expo-haptics";
 import Animated, {
   FadeInDown,
   FadeInUp,
+  ZoomIn,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, BrandColors, Typography } from "@/constants/theme";
+import {
+  Spacing,
+  BorderRadius,
+  BrandColors,
+  FuturisticGradients,
+  GlowEffects,
+  ServiceReminders,
+} from "@/constants/theme";
 import { AuthStackParamList } from "@/navigation/AuthStackNavigator";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+function FloatingOrb({ color, size, delay, x, y }: { color: string; size: number; delay: number; x: number; y: number }) {
+  const floatY = useSharedValue(0);
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    floatY.value = withRepeat(
+      withSequence(
+        withTiming(-20, { duration: 2500 + delay, easing: Easing.inOut(Easing.ease) }),
+        withTiming(20, { duration: 2500 + delay, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.7, { duration: 2000 + delay }),
+        withTiming(0.3, { duration: 2000 + delay })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: floatY.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          left: x,
+          top: y,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: color,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+function AnimatedMascot() {
+  const bounce = useSharedValue(0);
+  const sparkle = useSharedValue(1);
+  const rotate = useSharedValue(0);
+
+  useEffect(() => {
+    bounce.value = withRepeat(
+      withSequence(
+        withTiming(-10, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 800, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+    sparkle.value = withRepeat(
+      withSequence(
+        withTiming(1.2, { duration: 1000 }),
+        withTiming(1, { duration: 1000 })
+      ),
+      -1,
+      true
+    );
+    rotate.value = withRepeat(
+      withSequence(
+        withTiming(5, { duration: 1500 }),
+        withTiming(-5, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const bounceStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: bounce.value }, { rotate: `${rotate.value}deg` }],
+  }));
+
+  const sparkleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: sparkle.value }],
+  }));
+
+  return (
+    <Animated.View
+      entering={ZoomIn.delay(400).duration(600).springify()}
+      style={styles.mascotContainer}
+    >
+      <Animated.View style={[styles.mascotSparkle, { left: -15, top: -10 }, sparkleStyle]}>
+        <Feather name="star" size={20} color="#FFD600" />
+      </Animated.View>
+      <Animated.View style={[styles.mascotSparkle, { right: -12, top: 0 }, sparkleStyle]}>
+        <Feather name="star" size={14} color="#00E5FF" />
+      </Animated.View>
+      <Animated.View style={[styles.mascotSparkle, { right: 0, bottom: -5 }, sparkleStyle]}>
+        <Feather name="star" size={16} color="#E040FB" />
+      </Animated.View>
+      <Animated.View style={bounceStyle}>
+        <LinearGradient
+          colors={["#00E676", "#00C853", "#69F0AE"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.mascotGradient}
+        >
+          <Feather name="truck" size={44} color="#FFFFFF" />
+        </LinearGradient>
+      </Animated.View>
+    </Animated.View>
+  );
+}
 
 interface FeatureCardProps {
   icon: keyof typeof Feather.glyphMap;
   title: string;
   description: string;
-  color: string;
+  gradientColors: string[];
   delay: number;
 }
 
-function FeatureCard({ icon, title, description, color, delay }: FeatureCardProps) {
+function FeatureCard({ icon, title, description, gradientColors, delay }: FeatureCardProps) {
   const { theme } = useTheme();
+  const glowIntensity = useSharedValue(0.2);
+
+  useEffect(() => {
+    glowIntensity.value = withRepeat(
+      withSequence(
+        withTiming(0.4, { duration: 2000 }),
+        withTiming(0.2, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: glowIntensity.value,
+  }));
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(delay).duration(500)}
-      style={[styles.featureCard, { backgroundColor: theme.backgroundDefault }]}
+      entering={ZoomIn.delay(delay).duration(500).springify()}
+      style={[
+        styles.featureCard,
+        glowStyle,
+        {
+          backgroundColor: theme.backgroundSecondary,
+          borderColor: gradientColors[0] + "40",
+          shadowColor: gradientColors[0],
+          ...GlowEffects.small,
+        },
+      ]}
     >
-      <View style={[styles.featureIconContainer, { backgroundColor: color }]}>
+      <LinearGradient
+        colors={gradientColors as [string, string, ...string[]]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.featureIconContainer}
+      >
         <Feather name={icon} size={28} color="#FFFFFF" />
-      </View>
+      </LinearGradient>
       <View style={styles.featureContent}>
         <ThemedText type="h4" style={styles.featureTitle}>
           {title}
@@ -61,23 +217,41 @@ function FeatureCard({ icon, title, description, color, delay }: FeatureCardProp
 function ActionButton({
   title,
   onPress,
-  variant,
+  gradientColors,
+  outlined,
   delay,
 }: {
   title: string;
   onPress: () => void;
-  variant: "primary" | "secondary";
+  gradientColors: string[];
+  outlined?: boolean;
   delay: number;
 }) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
+  const glowIntensity = useSharedValue(0.3);
+
+  useEffect(() => {
+    glowIntensity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 1500 }),
+        withTiming(0.3, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: outlined ? 0 : glowIntensity.value,
+  }));
+
   const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 150 });
+    scale.value = withSpring(0.96, { damping: 15, stiffness: 150 });
   };
 
   const handlePressOut = () => {
@@ -89,10 +263,8 @@ function ActionButton({
     onPress();
   };
 
-  const isPrimary = variant === "primary";
-
   return (
-    <Animated.View entering={FadeInDown.delay(delay).duration(500)}>
+    <Animated.View entering={FadeInDown.delay(delay).duration(500).springify()}>
       <AnimatedPressable
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -100,24 +272,48 @@ function ActionButton({
         style={[
           styles.actionButton,
           animatedStyle,
-          isPrimary
-            ? { backgroundColor: BrandColors.blue }
-            : {
-                backgroundColor: "transparent",
-                borderWidth: 2,
-                borderColor: BrandColors.green,
-              },
+          glowStyle,
+          {
+            shadowColor: gradientColors[0],
+            ...GlowEffects.medium,
+          },
         ]}
       >
-        <ThemedText
-          type="button"
-          style={{
-            color: isPrimary ? "#FFFFFF" : BrandColors.green,
-            textAlign: "center",
-          }}
-        >
-          {title}
-        </ThemedText>
+        {outlined ? (
+          <View
+            style={[
+              styles.outlinedButton,
+              { borderColor: gradientColors[0] },
+            ]}
+          >
+            <ThemedText
+              type="h4"
+              style={{
+                color: gradientColors[0],
+                textAlign: "center",
+              }}
+            >
+              {title}
+            </ThemedText>
+          </View>
+        ) : (
+          <LinearGradient
+            colors={gradientColors as [string, string, ...string[]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientButton}
+          >
+            <ThemedText
+              type="h4"
+              style={{
+                color: "#FFFFFF",
+                textAlign: "center",
+              }}
+            >
+              {title}
+            </ThemedText>
+          </LinearGradient>
+        )}
       </AnimatedPressable>
     </Animated.View>
   );
@@ -140,11 +336,16 @@ export default function WelcomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
       <LinearGradient
-        colors={[BrandColors.blue, BrandColors.green]}
+        colors={FuturisticGradients.hero as unknown as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
+        <FloatingOrb color="#00E5FF" size={80} delay={0} x={-30} y={20} />
+        <FloatingOrb color="#E040FB" size={50} delay={500} x={280} y={60} />
+        <FloatingOrb color="#00E676" size={65} delay={300} x={220} y={120} />
+        <FloatingOrb color="#2979FF" size={45} delay={700} x={50} y={150} />
+
         <View style={[styles.headerContent, { paddingTop: insets.top + Spacing.xl }]}>
           <Animated.View entering={FadeInUp.delay(100).duration(600)}>
             <Image
@@ -177,10 +378,16 @@ export default function WelcomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View entering={FadeInDown.delay(400).duration(500)}>
-          <ThemedText type="body" style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Manage your services easily from anywhere
-          </ThemedText>
+        <AnimatedMascot />
+
+        <Animated.View entering={FadeInDown.delay(500).duration(500)}>
+          <View style={[styles.reminderBanner, { backgroundColor: BrandColors.glow + "15", borderColor: BrandColors.glow + "40" }]}>
+            <Feather name="heart" size={18} color={BrandColors.green} />
+            <ThemedText type="small" style={[styles.reminderText, { color: theme.text }]}>
+              {ServiceReminders[0]}
+            </ThemedText>
+            <Feather name="star" size={14} color="#FFD600" />
+          </View>
         </Animated.View>
 
         <View style={styles.featuresContainer}>
@@ -188,22 +395,22 @@ export default function WelcomeScreen() {
             icon="truck"
             title="Reliable Pickup"
             description="Regular schedules you can count on"
-            color={BrandColors.blue}
-            delay={500}
+            gradientColors={FuturisticGradients.residential}
+            delay={600}
           />
           <FeatureCard
             icon="refresh-cw"
             title="Green Recycling"
             description="Comprehensive recycling programs"
-            color={BrandColors.green}
-            delay={600}
+            gradientColors={FuturisticGradients.commercial}
+            delay={700}
           />
           <FeatureCard
             icon="feather"
             title="Yard Waste"
             description="Seasonal yard debris collection"
-            color={BrandColors.greenDark}
-            delay={700}
+            gradientColors={["#7C4DFF", "#651FFF", "#B388FF"]}
+            delay={800}
           />
         </View>
 
@@ -211,18 +418,19 @@ export default function WelcomeScreen() {
           <ActionButton
             title="Create Account"
             onPress={handleCreateAccount}
-            variant="primary"
-            delay={800}
+            gradientColors={FuturisticGradients.residential}
+            delay={900}
           />
           <ActionButton
             title="Sign In"
             onPress={handleSignIn}
-            variant="secondary"
-            delay={900}
+            gradientColors={FuturisticGradients.commercial}
+            outlined
+            delay={1000}
           />
         </View>
 
-        <Animated.View entering={FadeInDown.delay(1000).duration(500)}>
+        <Animated.View entering={FadeInDown.delay(1100).duration(500)}>
           <ThemedText
             type="caption"
             style={[styles.footnote, { color: theme.textSecondary }]}
@@ -241,14 +449,16 @@ const styles = StyleSheet.create({
   },
   headerGradient: {
     paddingBottom: Spacing["3xl"],
+    overflow: "hidden",
   },
   headerContent: {
     alignItems: "center",
     paddingHorizontal: Spacing.xl,
+    zIndex: 10,
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     marginBottom: Spacing.lg,
   },
   welcomeText: {
@@ -273,31 +483,57 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing["2xl"],
+    paddingTop: Spacing.lg,
   },
-  subtitle: {
+  mascotContainer: {
+    alignItems: "center",
+    marginBottom: Spacing.lg,
+  },
+  mascotGradient: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#00E676",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  mascotSparkle: {
+    position: "absolute",
+    zIndex: 10,
+  },
+  reminderBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.lg,
+    borderWidth: 1.5,
+    gap: Spacing.sm,
+  },
+  reminderText: {
+    flex: 1,
     textAlign: "center",
-    marginBottom: Spacing["2xl"],
+    fontStyle: "italic",
   },
   featuresContainer: {
-    gap: Spacing.lg,
-    marginBottom: Spacing["3xl"],
+    gap: Spacing.md,
+    marginBottom: Spacing["2xl"],
   },
   featureCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.xl,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    borderWidth: 1.5,
   },
   featureIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: BorderRadius.md,
+    width: 60,
+    height: 60,
+    borderRadius: BorderRadius.lg,
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.lg,
@@ -309,15 +545,27 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   buttonsContainer: {
-    gap: Spacing.lg,
+    gap: Spacing.md,
     marginBottom: Spacing["2xl"],
   },
   actionButton: {
+    borderRadius: BorderRadius.xl,
+    overflow: "hidden",
+  },
+  gradientButton: {
     height: Spacing.buttonHeight,
-    borderRadius: BorderRadius.lg,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: Spacing.xl,
+  },
+  outlinedButton: {
+    height: Spacing.buttonHeight,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.xl,
+    borderWidth: 2,
+    borderRadius: BorderRadius.xl,
+    backgroundColor: "transparent",
   },
   footnote: {
     textAlign: "center",
