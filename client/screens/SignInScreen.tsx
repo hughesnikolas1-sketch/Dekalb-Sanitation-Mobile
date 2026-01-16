@@ -27,10 +27,9 @@ import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useAuth } from "@/hooks/useAuth";
+import { getApiUrl } from "@/lib/query-client";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-const API_BASE_URL = "https://dekalb-county-sanitation--hughesnikolas1.replit.app";
 
 export default function SignInScreen() {
   const insets = useSafeAreaInsets();
@@ -68,7 +67,8 @@ export default function SignInScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/login`, {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

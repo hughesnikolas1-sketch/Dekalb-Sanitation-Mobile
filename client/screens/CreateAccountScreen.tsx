@@ -25,10 +25,9 @@ import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { useAuth } from "@/hooks/useAuth";
+import { getApiUrl } from "@/lib/query-client";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-const API_BASE_URL = "https://dekalb-county-sanitation--hughesnikolas1.replit.app";
 
 interface InputFieldProps {
   icon: keyof typeof Feather.glyphMap;
@@ -138,7 +137,8 @@ export default function CreateAccountScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/register`, {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}api/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
