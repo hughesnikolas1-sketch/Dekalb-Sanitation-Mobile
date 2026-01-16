@@ -37,14 +37,19 @@ The project uses a monorepo structure with an Expo mobile client and an Express.
 
 ## Recent Changes
 
-- January 2026: Updated Commercial Services with complete details from web app including all form fields
-- January 2026: Added 2-column grid layout for Services with color-coded cards (blue for residential, green for commercial)
-- January 2026: Roll Cart Services now shows all pricing: $25 Additional Cart, $42.50-$60.55 for new carts, Free for damaged/stolen
-- January 2026: Roll Off Request shows container pricing: $226 (10yd), $451 (20yd), $677 (30yd), $902 (40yd)
-- January 2026: Added Requirements for Establishing Commercial Service with office location and documentation needs
+- January 2026: Added word-for-word content from web app for all Commercial Services
+- January 2026: Missed Trash/Recycling/Yard Waste now show exact form questions from web app
+- January 2026: Requirements for Establishing Commercial Service shows complete documentation:
+  - New Commercial Business Owner (5 requirements)
+  - Commercial Business Tenant/Lease (5 requirements)
+  - Change in Business Ownership section
+  - Office: 3720 Leroy Scott Drive, Decatur, GA 30032
+- January 2026: Payment Options shows Online, Telephone, and In-Office payment methods with details
+- January 2026: Roll Cart Services with complete descriptions and Quick Links (Annual Prorated Fee, InvoiceCloud)
+- January 2026: Roll Off Request shows 2-week rental period details and Early Pickup option
+- January 2026: Added 2-column grid layout for Services with color-coded cards
 - January 2026: Added authentication flow with Welcome, Sign In, and Create Account screens
 - January 2026: Implemented blue/green dual-color theme with senior-friendly accessibility
-- January 2026: Reorganized dashboard with Residential Services and Commercial Services categories
 
 ## User Preferences
 
