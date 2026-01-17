@@ -508,22 +508,22 @@ export default function WelcomeScreen() {
         <View style={styles.featuresContainer}>
           <FeatureCard
             icon="truck"
-            title="Reliable Pickup"
-            description="Regular schedules you can count on"
+            title="🚛 Reliable Pickup"
+            description="Regular schedules you can count on 📅"
             gradientColors={FuturisticGradients.residential}
             delay={600}
           />
           <FeatureCard
             icon="refresh-cw"
-            title="Green Recycling"
-            description="Comprehensive recycling programs"
+            title="♻️ Green Recycling"
+            description="Comprehensive recycling programs 🌍"
             gradientColors={FuturisticGradients.commercial}
             delay={700}
           />
           <FeatureCard
             icon="feather"
-            title="Yard Waste"
-            description="Seasonal yard debris collection"
+            title="🌿 Yard Waste"
+            description="Seasonal yard debris collection 🍂"
             gradientColors={["#7C4DFF", "#651FFF", "#B388FF"]}
             delay={800}
           />
@@ -531,13 +531,13 @@ export default function WelcomeScreen() {
 
         <View style={styles.buttonsContainer}>
           <ActionButton
-            title="Create Account"
+            title="✨ Create Account"
             onPress={handleCreateAccount}
             gradientColors={FuturisticGradients.residential}
             delay={900}
           />
           <ActionButton
-            title="Sign In"
+            title="👋 Sign In"
             onPress={handleSignIn}
             gradientColors={FuturisticGradients.commercial}
             outlined

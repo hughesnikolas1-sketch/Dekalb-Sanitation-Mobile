@@ -29,6 +29,8 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { NavigationMenu } from "@/components/NavigationMenu";
+import { LiveChatButton } from "@/components/LiveChatButton";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -480,10 +482,10 @@ export default function HomeScreen() {
 
       <Animated.View entering={FadeInDown.delay(200).duration(500)}>
         <ThemedText type="h3" style={styles.sectionTitle}>
-          Choose Your Service
+          🎯 Choose Your Service
         </ThemedText>
         <ThemedText type="body" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
-          Tap to explore all available options
+          Tap to explore all available options ✨
         </ThemedText>
       </Animated.View>
 
@@ -498,21 +500,21 @@ export default function HomeScreen() {
 
       <Animated.View entering={FadeInDown.delay(650).duration(500)}>
         <ThemedText type="h3" style={[styles.sectionTitle, { marginTop: Spacing["2xl"] }]}>
-          Quick Actions
+          ⚡ Quick Actions
         </ThemedText>
       </Animated.View>
 
       <View style={styles.quickActionsRow}>
         <QuickActionCard
           icon="alert-circle"
-          title="Report Issue"
+          title="⚠️ Report Issue"
           onPress={handleReportIssue}
           gradientColors={["#FF5252", "#FF1744"]}
           delay={700}
         />
         <QuickActionCard
           icon="calendar"
-          title="View Schedule"
+          title="📅 View Schedule"
           onPress={() => handleCategoryPress("residential")}
           gradientColors={FuturisticGradients.residential}
           delay={750}
@@ -521,15 +523,15 @@ export default function HomeScreen() {
 
       <View style={styles.quickActionsRow}>
         <QuickActionCard
-          icon="phone"
-          title="Contact Us"
+          icon="message-circle"
+          title="💬 Live Chat"
           onPress={() => {}}
           gradientColors={["#7C4DFF", "#651FFF"]}
           delay={800}
         />
         <QuickActionCard
           icon="help-circle"
-          title="Help & FAQ"
+          title="❓ Help & FAQ"
           onPress={() => {}}
           gradientColors={["#FF9100", "#FF6D00"]}
           delay={850}
@@ -540,11 +542,11 @@ export default function HomeScreen() {
         entering={FadeInDown.delay(900).duration(500)}
         style={[styles.helpBanner, { backgroundColor: theme.backgroundSecondary, borderColor: BrandColors.glow + "40" }]}
       >
-        <Feather name="phone-call" size={24} color={BrandColors.glow} />
+        <ThemedText style={{ fontSize: 24 }}>😊</ThemedText>
         <View style={styles.helpBannerContent}>
-          <ThemedText type="h4">Need Assistance?</ThemedText>
+          <ThemedText type="h4">Need Assistance? 🤝</ThemedText>
           <ThemedText type="small" style={{ color: theme.textSecondary }}>
-            Our team is here to help you 24/7
+            Tap the chat bubble below for instant help! 💬
           </ThemedText>
         </View>
         <Feather name="chevron-right" size={24} color={theme.textSecondary} />
@@ -552,8 +554,13 @@ export default function HomeScreen() {
     </View>
   );
 
+  const handleMenuNavigate = useCallback((screen: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, []);
+
   return (
     <ThemedView style={styles.container}>
+      <NavigationMenu onNavigate={handleMenuNavigate} />
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -576,6 +583,7 @@ export default function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
+      <LiveChatButton />
     </ThemedView>
   );
 }
