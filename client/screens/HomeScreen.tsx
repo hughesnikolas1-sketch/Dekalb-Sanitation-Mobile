@@ -118,7 +118,7 @@ function FloatingOrb({ color, size, delay, x, y }: { color: string; size: number
 }
 
 function WelcomeHeader({ userName }: { userName: string }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const waveRotation = useSharedValue(0);
   const [currentReminder, setCurrentReminder] = useState(0);
 
@@ -296,7 +296,7 @@ function QuickActionCard({
   gradientColors: string[];
   delay: number;
 }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -322,7 +322,7 @@ function QuickActionCard({
         onPressOut={handlePressOut}
         style={[
           styles.quickActionCard,
-          { backgroundColor: colors.backgroundSecondary, borderColor: colors.cardBorder },
+          { backgroundColor: theme.backgroundSecondary, borderColor: theme.cardBorder },
           animatedStyle,
         ]}
       >
@@ -405,7 +405,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -441,7 +441,7 @@ export default function HomeScreen() {
         <ThemedText type="h3" style={styles.sectionTitle}>
           Choose Your Service
         </ThemedText>
-        <ThemedText type="body" style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+        <ThemedText type="body" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
           Tap to explore all available options
         </ThemedText>
       </Animated.View>
@@ -497,16 +497,16 @@ export default function HomeScreen() {
 
       <Animated.View
         entering={FadeInDown.delay(900).duration(500)}
-        style={[styles.helpBanner, { backgroundColor: colors.backgroundSecondary, borderColor: BrandColors.glow + "40" }]}
+        style={[styles.helpBanner, { backgroundColor: theme.backgroundSecondary, borderColor: BrandColors.glow + "40" }]}
       >
         <Feather name="phone-call" size={24} color={BrandColors.glow} />
         <View style={styles.helpBannerContent}>
           <ThemedText type="h4">Need Assistance?</ThemedText>
-          <ThemedText type="small" style={{ color: colors.textSecondary }}>
+          <ThemedText type="small" style={{ color: theme.textSecondary }}>
             Our team is here to help you 24/7
           </ThemedText>
         </View>
-        <Feather name="chevron-right" size={24} color={colors.textSecondary} />
+        <Feather name="chevron-right" size={24} color={theme.textSecondary} />
       </Animated.View>
     </View>
   );
@@ -529,8 +529,8 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
           />
         }
         showsVerticalScrollIndicator={false}
