@@ -71,30 +71,67 @@ const serviceCategories: ServiceCategory[] = [
   },
 ];
 
-function AnimatedTruckPickup({ delay, y, direction }: { delay: number; y: number; direction: "left" | "right" }) {
-  const translateX = useSharedValue(direction === "right" ? -80 : 400);
-  const trashScale = useSharedValue(1);
+function AnimatedShiningSun({ x, y }: { x: number; y: number }) {
+  const rayScale = useSharedValue(1);
+  const sunRotate = useSharedValue(0);
 
   useEffect(() => {
-    const endX = direction === "right" ? 400 : -80;
-    const pickupPoint = direction === "right" ? 150 : 200;
-    
-    translateX.value = withRepeat(
+    rayScale.value = withRepeat(
       withSequence(
-        withTiming(pickupPoint, { duration: 2000 + delay, easing: Easing.linear }),
-        withTiming(pickupPoint, { duration: 800 }),
-        withTiming(endX, { duration: 2000 + delay, easing: Easing.linear }),
-        withTiming(direction === "right" ? -80 : 400, { duration: 0 })
+        withTiming(1.2, { duration: 1200 }),
+        withTiming(1, { duration: 1200 })
+      ),
+      -1,
+      true
+    );
+    sunRotate.value = withRepeat(
+      withTiming(360, { duration: 15000, easing: Easing.linear }),
+      -1,
+      false
+    );
+  }, []);
+
+  const sunStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: rayScale.value }, { rotate: `${sunRotate.value}deg` }],
+  }));
+
+  return (
+    <Animated.View style={[{ position: "absolute", left: x, top: y }, sunStyle]}>
+      <ThemedText style={{ fontSize: 28 }}>☀️</ThemedText>
+    </Animated.View>
+  );
+}
+
+function AnimatedRecycleBottle({ y }: { y: number }) {
+  const bottleX = useSharedValue(-20);
+  const bottleY = useSharedValue(0);
+  const bottleScale = useSharedValue(1);
+
+  useEffect(() => {
+    bottleX.value = withRepeat(
+      withSequence(
+        withTiming(40, { duration: 1200, easing: Easing.out(Easing.ease) }),
+        withTiming(40, { duration: 400 }),
+        withTiming(-20, { duration: 0 })
       ),
       -1,
       false
     );
-
-    trashScale.value = withRepeat(
+    bottleY.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 2000 + delay }),
-        withTiming(0, { duration: 400 }),
-        withTiming(0, { duration: 2400 + delay }),
+        withTiming(-15, { duration: 600 }),
+        withTiming(20, { duration: 600 }),
+        withTiming(20, { duration: 400 }),
+        withTiming(0, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+    bottleScale.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1200 }),
+        withTiming(0, { duration: 200 }),
+        withTiming(0, { duration: 200 }),
         withTiming(1, { duration: 0 })
       ),
       -1,
@@ -102,58 +139,23 @@ function AnimatedTruckPickup({ delay, y, direction }: { delay: number; y: number
     );
   }, []);
 
-  const truckStyle = useAnimatedStyle(() => ({
+  const bottleStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: translateX.value },
-      { scaleX: direction === "left" ? -1 : 1 },
+      { translateX: bottleX.value },
+      { translateY: bottleY.value },
+      { scale: bottleScale.value },
     ],
   }));
 
-  const trashStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: trashScale.value }],
-    opacity: trashScale.value,
-  }));
-
-  const pickupX = direction === "right" ? 150 : 200;
-
   return (
-    <>
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            top: y + 15,
-            left: pickupX + 20,
-          },
-          trashStyle,
-        ]}
-      >
-        <Feather name="trash-2" size={16} color="#4CAF50" />
+    <View style={{ position: "absolute", right: 30, top: y }}>
+      <View style={{ position: "absolute", left: 40, top: 18 }}>
+        <ThemedText style={{ fontSize: 22 }}>♻️</ThemedText>
+      </View>
+      <Animated.View style={[{ position: "absolute", left: 0, top: 0 }, bottleStyle]}>
+        <ThemedText style={{ fontSize: 16 }}>🧴</ThemedText>
       </Animated.View>
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            top: y,
-            left: 0,
-          },
-          truckStyle,
-        ]}
-      >
-        <LinearGradient
-          colors={["#2E7D32", "#43A047"]}
-          style={{
-            width: 45,
-            height: 26,
-            borderRadius: 5,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Feather name="truck" size={18} color="#FFFFFF" />
-        </LinearGradient>
-      </Animated.View>
-    </>
+    </View>
   );
 }
 
@@ -192,8 +194,8 @@ function WelcomeHeader({ userName }: { userName: string }) {
         end={{ x: 1, y: 1 }}
         style={styles.welcomeGradient}
       >
-        <AnimatedTruckPickup delay={0} y={15} direction="right" />
-        <AnimatedTruckPickup delay={1200} y={55} direction="left" />
+        <AnimatedShiningSun x={270} y={10} />
+        <AnimatedRecycleBottle y={45} />
 
         <View style={styles.welcomeContent}>
           <View style={styles.welcomeTop}>

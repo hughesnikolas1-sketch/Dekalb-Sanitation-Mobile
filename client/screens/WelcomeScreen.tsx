@@ -39,103 +39,165 @@ import { AuthStackParamList } from "@/navigation/AuthStackNavigator";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function AnimatedTruckPickup({ delay, startX, y, direction }: { delay: number; startX: number; y: number; direction: "left" | "right" }) {
-  const translateX = useSharedValue(direction === "right" ? -80 : 400);
-  const trashScale = useSharedValue(1);
-  const trashOpacity = useSharedValue(1);
+function AnimatedBranchCutting({ y }: { y: number }) {
+  const scissorRotate = useSharedValue(0);
+  const branchScale = useSharedValue(1);
+  const branchFall = useSharedValue(0);
 
   useEffect(() => {
-    const endX = direction === "right" ? 400 : -80;
-    const pickupPoint = direction === "right" ? 150 : 200;
-    
-    translateX.value = withRepeat(
+    scissorRotate.value = withRepeat(
       withSequence(
-        withTiming(pickupPoint, { duration: 2000 + delay, easing: Easing.linear }),
-        withTiming(pickupPoint, { duration: 800 }),
-        withTiming(endX, { duration: 2000 + delay, easing: Easing.linear }),
-        withTiming(direction === "right" ? -80 : 400, { duration: 0 })
+        withTiming(15, { duration: 300 }),
+        withTiming(-15, { duration: 300 }),
+        withTiming(15, { duration: 300 }),
+        withTiming(0, { duration: 200 })
       ),
       -1,
       false
     );
-
-    trashScale.value = withRepeat(
+    branchScale.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 2000 + delay }),
+        withTiming(1, { duration: 1100 }),
+        withTiming(0.8, { duration: 200 }),
         withTiming(0, { duration: 400 }),
-        withTiming(0, { duration: 2400 + delay }),
+        withTiming(0, { duration: 800 }),
         withTiming(1, { duration: 0 })
       ),
       -1,
       false
     );
-
-    trashOpacity.value = withRepeat(
+    branchFall.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 2000 + delay }),
-        withTiming(0, { duration: 400 }),
-        withTiming(0, { duration: 2400 + delay }),
-        withTiming(1, { duration: 0 })
+        withTiming(0, { duration: 1300 }),
+        withTiming(50, { duration: 400 }),
+        withTiming(50, { duration: 800 }),
+        withTiming(0, { duration: 0 })
       ),
       -1,
       false
     );
   }, []);
 
-  const truckStyle = useAnimatedStyle(() => ({
+  const scissorStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${scissorRotate.value}deg` }],
+  }));
+
+  const branchStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: branchScale.value }, { translateY: branchFall.value }],
+    opacity: branchScale.value,
+  }));
+
+  return (
+    <View style={{ position: "absolute", left: 30, top: y }}>
+      <Animated.View style={[{ position: "absolute", left: 40, top: 0 }, branchStyle]}>
+        <ThemedText style={{ fontSize: 22 }}>🌿</ThemedText>
+      </Animated.View>
+      <Animated.View style={[{ position: "absolute", left: 0, top: 5 }, scissorStyle]}>
+        <ThemedText style={{ fontSize: 20 }}>✂️</ThemedText>
+      </Animated.View>
+      <View style={{ position: "absolute", left: 35, top: 30 }}>
+        <ThemedText style={{ fontSize: 16 }}>🌳</ThemedText>
+      </View>
+    </View>
+  );
+}
+
+function AnimatedRecycleBottle({ y }: { y: number }) {
+  const bottleX = useSharedValue(-30);
+  const bottleY = useSharedValue(0);
+  const bottleScale = useSharedValue(1);
+  const bottleRotate = useSharedValue(0);
+
+  useEffect(() => {
+    bottleX.value = withRepeat(
+      withSequence(
+        withTiming(50, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(50, { duration: 500 }),
+        withTiming(-30, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+    bottleY.value = withRepeat(
+      withSequence(
+        withTiming(-20, { duration: 750 }),
+        withTiming(30, { duration: 750 }),
+        withTiming(30, { duration: 500 }),
+        withTiming(0, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+    bottleScale.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1500 }),
+        withTiming(0, { duration: 300 }),
+        withTiming(0, { duration: 200 }),
+        withTiming(1, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+    bottleRotate.value = withRepeat(
+      withSequence(
+        withTiming(360, { duration: 1500 }),
+        withTiming(360, { duration: 500 }),
+        withTiming(0, { duration: 0 })
+      ),
+      -1,
+      false
+    );
+  }, []);
+
+  const bottleStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: translateX.value },
-      { scaleX: direction === "left" ? -1 : 1 },
+      { translateX: bottleX.value },
+      { translateY: bottleY.value },
+      { rotate: `${bottleRotate.value}deg` },
+      { scale: bottleScale.value },
     ],
   }));
 
-  const trashStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: trashScale.value }],
-    opacity: trashOpacity.value,
+  return (
+    <View style={{ position: "absolute", right: 40, top: y }}>
+      <View style={{ position: "absolute", left: 50, top: 25 }}>
+        <ThemedText style={{ fontSize: 28 }}>♻️</ThemedText>
+      </View>
+      <Animated.View style={[{ position: "absolute", left: 0, top: 0 }, bottleStyle]}>
+        <ThemedText style={{ fontSize: 20 }}>🧴</ThemedText>
+      </Animated.View>
+    </View>
+  );
+}
+
+function AnimatedShiningSun({ x, y }: { x: number; y: number }) {
+  const rayScale = useSharedValue(1);
+  const sunRotate = useSharedValue(0);
+
+  useEffect(() => {
+    rayScale.value = withRepeat(
+      withSequence(
+        withTiming(1.3, { duration: 1500 }),
+        withTiming(1, { duration: 1500 })
+      ),
+      -1,
+      true
+    );
+    sunRotate.value = withRepeat(
+      withTiming(360, { duration: 20000, easing: Easing.linear }),
+      -1,
+      false
+    );
+  }, []);
+
+  const sunStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: rayScale.value }, { rotate: `${sunRotate.value}deg` }],
   }));
 
-  const pickupX = direction === "right" ? 150 : 200;
-
   return (
-    <>
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            top: y + 15,
-            left: pickupX + 20,
-          },
-          trashStyle,
-        ]}
-      >
-        <Feather name="trash-2" size={18} color="#4CAF50" />
-      </Animated.View>
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            top: y,
-            left: 0,
-          },
-          truckStyle,
-        ]}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <LinearGradient
-            colors={["#2E7D32", "#43A047"]}
-            style={{
-              width: 50,
-              height: 30,
-              borderRadius: 6,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Feather name="truck" size={20} color="#FFFFFF" />
-          </LinearGradient>
-        </View>
-      </Animated.View>
-    </>
+    <Animated.View style={[{ position: "absolute", left: x, top: y }, sunStyle]}>
+      <ThemedText style={{ fontSize: 32 }}>☀️</ThemedText>
+    </Animated.View>
   );
 }
 
@@ -395,9 +457,9 @@ export default function WelcomeScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <AnimatedTruckPickup delay={0} startX={-80} y={30} direction="right" />
-        <AnimatedTruckPickup delay={1500} startX={400} y={100} direction="left" />
-        <AnimatedTruckPickup delay={3000} startX={-80} y={170} direction="right" />
+        <AnimatedShiningSun x={280} y={15} />
+        <AnimatedBranchCutting y={60} />
+        <AnimatedRecycleBottle y={120} />
 
         <View style={[styles.headerContent, { paddingTop: insets.top + Spacing.xl }]}>
           <Animated.View entering={FadeInUp.delay(100).duration(600)}>
