@@ -71,49 +71,89 @@ const serviceCategories: ServiceCategory[] = [
   },
 ];
 
-function FloatingOrb({ color, size, delay, x, y }: { color: string; size: number; delay: number; x: number; y: number }) {
-  const floatY = useSharedValue(0);
-  const opacity = useSharedValue(0.3);
+function AnimatedTruckPickup({ delay, y, direction }: { delay: number; y: number; direction: "left" | "right" }) {
+  const translateX = useSharedValue(direction === "right" ? -80 : 400);
+  const trashScale = useSharedValue(1);
 
   useEffect(() => {
-    floatY.value = withRepeat(
+    const endX = direction === "right" ? 400 : -80;
+    const pickupPoint = direction === "right" ? 150 : 200;
+    
+    translateX.value = withRepeat(
       withSequence(
-        withTiming(-15, { duration: 2000 + delay, easing: Easing.inOut(Easing.ease) }),
-        withTiming(15, { duration: 2000 + delay, easing: Easing.inOut(Easing.ease) })
+        withTiming(pickupPoint, { duration: 2000 + delay, easing: Easing.linear }),
+        withTiming(pickupPoint, { duration: 800 }),
+        withTiming(endX, { duration: 2000 + delay, easing: Easing.linear }),
+        withTiming(direction === "right" ? -80 : 400, { duration: 0 })
       ),
       -1,
-      true
+      false
     );
-    opacity.value = withRepeat(
+
+    trashScale.value = withRepeat(
       withSequence(
-        withTiming(0.6, { duration: 1500 + delay }),
-        withTiming(0.3, { duration: 1500 + delay })
+        withTiming(1, { duration: 2000 + delay }),
+        withTiming(0, { duration: 400 }),
+        withTiming(0, { duration: 2400 + delay }),
+        withTiming(1, { duration: 0 })
       ),
       -1,
-      true
+      false
     );
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: floatY.value }],
-    opacity: opacity.value,
+  const truckStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { scaleX: direction === "left" ? -1 : 1 },
+    ],
   }));
 
+  const trashStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: trashScale.value }],
+    opacity: trashScale.value,
+  }));
+
+  const pickupX = direction === "right" ? 150 : 200;
+
   return (
-    <Animated.View
-      style={[
-        {
-          position: "absolute",
-          left: x,
-          top: y,
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: color,
-        },
-        animatedStyle,
-      ]}
-    />
+    <>
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            top: y + 15,
+            left: pickupX + 20,
+          },
+          trashStyle,
+        ]}
+      >
+        <Feather name="trash-2" size={16} color="#4CAF50" />
+      </Animated.View>
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            top: y,
+            left: 0,
+          },
+          truckStyle,
+        ]}
+      >
+        <LinearGradient
+          colors={["#2E7D32", "#43A047"]}
+          style={{
+            width: 45,
+            height: 26,
+            borderRadius: 5,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Feather name="truck" size={18} color="#FFFFFF" />
+        </LinearGradient>
+      </Animated.View>
+    </>
   );
 }
 
@@ -152,9 +192,8 @@ function WelcomeHeader({ userName }: { userName: string }) {
         end={{ x: 1, y: 1 }}
         style={styles.welcomeGradient}
       >
-        <FloatingOrb color="#00E5FF" size={60} delay={0} x={-20} y={10} />
-        <FloatingOrb color="#E040FB" size={40} delay={300} x={280} y={30} />
-        <FloatingOrb color="#00E676" size={50} delay={600} x={200} y={80} />
+        <AnimatedTruckPickup delay={0} y={15} direction="right" />
+        <AnimatedTruckPickup delay={1200} y={55} direction="left" />
 
         <View style={styles.welcomeContent}>
           <View style={styles.welcomeTop}>
@@ -379,16 +418,16 @@ function FriendlyMascot() {
       style={styles.mascotContainer}
     >
       <LinearGradient
-        colors={["#00E676", "#00C853", "#69F0AE"]}
+        colors={["#2E7D32", "#43A047", "#1565C0"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.mascotGradient}
       >
         <Animated.View style={[styles.mascotSparkle, { left: -10, top: -5 }, sparkleStyle]}>
-          <Feather name="star" size={16} color="#FFD600" />
+          <Feather name="star" size={16} color="#4CAF50" />
         </Animated.View>
         <Animated.View style={[styles.mascotSparkle, { right: -8, top: 5 }, sparkleStyle]}>
-          <Feather name="star" size={12} color="#00E5FF" />
+          <Feather name="star" size={12} color="#1976D2" />
         </Animated.View>
         <Animated.View style={bounceStyle}>
           <Feather name="truck" size={36} color="#FFFFFF" />

@@ -43,15 +43,15 @@ export const BrandColors = {
   glow: neonCyan,
 };
 
-// Futuristic gradient presets
+// Green and Blue gradient presets - main theme colors
 export const FuturisticGradients = {
-  residential: [residentialBlue, neonCyan, "#40C4FF"],
-  commercial: [commercialGreen, "#69F0AE", neonYellow],
-  hero: [neonBlueDark, electricPurple, neonMagenta],
-  card: ["#1A237E", "#311B92", electricPurple],
-  sunset: [neonOrange, neonMagenta, electricPurple],
-  ocean: [neonBlueDark, neonCyan, neonGreen],
-  aurora: [neonGreen, neonCyan, neonBlue, electricPurple],
+  residential: ["#1565C0", "#1976D2", "#42A5F5"],
+  commercial: ["#2E7D32", "#43A047", "#66BB6A"],
+  hero: ["#1565C0", "#2E7D32", "#43A047"],
+  card: ["#0D47A1", "#1565C0", "#1976D2"],
+  greenBlue: ["#2E7D32", "#00897B", "#1565C0"],
+  ocean: ["#0277BD", "#00ACC1", "#26A69A"],
+  nature: ["#2E7D32", "#388E3C", "#4CAF50"],
 };
 
 export const Colors = {

@@ -39,49 +39,103 @@ import { AuthStackParamList } from "@/navigation/AuthStackNavigator";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-function FloatingOrb({ color, size, delay, x, y }: { color: string; size: number; delay: number; x: number; y: number }) {
-  const floatY = useSharedValue(0);
-  const opacity = useSharedValue(0.3);
+function AnimatedTruckPickup({ delay, startX, y, direction }: { delay: number; startX: number; y: number; direction: "left" | "right" }) {
+  const translateX = useSharedValue(direction === "right" ? -80 : 400);
+  const trashScale = useSharedValue(1);
+  const trashOpacity = useSharedValue(1);
 
   useEffect(() => {
-    floatY.value = withRepeat(
+    const endX = direction === "right" ? 400 : -80;
+    const pickupPoint = direction === "right" ? 150 : 200;
+    
+    translateX.value = withRepeat(
       withSequence(
-        withTiming(-20, { duration: 2500 + delay, easing: Easing.inOut(Easing.ease) }),
-        withTiming(20, { duration: 2500 + delay, easing: Easing.inOut(Easing.ease) })
+        withTiming(pickupPoint, { duration: 2000 + delay, easing: Easing.linear }),
+        withTiming(pickupPoint, { duration: 800 }),
+        withTiming(endX, { duration: 2000 + delay, easing: Easing.linear }),
+        withTiming(direction === "right" ? -80 : 400, { duration: 0 })
       ),
       -1,
-      true
+      false
     );
-    opacity.value = withRepeat(
+
+    trashScale.value = withRepeat(
       withSequence(
-        withTiming(0.7, { duration: 2000 + delay }),
-        withTiming(0.3, { duration: 2000 + delay })
+        withTiming(1, { duration: 2000 + delay }),
+        withTiming(0, { duration: 400 }),
+        withTiming(0, { duration: 2400 + delay }),
+        withTiming(1, { duration: 0 })
       ),
       -1,
-      true
+      false
+    );
+
+    trashOpacity.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000 + delay }),
+        withTiming(0, { duration: 400 }),
+        withTiming(0, { duration: 2400 + delay }),
+        withTiming(1, { duration: 0 })
+      ),
+      -1,
+      false
     );
   }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: floatY.value }],
-    opacity: opacity.value,
+  const truckStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { scaleX: direction === "left" ? -1 : 1 },
+    ],
   }));
 
+  const trashStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: trashScale.value }],
+    opacity: trashOpacity.value,
+  }));
+
+  const pickupX = direction === "right" ? 150 : 200;
+
   return (
-    <Animated.View
-      style={[
-        {
-          position: "absolute",
-          left: x,
-          top: y,
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: color,
-        },
-        animatedStyle,
-      ]}
-    />
+    <>
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            top: y + 15,
+            left: pickupX + 20,
+          },
+          trashStyle,
+        ]}
+      >
+        <Feather name="trash-2" size={18} color="#4CAF50" />
+      </Animated.View>
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            top: y,
+            left: 0,
+          },
+          truckStyle,
+        ]}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <LinearGradient
+            colors={["#2E7D32", "#43A047"]}
+            style={{
+              width: 50,
+              height: 30,
+              borderRadius: 6,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Feather name="truck" size={20} color="#FFFFFF" />
+          </LinearGradient>
+        </View>
+      </Animated.View>
+    </>
   );
 }
 
@@ -131,17 +185,17 @@ function AnimatedMascot() {
       style={styles.mascotContainer}
     >
       <Animated.View style={[styles.mascotSparkle, { left: -15, top: -10 }, sparkleStyle]}>
-        <Feather name="star" size={20} color="#FFD600" />
+        <Feather name="star" size={20} color="#4CAF50" />
       </Animated.View>
       <Animated.View style={[styles.mascotSparkle, { right: -12, top: 0 }, sparkleStyle]}>
-        <Feather name="star" size={14} color="#00E5FF" />
+        <Feather name="star" size={14} color="#1976D2" />
       </Animated.View>
       <Animated.View style={[styles.mascotSparkle, { right: 0, bottom: -5 }, sparkleStyle]}>
-        <Feather name="star" size={16} color="#E040FB" />
+        <Feather name="star" size={16} color="#2E7D32" />
       </Animated.View>
       <Animated.View style={bounceStyle}>
         <LinearGradient
-          colors={["#00E676", "#00C853", "#69F0AE"]}
+          colors={["#2E7D32", "#43A047", "#1565C0"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.mascotGradient}
@@ -341,10 +395,9 @@ export default function WelcomeScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
-        <FloatingOrb color="#00E5FF" size={80} delay={0} x={-30} y={20} />
-        <FloatingOrb color="#E040FB" size={50} delay={500} x={280} y={60} />
-        <FloatingOrb color="#00E676" size={65} delay={300} x={220} y={120} />
-        <FloatingOrb color="#2979FF" size={45} delay={700} x={50} y={150} />
+        <AnimatedTruckPickup delay={0} startX={-80} y={30} direction="right" />
+        <AnimatedTruckPickup delay={1500} startX={400} y={100} direction="left" />
+        <AnimatedTruckPickup delay={3000} startX={-80} y={170} direction="right" />
 
         <View style={[styles.headerContent, { paddingTop: insets.top + Spacing.xl }]}>
           <Animated.View entering={FadeInUp.delay(100).duration(600)}>
