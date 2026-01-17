@@ -184,7 +184,7 @@ function CategoryTabs({
   activeTab: CategoryTab;
   onTabChange: (tab: CategoryTab) => void;
 }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
 
   const tabs: { id: CategoryTab; label: string; gradient: string[]; icon: keyof typeof Feather.glyphMap }[] = [
     { id: "residential", label: "Residential", gradient: FuturisticGradients.residential, icon: "home" },
@@ -221,14 +221,14 @@ function CategoryTabs({
                 style={[
                   styles.tab,
                   {
-                    backgroundColor: colors.backgroundSecondary,
-                    borderColor: colors.cardBorder,
+                    backgroundColor: theme.backgroundSecondary,
+                    borderColor: theme.cardBorder,
                     borderWidth: 1.5,
                   },
                 ]}
               >
-                <Feather name={tab.icon} size={20} color={colors.textSecondary} />
-                <ThemedText type="h4" style={{ color: colors.text }}>
+                <Feather name={tab.icon} size={20} color={theme.textSecondary} />
+                <ThemedText type="h4" style={{ color: theme.text }}>
                   {tab.label}
                 </ThemedText>
               </View>
@@ -241,7 +241,7 @@ function CategoryTabs({
 }
 
 function ServiceReminder({ index }: { index: number }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const reminderIndex = index % ServiceReminders.length;
   const sparkle = useSharedValue(1);
 
@@ -268,7 +268,7 @@ function ServiceReminder({ index }: { index: number }) {
       <Animated.View style={sparkleStyle}>
         <Feather name="heart" size={20} color={BrandColors.green} />
       </Animated.View>
-      <ThemedText type="small" style={[styles.reminderText, { color: colors.text }]}>
+      <ThemedText type="small" style={[styles.reminderText, { color: theme.text }]}>
         {ServiceReminders[reminderIndex]}
       </ThemedText>
       <Animated.View style={sparkleStyle}>
@@ -287,7 +287,7 @@ function ServiceCard({
   index: number;
   isResidential: boolean;
 }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<ServicesStackParamList>>();
   const scale = useSharedValue(1);
   const glowIntensity = useSharedValue(0.2);
@@ -384,7 +384,7 @@ export default function ServicesScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const route = useRoute<RouteProp<{ params: { category?: string } }, "params">>();
 
   const initialTab = route.params?.category === "commercial" ? "commercial" : "residential";
@@ -431,7 +431,7 @@ export default function ServicesScreen() {
   const renderFooter = () => (
     <Animated.View
       entering={FadeInUp.delay(600).duration(400)}
-      style={[styles.helpCard, { backgroundColor: colors.backgroundSecondary, borderColor: colors.cardBorder }]}
+      style={[styles.helpCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.cardBorder }]}
     >
       <View style={styles.helpIconWrapper}>
         <LinearGradient
@@ -443,11 +443,11 @@ export default function ServicesScreen() {
       </View>
       <View style={styles.helpContent}>
         <ThemedText type="h4">Need Help Choosing?</ThemedText>
-        <ThemedText type="small" style={{ color: colors.textSecondary }}>
+        <ThemedText type="small" style={{ color: theme.textSecondary }}>
           Our friendly team is ready to assist you!
         </ThemedText>
       </View>
-      <Feather name="chevron-right" size={22} color={colors.textSecondary} />
+      <Feather name="chevron-right" size={22} color={theme.textSecondary} />
     </Animated.View>
   );
 

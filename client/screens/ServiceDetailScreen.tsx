@@ -381,7 +381,7 @@ function InteractiveFormQuestion({
   color: string;
   index: number;
 }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -399,7 +399,7 @@ function InteractiveFormQuestion({
       entering={FadeInDown.delay(200 + index * 80).duration(400).springify()}
       style={[
         styles.formCard,
-        { backgroundColor: colors.backgroundSecondary, borderColor: color + "40" },
+        { backgroundColor: theme.backgroundSecondary, borderColor: color + "40" },
       ]}
     >
       <View style={styles.formQuestionHeader}>
@@ -422,8 +422,8 @@ function InteractiveFormQuestion({
               styles.yesNoButton,
               animatedStyle,
               {
-                backgroundColor: value === "Yes" ? "#00E676" : colors.backgroundDefault,
-                borderColor: value === "Yes" ? "#00E676" : colors.cardBorder,
+                backgroundColor: value === "Yes" ? "#00E676" : theme.backgroundDefault,
+                borderColor: value === "Yes" ? "#00E676" : theme.cardBorder,
                 ...(value === "Yes" ? GlowEffects.neonGreen : {}),
               },
             ]}
@@ -431,13 +431,13 @@ function InteractiveFormQuestion({
             <Feather
               name="check-circle"
               size={22}
-              color={value === "Yes" ? "#FFFFFF" : colors.textSecondary}
+              color={value === "Yes" ? "#FFFFFF" : theme.textSecondary}
             />
             <ThemedText
               type="body"
               style={{
                 marginLeft: Spacing.sm,
-                color: value === "Yes" ? "#FFFFFF" : colors.text,
+                color: value === "Yes" ? "#FFFFFF" : theme.text,
                 fontWeight: value === "Yes" ? "600" : "400",
               }}
             >
@@ -451,8 +451,8 @@ function InteractiveFormQuestion({
               styles.yesNoButton,
               animatedStyle,
               {
-                backgroundColor: value === "No" ? "#FF5252" : colors.backgroundDefault,
-                borderColor: value === "No" ? "#FF5252" : colors.cardBorder,
+                backgroundColor: value === "No" ? "#FF5252" : theme.backgroundDefault,
+                borderColor: value === "No" ? "#FF5252" : theme.cardBorder,
                 shadowColor: "#FF5252",
                 shadowOpacity: value === "No" ? 0.4 : 0,
                 shadowRadius: 12,
@@ -463,13 +463,13 @@ function InteractiveFormQuestion({
             <Feather
               name="x-circle"
               size={22}
-              color={value === "No" ? "#FFFFFF" : colors.textSecondary}
+              color={value === "No" ? "#FFFFFF" : theme.textSecondary}
             />
             <ThemedText
               type="body"
               style={{
                 marginLeft: Spacing.sm,
-                color: value === "No" ? "#FFFFFF" : colors.text,
+                color: value === "No" ? "#FFFFFF" : theme.text,
                 fontWeight: value === "No" ? "600" : "400",
               }}
             >
@@ -486,8 +486,8 @@ function InteractiveFormQuestion({
               style={[
                 styles.selectOption,
                 {
-                  backgroundColor: value === option ? color : colors.backgroundDefault,
-                  borderColor: value === option ? color : colors.cardBorder,
+                  backgroundColor: value === option ? color : theme.backgroundDefault,
+                  borderColor: value === option ? color : theme.cardBorder,
                   shadowColor: color,
                   shadowOpacity: value === option ? 0.3 : 0,
                   shadowRadius: 10,
@@ -498,7 +498,7 @@ function InteractiveFormQuestion({
               <View
                 style={[
                   styles.radioOuter,
-                  { borderColor: value === option ? "#FFFFFF" : colors.textSecondary },
+                  { borderColor: value === option ? "#FFFFFF" : theme.textSecondary },
                 ]}
               >
                 {value === option ? <View style={styles.radioInner} /> : null}
@@ -507,7 +507,7 @@ function InteractiveFormQuestion({
                 type="body"
                 style={{
                   marginLeft: Spacing.sm,
-                  color: value === option ? "#FFFFFF" : colors.text,
+                  color: value === option ? "#FFFFFF" : theme.text,
                   flex: 1,
                 }}
               >
@@ -521,13 +521,13 @@ function InteractiveFormQuestion({
           style={[
             styles.textInput,
             {
-              backgroundColor: colors.backgroundDefault,
-              borderColor: value ? color : colors.cardBorder,
-              color: colors.text,
+              backgroundColor: theme.backgroundDefault,
+              borderColor: value ? color : theme.cardBorder,
+              color: theme.text,
             },
           ]}
           placeholder={question.placeholder || "Enter your answer..."}
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.textSecondary}
           value={value}
           onChangeText={onChange}
           multiline={question.type === "text"}
@@ -539,7 +539,7 @@ function InteractiveFormQuestion({
 }
 
 function ServiceReminder({ color }: { color: string }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const [reminderIndex, setReminderIndex] = useState(Math.floor(Math.random() * ServiceReminders.length));
   const sparkle = useSharedValue(1);
 
@@ -566,7 +566,7 @@ function ServiceReminder({ color }: { color: string }) {
       <Animated.View style={sparkleStyle}>
         <Feather name="heart" size={20} color={color} />
       </Animated.View>
-      <ThemedText type="small" style={[styles.reminderText, { color: colors.text }]}>
+      <ThemedText type="small" style={[styles.reminderText, { color: theme.text }]}>
         {ServiceReminders[reminderIndex]}
       </ThemedText>
       <Animated.View style={sparkleStyle}>
@@ -577,7 +577,7 @@ function ServiceReminder({ color }: { color: string }) {
 }
 
 function OptionCard({ option, color, index, gradientColors }: { option: ServiceOption; color: string; index: number; gradientColors: string[] }) {
-  const { colors } = useTheme();
+  const { theme } = useTheme();
   const scale = useSharedValue(1);
   const glowIntensity = useSharedValue(0.2);
 
@@ -618,7 +618,7 @@ function OptionCard({ option, color, index, gradientColors }: { option: ServiceO
           styles.optionCard,
           animatedStyle,
           glowStyle,
-          { backgroundColor: colors.backgroundSecondary, borderColor: color + "40", shadowColor: color },
+          { backgroundColor: theme.backgroundSecondary, borderColor: color + "40", shadowColor: color },
         ]}
       >
         <View style={styles.optionHeader}>
@@ -637,14 +637,14 @@ function OptionCard({ option, color, index, gradientColors }: { option: ServiceO
           </View>
         </View>
         {option.size ? (
-          <ThemedText type="body" style={{ color: colors.textSecondary, marginTop: Spacing.sm }}>
+          <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm }}>
             {option.size}
           </ThemedText>
         ) : null}
         {option.schedule ? (
           <View style={styles.scheduleRow}>
             <Feather name="calendar" size={16} color={color} />
-            <ThemedText type="small" style={{ color: colors.textSecondary, marginLeft: Spacing.xs }}>
+            <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
               {option.schedule}
             </ThemedText>
           </View>
@@ -659,7 +659,7 @@ export default function ServiceDetailScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
-  const { colors } = useTheme();
+  const { theme } = useTheme();
 
   const { serviceId } = route.params;
   const service = serviceDetails[serviceId] || {
@@ -723,7 +723,7 @@ export default function ServiceDetailScreen() {
               <ThemedText type="h3" style={styles.sectionTitle}>
                 Complete Your Request
               </ThemedText>
-              <ThemedText type="small" style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+              <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
                 Please fill out all required fields below
               </ThemedText>
             </Animated.View>
@@ -780,7 +780,7 @@ export default function ServiceDetailScreen() {
                 key={sectionIndex}
                 entering={FadeInDown.delay(200 + sectionIndex * 100).duration(400)}
               >
-                <View style={[styles.contentSection, { backgroundColor: colors.backgroundSecondary, borderColor: service.color + "30" }]}>
+                <View style={[styles.contentSection, { backgroundColor: theme.backgroundSecondary, borderColor: service.color + "30" }]}>
                   <View style={styles.contentSectionHeader}>
                     <LinearGradient
                       colors={service.gradientColors as [string, string, ...string[]]}
