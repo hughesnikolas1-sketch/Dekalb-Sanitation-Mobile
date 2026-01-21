@@ -219,20 +219,9 @@ export function LiveChatBubble() {
             end={{ x: 1, y: 1 }}
             style={styles.bubble}
           >
-            <Feather name="message-circle" size={28} color="#fff" />
+            <Feather name="message-circle" size={26} color="#fff" />
           </LinearGradient>
         </Animated.View>
-        <View style={styles.tooltipContainer}>
-          <View style={styles.tooltip}>
-            <Text style={styles.tooltipText}>
-              💬 Get stuck? Live agent ready to assist!
-            </Text>
-            <Text style={styles.tooltipSubtext}>
-              Just click here - you can talk with a live agent while completing your request! 🤝
-            </Text>
-          </View>
-          <View style={styles.tooltipArrow} />
-        </View>
       </Pressable>
 
       <Modal

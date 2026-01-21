@@ -525,34 +525,13 @@ export default function HomeScreen() {
 
       <View style={styles.quickActionsRow}>
         <QuickActionCard
-          icon="message-circle"
-          title="💬 Live Chat"
-          onPress={() => {}}
-          gradientColors={["#7C4DFF", "#651FFF"]}
-          delay={800}
-        />
-        <QuickActionCard
           icon="help-circle"
           title="❓ Help & FAQ"
           onPress={() => (navigation as any).navigate("HelpFAQ")}
           gradientColors={["#FF9100", "#FF6D00"]}
-          delay={850}
+          delay={800}
         />
       </View>
-
-      <Animated.View
-        entering={FadeInDown.delay(900).duration(500)}
-        style={[styles.helpBanner, { backgroundColor: theme.backgroundSecondary, borderColor: BrandColors.glow + "40" }]}
-      >
-        <ThemedText style={{ fontSize: 24 }}>😊</ThemedText>
-        <View style={styles.helpBannerContent}>
-          <ThemedText type="h4">Need Assistance? 🤝</ThemedText>
-          <ThemedText type="small" style={{ color: theme.textSecondary }}>
-            Tap the chat bubble below for instant help! 💬
-          </ThemedText>
-        </View>
-        <Feather name="chevron-right" size={24} color={theme.textSecondary} />
-      </Animated.View>
 
       <LiveAgentBanner />
     </View>
