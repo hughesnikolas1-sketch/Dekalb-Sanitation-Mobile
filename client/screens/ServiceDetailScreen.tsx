@@ -30,6 +30,7 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { DCLogo, SelectionCelebration } from "@/components/DCLogo";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Spacing,
@@ -40,6 +41,17 @@ import {
   ServiceReminders,
 } from "@/constants/theme";
 import { ServicesStackParamList } from "@/navigation/ServicesStackNavigator";
+
+const MISSED_PICKUP_REASONS = [
+  "Cart was not at the curb by 6:00 AM on collection day",
+  "Cart was blocked by parked vehicles or other obstructions",
+  "Cart lid was not fully closed due to overfilling",
+  "Cart was placed on the wrong side of the driveway",
+  "Cart was too far from the curb (must be within 3 feet)",
+  "Prohibited items were visible in the cart",
+  "Weather conditions or road issues prevented access",
+  "Cart was placed behind a gate or in an inaccessible area",
+];
 
 type ServiceDetailRouteProp = RouteProp<ServicesStackParamList, "ServiceDetail">;
 
@@ -719,6 +731,7 @@ export default function ServiceDetailScreen() {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [selectedOption, setSelectedOption] = useState<ServiceOption | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const updateFormValue = (questionIndex: number, value: string) => {
     setFormValues((prev) => ({ ...prev, [questionIndex]: value }));
@@ -768,6 +781,12 @@ export default function ServiceDetailScreen() {
           `Your ${service.title} request has been submitted. Total: ${option?.price}.\n\nYou will receive payment instructions via email, or you can pay online at myaccount.dekalbcountyga.gov`,
           [{ text: "OK", style: "default" }]
         );
+      } else if (serviceId.includes("missed")) {
+        showAlert(
+          "We've Received Your Request!",
+          `We have received your request and it's on the way to the correct lot for missed collection!\n\nWe're truly sorry you were missed! Our team will address this within 24-48 hours.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nFor future pickups, please ensure your cart is at the curb by 6:00 AM.`,
+          [{ text: "Thank You!", style: "default" }]
+        );
       } else {
         showAlert(
           "Request Submitted Successfully!",
@@ -791,8 +810,10 @@ export default function ServiceDetailScreen() {
   };
 
   const handleOptionSelect = (option: ServiceOption) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedOption(option);
+    setShowCelebration(true);
+    setTimeout(() => setShowCelebration(false), 1200);
   };
 
   const handleOptionSubmit = () => {
@@ -805,6 +826,7 @@ export default function ServiceDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <SelectionCelebration visible={showCelebration} />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -868,6 +890,32 @@ export default function ServiceDetailScreen() {
                     <View key={index} style={styles.infoRow}>
                       <Feather name="check-circle" size={16} color={service.color} />
                       <ThemedText type="body" style={{ flex: 1, marginLeft: Spacing.sm }}>{info}</ThemedText>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            ) : null}
+
+            {serviceId.includes("missed") ? (
+              <Animated.View entering={FadeInDown.delay(550).duration(400)}>
+                <View style={[styles.reasonsCard, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
+                  <View style={styles.reasonsHeader}>
+                    <Feather name="help-circle" size={24} color="#F57C00" />
+                    <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
+                      Want to know reasons why you could have been missed?
+                    </ThemedText>
+                  </View>
+                  <ThemedText type="small" style={{ color: "#E65100", marginBottom: Spacing.md }}>
+                    To help prevent future missed pickups, please review these common reasons:
+                  </ThemedText>
+                  {MISSED_PICKUP_REASONS.map((reason, index) => (
+                    <View key={index} style={styles.reasonItem}>
+                      <View style={styles.reasonNumber}>
+                        <ThemedText type="caption" style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                          {index + 1}
+                        </ThemedText>
+                      </View>
+                      <ThemedText type="body" style={{ flex: 1, color: "#5D4037" }}>{reason}</ThemedText>
                     </View>
                   ))}
                 </View>
@@ -1161,6 +1209,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: Spacing.sm,
+  },
+  reasonsCard: {
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    marginTop: Spacing.md,
+    borderWidth: 2,
+  },
+  reasonsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  reasonItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: Spacing.md,
+    paddingLeft: Spacing.xs,
+  },
+  reasonNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#F57C00",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.sm,
   },
   submitButton: {
     flexDirection: "row",
