@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, Platform, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { apiRequest } from "@/lib/query-client";
+import { apiRequest, getApiUrl } from "@/lib/query-client";
+import { useQuery } from "@tanstack/react-query";
 
 const showAlert = (title: string, message: string, buttons?: { text: string; style?: string }[]) => {
   if (Platform.OS === 'web') {
@@ -858,6 +859,29 @@ export default function ServiceDetailScreen() {
   const [rollOffDetails, setRollOffDetails] = useState("");
   const [rollOffPaymentComplete, setRollOffPaymentComplete] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showAddressPicker, setShowAddressPicker] = useState(false);
+
+  interface SavedAddress {
+    id: string;
+    street: string;
+    aptSuite?: string;
+    city: string;
+    zipCode: string;
+    isDefault?: boolean;
+  }
+
+  const { data: savedAddresses } = useQuery<SavedAddress[]>({
+    queryKey: ["/api/addresses"],
+  });
+
+  const selectSavedAddress = (address: SavedAddress) => {
+    setRollOffAddress(address.street);
+    setRollOffAddressLine2(address.aptSuite || "");
+    setRollOffCity(address.city);
+    setRollOffZip(address.zipCode);
+    setShowAddressPicker(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
 
   const updateFormValue = (questionIndex: number, value: string) => {
     setFormValues((prev) => ({ ...prev, [questionIndex]: value }));
@@ -1423,6 +1447,62 @@ export default function ServiceDetailScreen() {
                 <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
                   Where should we deliver the roll off container?
                 </ThemedText>
+
+                {savedAddresses && savedAddresses.length > 0 ? (
+                  <View style={{ marginTop: Spacing.md, marginBottom: Spacing.md }}>
+                    <Pressable
+                      onPress={() => setShowAddressPicker(!showAddressPicker)}
+                      style={[styles.savedAddressToggle, { 
+                        backgroundColor: theme.surface, 
+                        borderColor: service.color,
+                        borderWidth: 2,
+                      }]}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Feather name="map-pin" size={20} color={service.color} />
+                        <ThemedText type="body" style={{ color: service.color, marginLeft: Spacing.sm, fontWeight: "600" }}>
+                          Select from Saved Addresses ({savedAddresses.length})
+                        </ThemedText>
+                      </View>
+                      <Feather name={showAddressPicker ? "chevron-up" : "chevron-down"} size={20} color={service.color} />
+                    </Pressable>
+                    
+                    {showAddressPicker ? (
+                      <Animated.View entering={FadeInDown.duration(200)} style={{ marginTop: Spacing.sm }}>
+                        {savedAddresses.map((addr) => (
+                          <Pressable
+                            key={addr.id}
+                            onPress={() => selectSavedAddress(addr)}
+                            style={[styles.savedAddressItem, { 
+                              backgroundColor: theme.surface, 
+                              borderColor: theme.border,
+                            }]}
+                          >
+                            <View style={{ flex: 1 }}>
+                              <ThemedText type="body" style={{ fontWeight: "600" }}>
+                                {addr.street}{addr.aptSuite ? `, ${addr.aptSuite}` : ""}
+                              </ThemedText>
+                              <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: 2 }}>
+                                {addr.city}, GA {addr.zipCode}
+                              </ThemedText>
+                            </View>
+                            {addr.isDefault ? (
+                              <View style={[styles.defaultBadge, { backgroundColor: service.color }]}>
+                                <ThemedText type="caption" style={{ color: "#FFF", fontWeight: "600" }}>Default</ThemedText>
+                              </View>
+                            ) : null}
+                          </Pressable>
+                        ))}
+                      </Animated.View>
+                    ) : null}
+                    
+                    <View style={styles.orDivider}>
+                      <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginHorizontal: Spacing.md }}>OR</ThemedText>
+                      <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+                    </View>
+                  </View>
+                ) : null}
 
                 <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
                   Street Address *
@@ -2671,5 +2751,34 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(0,0,0,0.08)",
+  },
+  savedAddressToggle: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+  },
+  savedAddressItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+  },
+  defaultBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  orDivider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: Spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
   },
 });
