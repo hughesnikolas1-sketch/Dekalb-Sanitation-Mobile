@@ -86,6 +86,13 @@ const residentialServices: ServiceItem[] = [
     icon: "package",
     category: "residential",
   },
+  {
+    id: "res-new-service",
+    title: "Establish New Residential Service",
+    description: "Apply for new garbage & recycling service",
+    icon: "file-plus",
+    category: "residential",
+  },
 ];
 
 const commercialServices: ServiceItem[] = [

@@ -37,6 +37,15 @@ The project uses a monorepo structure with an Expo mobile client and an Express.
 
 ## Recent Changes
 
+- January 2026: **Establish New Residential Service Form** - Complete 3-step application form with:
+  - Step 1: Customer Information (name, address, phone, email, special instructions)
+  - Step 2: Property Information (home purchase date, property type dropdown)
+  - Step 3: Service Options (garbage cart info, recycling cart options with pricing)
+  - Prorated Annual Sanitation Assessment Fees table (January-December fees)
+  - Confirmation with email/phone follow-up message
+- January 2026: **Dynamic Roll Cart Explanation Forms** - Damaged/Stolen/Return carts now show specific explanation options
+- January 2026: **Saved Address Selection** - Roll cart requests use saved addresses from user profile only
+- January 2026: **Updated Office Hours** - Changed to 8 a.m. - 3:30 p.m.
 - January 2026: **Navigation Menu System** - Added hamburger menu with 5 navigation options:
   - My Addresses: Manage saved delivery addresses with add/delete functionality
   - My Requests: Track submitted service requests with status updates (pending, investigating, in_progress, completed)

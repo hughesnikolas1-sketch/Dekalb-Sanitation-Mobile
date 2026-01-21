@@ -355,6 +355,85 @@ const serviceDetails: Record<string, ServiceInfo> = {
       { id: "2", name: "Special Collection", price: "Contact for pricing", schedule: "By appointment" },
     ],
   },
+  "res-new-service": {
+    title: "Establish New Residential Garbage & Recycling Service",
+    description: "Apply for new residential garbage and recycling collection service. Submit your application and our team will process your request.",
+    icon: "file-plus",
+    color: BrandColors.blue,
+    gradientColors: FuturisticGradients.residential,
+    options: [],
+    isNewServiceForm: true,
+    contentSections: [
+      {
+        title: "Required Documents",
+        content: [
+          "Proof of home ownership is required (closing statement and government-issued ID)",
+          "New home purchases require proof of ownership documentation",
+        ],
+      },
+      {
+        title: "Garbage Roll Cart",
+        content: [
+          "95-gallon garbage roll cart provided to all new residential customers",
+          "Specialized service options may be available for residents with mobility or medical challenges. Requests are reviewed on a case-by-case basis. Proof of medical or mobility challenge is required.",
+        ],
+      },
+      {
+        title: "Recycling Roll Cart Options (Optional)",
+        content: [
+          "This subscription-based service is offered to residents at no additional fee:",
+          "• Complimentary 45-gallon roll cart",
+          "• Upgrade to a 65-gallon roll cart (a one-time $25 prepaid roll cart fee applies)",
+        ],
+      },
+    ],
+    newServiceFormFields: {
+      customerInfo: [
+        { id: "residentName", label: "Resident's Name", type: "text", required: true, placeholder: "Enter your full name" },
+        { id: "serviceAddress", label: "Service Address", type: "text", required: true, placeholder: "Enter your service address" },
+        { id: "phone", label: "Phone", type: "phone", required: true, placeholder: "(xxx) xxx-xxxx" },
+        { id: "email", label: "Email", type: "email", required: true, placeholder: "your@email.com" },
+        { id: "specialInstructions", label: "Special Delivery Instructions (gate code, etc.)", type: "text", required: false, placeholder: "Optional: Enter gate code or special instructions" },
+      ],
+      homePurchaseDate: { id: "homePurchaseDate", label: "Home Purchase Date", type: "date", required: true },
+      propertyType: {
+        label: "Type of Property",
+        options: ["Owner", "Tenant", "Townhouse", "Single-family", "Triplex", "Condominium"],
+      },
+      garbageCart: {
+        label: "Garbage Roll Cart",
+        description: "95-gallon garbage roll cart",
+        note: "Specialized service options may be available for residents with mobility or medical challenges. Requests are reviewed on a case-by-case basis. Proof of medical or mobility challenge is required.",
+      },
+      recyclingOptions: {
+        label: "Recycling Roll Cart Options (optional)",
+        description: "This subscription-based service is offered to residents at no additional fee.",
+        options: [
+          { id: "recycle45", label: "Complimentary 45-gallon roll cart", price: "Free" },
+          { id: "recycle65", label: "Upgrade to a 65-gallon roll cart", price: "$25 one-time fee" },
+        ],
+      },
+    },
+    proratedFees: {
+      title: "Prorated Annual Sanitation Assessment Fees",
+      subtitle: "One Garbage Roll Cart and One Optional Recycling Roll Cart",
+      fees: [
+        { month: "January", amount: "$315.00" },
+        { month: "February", amount: "$288.75" },
+        { month: "March", amount: "$262.50" },
+        { month: "April", amount: "$236.25" },
+        { month: "May", amount: "$210.00" },
+        { month: "June", amount: "$183.75" },
+        { month: "July", amount: "$157.50" },
+        { month: "August", amount: "$131.25" },
+        { month: "September", amount: "$105.00" },
+        { month: "October", amount: "$78.75" },
+        { month: "November", amount: "$52.50" },
+        { month: "December 1-10", amount: "$26.25" },
+        { month: "December 11-31", amount: "$315.00" },
+      ],
+    },
+  },
   "com-missed-trash": {
     title: "Missed Trash Pickup",
     description: "Report a missed commercial trash collection. We will schedule a pickup within 24-48 hours of your report.",
@@ -962,6 +1041,18 @@ export default function ServiceDetailScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
 
+  // New Service Form State
+  const [newServiceResidentName, setNewServiceResidentName] = useState("");
+  const [newServiceAddress, setNewServiceAddress] = useState("");
+  const [newServicePhone, setNewServicePhone] = useState("");
+  const [newServiceEmail, setNewServiceEmail] = useState("");
+  const [newServiceSpecialInstructions, setNewServiceSpecialInstructions] = useState("");
+  const [newServiceHomePurchaseDate, setNewServiceHomePurchaseDate] = useState("");
+  const [newServicePropertyType, setNewServicePropertyType] = useState("");
+  const [newServiceRecyclingOption, setNewServiceRecyclingOption] = useState("");
+  const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] = useState(false);
+  const [newServiceStep, setNewServiceStep] = useState(1);
+
   interface SavedAddress {
     id: string;
     street: string;
@@ -1229,6 +1320,86 @@ export default function ServiceDetailScreen() {
     setAdditionalCartDescription("");
     setAdditionalCartPhoto(null);
     setSelectedOption(null);
+  };
+
+  const handleNewServiceSubmit = async () => {
+    if (!newServiceResidentName || !newServiceAddress || !newServicePhone || !newServiceEmail) {
+      showAlert("Required Fields", "Please fill in all required fields (Name, Address, Phone, Email).");
+      return;
+    }
+    if (!newServiceHomePurchaseDate) {
+      showAlert("Required Field", "Please enter your home purchase date.");
+      return;
+    }
+    if (!newServicePropertyType) {
+      showAlert("Required Field", "Please select your property type.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    try {
+      const formData = {
+        serviceId: "res-new-service",
+        serviceTitle: "Establish New Residential Garbage & Recycling Service",
+        formAnswers: [
+          { question: "Resident's Name", answer: newServiceResidentName },
+          { question: "Service Address", answer: newServiceAddress },
+          { question: "Phone", answer: newServicePhone },
+          { question: "Email", answer: newServiceEmail },
+          { question: "Special Delivery Instructions", answer: newServiceSpecialInstructions || "None" },
+          { question: "Home Purchase Date", answer: newServiceHomePurchaseDate },
+          { question: "Property Type", answer: newServicePropertyType },
+          { question: "Recycling Option", answer: newServiceRecyclingOption || "Complimentary 45-gallon roll cart" },
+        ],
+        submittedAt: new Date().toISOString(),
+      };
+
+      const response = await apiRequest("POST", "/api/service-requests", {
+        serviceType: "residential",
+        serviceId: "res-new-service",
+        formData,
+        amount: newServiceRecyclingOption === "recycle65" ? 2500 : null,
+      });
+
+      const result = await response.json();
+
+      if (Platform.OS === 'web') {
+        window.alert(
+          `Application Submitted Successfully!\n\nYour new residential garbage & recycling service application has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nYou will receive a confirmation email shortly. Our team will review your application and contact you via phone or email within 3-5 business days to schedule your service setup.\n\nRequired Documents:\nPlease have your proof of home ownership (closing statement and government-issued ID) ready for verification.`
+        );
+      } else {
+        Alert.alert(
+          "Application Submitted Successfully!",
+          `Your new residential garbage & recycling service application has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nYou will receive a confirmation email shortly. Our team will review your application and contact you via phone or email within 3-5 business days.\n\nPlease have your proof of home ownership ready for verification.`,
+          [
+            { text: "OK", style: "default" },
+            { text: "View My Requests", onPress: () => navigation.navigate("MyRequests") }
+          ]
+        );
+      }
+
+      // Reset form
+      setNewServiceResidentName("");
+      setNewServiceAddress("");
+      setNewServicePhone("");
+      setNewServiceEmail("");
+      setNewServiceSpecialInstructions("");
+      setNewServiceHomePurchaseDate("");
+      setNewServicePropertyType("");
+      setNewServiceRecyclingOption("");
+      setNewServiceStep(1);
+    } catch (error) {
+      console.error("Submit error:", error);
+      showAlert(
+        "Submission Error",
+        "We couldn't submit your application. Please try again or contact us at (404) 294-2900.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleOptionSubmit = () => {
@@ -2122,6 +2293,328 @@ export default function ServiceDetailScreen() {
                 </View>
               </Animated.View>
             ) : null}
+
+            {/* New Service Application Form */}
+            {service.isNewServiceForm ? (
+              <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+                <View style={[styles.newServiceFormContainer, { backgroundColor: theme.surface, borderColor: service.color + "40" }]}>
+                  <View style={[styles.formHeader, { backgroundColor: service.color + "15" }]}>
+                    <Feather name="file-plus" size={24} color={service.color} />
+                    <ThemedText type="h3" style={{ color: service.color, marginLeft: Spacing.sm }}>
+                      Application Form
+                    </ThemedText>
+                  </View>
+
+                  {newServiceStep === 1 ? (
+                    <View style={styles.formBody}>
+                      <ThemedText type="h4" style={[styles.formSectionTitle, { color: service.color }]}>
+                        Customer Information
+                      </ThemedText>
+
+                      <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                        Resident's Name <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                      </ThemedText>
+                      <TextInput
+                        style={[styles.textInput, { backgroundColor: theme.background, borderColor: newServiceResidentName ? service.color : theme.border, color: theme.text }]}
+                        placeholder="Enter your full name"
+                        placeholderTextColor={theme.textSecondary}
+                        value={newServiceResidentName}
+                        onChangeText={setNewServiceResidentName}
+                        autoCapitalize="words"
+                      />
+
+                      <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                        Service Address <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                      </ThemedText>
+                      <TextInput
+                        style={[styles.textInput, { backgroundColor: theme.background, borderColor: newServiceAddress ? service.color : theme.border, color: theme.text }]}
+                        placeholder="Enter your service address"
+                        placeholderTextColor={theme.textSecondary}
+                        value={newServiceAddress}
+                        onChangeText={setNewServiceAddress}
+                        autoCapitalize="words"
+                      />
+
+                      <View style={{ flexDirection: "row", gap: Spacing.md }}>
+                        <View style={{ flex: 1 }}>
+                          <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                            Phone <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                          </ThemedText>
+                          <TextInput
+                            style={[styles.textInput, { backgroundColor: theme.background, borderColor: newServicePhone ? service.color : theme.border, color: theme.text }]}
+                            placeholder="(xxx) xxx-xxxx"
+                            placeholderTextColor={theme.textSecondary}
+                            value={newServicePhone}
+                            onChangeText={setNewServicePhone}
+                            keyboardType="phone-pad"
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                            Email <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                          </ThemedText>
+                          <TextInput
+                            style={[styles.textInput, { backgroundColor: theme.background, borderColor: newServiceEmail ? service.color : theme.border, color: theme.text }]}
+                            placeholder="your@email.com"
+                            placeholderTextColor={theme.textSecondary}
+                            value={newServiceEmail}
+                            onChangeText={setNewServiceEmail}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                          />
+                        </View>
+                      </View>
+
+                      <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                        Special Delivery Instructions (gate code, etc.)
+                      </ThemedText>
+                      <TextInput
+                        style={[styles.textInput, { backgroundColor: theme.background, borderColor: newServiceSpecialInstructions ? service.color : theme.border, color: theme.text }]}
+                        placeholder="Optional: Enter gate code or special instructions"
+                        placeholderTextColor={theme.textSecondary}
+                        value={newServiceSpecialInstructions}
+                        onChangeText={setNewServiceSpecialInstructions}
+                      />
+
+                      <Pressable
+                        onPress={() => {
+                          if (!newServiceResidentName || !newServiceAddress || !newServicePhone || !newServiceEmail) {
+                            showAlert("Required Fields", "Please fill in all required fields.");
+                            return;
+                          }
+                          setNewServiceStep(2);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={{ marginTop: Spacing.xl }}
+                      >
+                        <LinearGradient
+                          colors={service.gradientColors as [string, string, ...string[]]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.submitButton}
+                        >
+                          <ThemedText type="h4" style={styles.submitText}>Continue</ThemedText>
+                          <Feather name="arrow-right" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  ) : newServiceStep === 2 ? (
+                    <View style={styles.formBody}>
+                      <ThemedText type="h4" style={[styles.formSectionTitle, { color: service.color }]}>
+                        Property Information
+                      </ThemedText>
+
+                      <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                        Home Purchase Date <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                      </ThemedText>
+                      <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.xs }}>
+                        Proof of home ownership is required (closing statement and government-issued ID)
+                      </ThemedText>
+                      <TextInput
+                        style={[styles.textInput, { backgroundColor: theme.background, borderColor: newServiceHomePurchaseDate ? service.color : theme.border, color: theme.text }]}
+                        placeholder="MM/DD/YYYY"
+                        placeholderTextColor={theme.textSecondary}
+                        value={newServiceHomePurchaseDate}
+                        onChangeText={setNewServiceHomePurchaseDate}
+                      />
+
+                      <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                        Type of Property <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                      </ThemedText>
+                      <Pressable
+                        onPress={() => setShowPropertyTypeDropdown(!showPropertyTypeDropdown)}
+                        style={[styles.locationDropdown, { borderColor: newServicePropertyType ? service.color : theme.border }]}
+                      >
+                        <ThemedText type="body" style={{ color: newServicePropertyType ? theme.text : theme.textSecondary, flex: 1 }}>
+                          {newServicePropertyType || "Select property type..."}
+                        </ThemedText>
+                        <Feather name={showPropertyTypeDropdown ? "chevron-up" : "chevron-down"} size={20} color={theme.textSecondary} />
+                      </Pressable>
+
+                      {showPropertyTypeDropdown ? (
+                        <View style={styles.dropdownList}>
+                          {["Owner", "Tenant", "Townhouse", "Single-family", "Triplex", "Condominium"].map((type) => (
+                            <Pressable
+                              key={type}
+                              onPress={() => {
+                                setNewServicePropertyType(type);
+                                setShowPropertyTypeDropdown(false);
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                              }}
+                              style={[
+                                styles.dropdownItem,
+                                newServicePropertyType === type && { backgroundColor: service.color + "15" }
+                              ]}
+                            >
+                              <Feather name={newServicePropertyType === type ? "check-circle" : "circle"} size={18} color={service.color} />
+                              <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>{type}</ThemedText>
+                            </Pressable>
+                          ))}
+                        </View>
+                      ) : null}
+
+                      <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl }}>
+                        <Pressable onPress={() => setNewServiceStep(1)} style={[styles.backButton, { flex: 1 }]}>
+                          <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                          <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            if (!newServiceHomePurchaseDate || !newServicePropertyType) {
+                              showAlert("Required Fields", "Please fill in all required fields.");
+                              return;
+                            }
+                            setNewServiceStep(3);
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          }}
+                          style={{ flex: 2 }}
+                        >
+                          <LinearGradient
+                            colors={service.gradientColors as [string, string, ...string[]]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.submitButton}
+                          >
+                            <ThemedText type="h4" style={styles.submitText}>Continue</ThemedText>
+                            <Feather name="arrow-right" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                          </LinearGradient>
+                        </Pressable>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={styles.formBody}>
+                      <ThemedText type="h4" style={[styles.formSectionTitle, { color: service.color }]}>
+                        Service Options
+                      </ThemedText>
+
+                      <View style={[styles.infoBox, { backgroundColor: BrandColors.blue + "10", borderColor: BrandColors.blue, marginTop: Spacing.md }]}>
+                        <Feather name="trash-2" size={20} color={BrandColors.blue} />
+                        <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                          <ThemedText type="body" style={{ fontWeight: "700", color: "#1a1a1a" }}>Garbage Roll Cart</ThemedText>
+                          <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
+                            95-gallon garbage roll cart provided to all new residential customers
+                          </ThemedText>
+                          <ThemedText type="caption" style={{ color: theme.textSecondary, marginTop: Spacing.xs, fontStyle: "italic" }}>
+                            Specialized service options may be available for residents with mobility or medical challenges. Requests are reviewed on a case-by-case basis.
+                          </ThemedText>
+                        </View>
+                      </View>
+
+                      <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                        Recycling Roll Cart Options (optional)
+                      </ThemedText>
+                      <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>
+                        This subscription-based service is offered to residents at no additional fee.
+                      </ThemedText>
+
+                      <Pressable
+                        onPress={() => {
+                          setNewServiceRecyclingOption("recycle45");
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.reasonOption,
+                          newServiceRecyclingOption === "recycle45" && { borderColor: BrandColors.green, backgroundColor: BrandColors.green + "10" }
+                        ]}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <ThemedText type="body" style={{ color: "#1a1a1a", fontWeight: "600" }}>Complimentary 45-gallon roll cart</ThemedText>
+                          <ThemedText type="small" style={{ color: BrandColors.green, marginTop: 2 }}>Free</ThemedText>
+                        </View>
+                        {newServiceRecyclingOption === "recycle45" ? (
+                          <Feather name="check-circle" size={22} color={BrandColors.green} />
+                        ) : (
+                          <Feather name="circle" size={22} color={theme.border} />
+                        )}
+                      </Pressable>
+
+                      <Pressable
+                        onPress={() => {
+                          setNewServiceRecyclingOption("recycle65");
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.reasonOption,
+                          newServiceRecyclingOption === "recycle65" && { borderColor: BrandColors.green, backgroundColor: BrandColors.green + "10" }
+                        ]}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <ThemedText type="body" style={{ color: "#1a1a1a", fontWeight: "600" }}>Upgrade to a 65-gallon roll cart</ThemedText>
+                          <ThemedText type="small" style={{ color: "#FF9800", marginTop: 2 }}>One-time $25 prepaid roll cart fee applies</ThemedText>
+                        </View>
+                        {newServiceRecyclingOption === "recycle65" ? (
+                          <Feather name="check-circle" size={22} color={BrandColors.green} />
+                        ) : (
+                          <Feather name="circle" size={22} color={theme.border} />
+                        )}
+                      </Pressable>
+
+                      {/* Prorated Fees Table */}
+                      <View style={[styles.proratedFeesCard, { backgroundColor: theme.background, borderColor: service.color + "40", marginTop: Spacing.lg }]}>
+                        <ThemedText type="h4" style={{ color: BrandColors.green, textAlign: "center", marginBottom: Spacing.xs }}>
+                          Prorated Annual Sanitation Assessment Fees
+                        </ThemedText>
+                        <ThemedText type="caption" style={{ color: service.color, textAlign: "center", marginBottom: Spacing.md }}>
+                          One Garbage Roll Cart and One Optional Recycling Roll Cart
+                        </ThemedText>
+                        <View style={styles.feesGrid}>
+                          <View style={styles.feesColumn}>
+                            <View style={styles.feeRow}><ThemedText type="small">January</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$315.00</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">February</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$288.75</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">March</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$262.50</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">April</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$236.25</ThemedText></View>
+                          </View>
+                          <View style={styles.feesColumn}>
+                            <View style={styles.feeRow}><ThemedText type="small">May</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$210.00</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">June</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$183.75</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">July</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$157.50</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">August</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$131.25</ThemedText></View>
+                          </View>
+                          <View style={styles.feesColumn}>
+                            <View style={styles.feeRow}><ThemedText type="small">September</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$105.00</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">October</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$78.75</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">November</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$52.50</ThemedText></View>
+                            <View style={styles.feeRow}><ThemedText type="small">Dec 1-10</ThemedText><ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue }}>$26.25</ThemedText></View>
+                          </View>
+                        </View>
+                        <View style={[styles.feeRow, { justifyContent: "center", marginTop: Spacing.sm, paddingTop: Spacing.sm, borderTopWidth: 1, borderTopColor: theme.border }]}>
+                          <ThemedText type="small">December 11-31</ThemedText>
+                          <ThemedText type="small" style={{ fontWeight: "700", color: BrandColors.blue, marginLeft: Spacing.md }}>$315.00</ThemedText>
+                        </View>
+                      </View>
+
+                      <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl }}>
+                        <Pressable onPress={() => setNewServiceStep(2)} style={[styles.backButton, { flex: 1 }]}>
+                          <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                          <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                        </Pressable>
+                        <Pressable
+                          onPress={handleNewServiceSubmit}
+                          disabled={isSubmitting}
+                          style={{ flex: 2 }}
+                        >
+                          <LinearGradient
+                            colors={["#4CAF50", "#2E7D32"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.submitButton}
+                          >
+                            {isSubmitting ? (
+                              <ActivityIndicator color="#FFFFFF" size="small" />
+                            ) : (
+                              <>
+                                <Feather name="send" size={20} color="#FFF" />
+                                <ThemedText type="h4" style={[styles.submitText, { marginLeft: Spacing.sm }]}>Submit Application</ThemedText>
+                              </>
+                            )}
+                          </LinearGradient>
+                        </Pressable>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </Animated.View>
+            ) : null}
           </>
         ) : null}
 
@@ -2924,5 +3417,40 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
+  },
+  newServiceFormContainer: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    overflow: "hidden",
+    marginTop: Spacing.lg,
+  },
+  formHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+  },
+  formBody: {
+    padding: Spacing.lg,
+  },
+  formSectionTitle: {
+    marginBottom: Spacing.sm,
+  },
+  proratedFeesCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+  },
+  feesGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  feesColumn: {
+    flex: 1,
+  },
+  feeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
   },
 });
