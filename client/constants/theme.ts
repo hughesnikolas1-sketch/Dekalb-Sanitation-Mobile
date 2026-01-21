@@ -44,7 +44,9 @@ export const BrandColors = {
 };
 
 // Green and Blue gradient presets - main theme colors
-export const FuturisticGradients = {
+export const FuturisticGradients: Record<string, string[]> = {
+  primary: ["#1565C0", "#1976D2", "#42A5F5"],
+  secondary: ["#2E7D32", "#43A047", "#66BB6A"],
   residential: ["#1565C0", "#1976D2", "#42A5F5"],
   commercial: ["#2E7D32", "#43A047", "#66BB6A"],
   hero: ["#1565C0", "#2E7D32", "#43A047"],
@@ -52,6 +54,9 @@ export const FuturisticGradients = {
   greenBlue: ["#2E7D32", "#00897B", "#1565C0"],
   ocean: ["#0277BD", "#00ACC1", "#26A69A"],
   nature: ["#2E7D32", "#388E3C", "#4CAF50"],
+  celebration: ["#00E5FF", "#E040FB", "#7C4DFF"],
+  sunset: ["#FF6B6B", "#FF8E53", "#FFEA00"],
+  aurora: ["#00E676", "#00B8D4", "#7C4DFF"],
 };
 
 export const Colors = {
