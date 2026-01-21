@@ -67,6 +67,74 @@ const SERVICE_LOCATIONS = [
   { id: "3", name: "Home", label: "Home Address", type: "Home" },
 ];
 
+const COLLECTION_PROCEDURES = {
+  title: "Residential Collection Procedures",
+  curbsideProcedures: [
+    {
+      icon: "package" as const,
+      text: "Place garbage in secure plastic bags prior to placement in the green garbage roll cart; place recyclable items loosely in the blue recycling roll cart.",
+    },
+    {
+      icon: "arrow-right" as const,
+      text: "Place roll carts at the curb; roll cart handles must face your home and lid openings must face the street.",
+    },
+    {
+      icon: "home" as const,
+      text: "Place roll carts as far away as possible from flower beds, mailboxes, or anything that could impede servicing; vehicles should not block the collection truck's service area.",
+    },
+    {
+      icon: "maximize-2" as const,
+      text: "Roll carts should be 3 - 5 feet apart from each other.",
+    },
+    {
+      icon: "alert-circle" as const,
+      text: "No excess/overflow bags are permitted outside of roll carts; schedule an excess garbage or yard trimmings collection request online for a prepaid special collection fee; OR obtain a second 95-gallon roll cart.",
+    },
+  ],
+  procedures: [
+    {
+      icon: "trash-2" as const,
+      title: "Household garbage",
+      text: "place in secure plastic bags prior to placing in roll cart; no loose garbage; lid must be fully closed; no excess/overflow bags on the top or side of roll carts; only county-provided roll carts are serviced.",
+    },
+    {
+      icon: "refresh-cw" as const,
+      title: "Recyclable materials",
+      text: "loosely placed in roll cart; acceptable plastics - 1 and 2 ONLY; visit www.dekalbsanitation.com for acceptable materials; only county-provided roll carts are serviced.",
+    },
+    {
+      icon: "box" as const,
+      title: "Boxes",
+      text: "must be flattened (10 or less) or a special collection fee will apply.",
+    },
+    {
+      icon: "sun" as const,
+      title: "Yard trimmings",
+      text: "biodegradable bags or approved containers up to 40 gallons; no plastic bags; limbs and brush must be four feet or less in length, bundled and tied; large volumes of yard trimmings, or tree parts greater than 3\" require a special collection fee.",
+    },
+    {
+      icon: "clock" as const,
+      title: "Collection day procedures",
+      text: "roll carts and yard trimmings containers placed curbside by 7 a.m. and removed by 7 p.m.",
+    },
+    {
+      icon: "truck" as const,
+      title: "Bulky items",
+      text: "household appliances and furniture only; schedule collection at www.dekalbsanitation.com.",
+    },
+    {
+      icon: "dollar-sign" as const,
+      title: "Special collections",
+      text: "prepaid fee required; excess/overflow garbage bags; large volumes of garbage and yard trimmings; improperly prepared yard trimmings; tree parts; commingled piles; flattened boxes (more than 10); unflattened boxes (any number); schedule payment and collection at www.dekalbsanitation.com.",
+    },
+    {
+      icon: "x-circle" as const,
+      title: "Prohibited materials",
+      text: "needles; batteries; dirt; rock; concrete; automobile bodies and parts; liquids of any kind; hazardous materials; tires.",
+    },
+  ],
+};
+
 type ServiceDetailRouteProp = RouteProp<ServicesStackParamList, "ServiceDetail">;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -1195,32 +1263,67 @@ export default function ServiceDetailScreen() {
             ) : null}
 
             {serviceId.includes("missed") ? (
-              <Animated.View entering={FadeInDown.delay(550).duration(400)}>
-                <View style={[styles.reasonsCard, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
-                  <View style={styles.reasonsHeader}>
-                    <Feather name="help-circle" size={24} color="#F57C00" />
-                    <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
-                      Want to know reasons why you could have been missed?
-                    </ThemedText>
-                  </View>
-                  <ThemedText type="small" style={{ color: "#E65100", marginBottom: Spacing.md }}>
-                    To help prevent future missed pickups, please review these common reasons:
-                  </ThemedText>
-                  {MISSED_PICKUP_REASONS.map((reason, index) => (
-                    <View key={index} style={styles.reasonItem}>
-                      <View style={styles.reasonNumber}>
-                        <ThemedText type="caption" style={{ color: "#FFFFFF", fontWeight: "700" }}>
-                          {index + 1}
-                        </ThemedText>
-                      </View>
-                      <ThemedText type="body" style={{ flex: 1, color: "#5D4037" }}>{reason}</ThemedText>
+              <>
+                <Animated.View entering={FadeInDown.delay(550).duration(400)}>
+                  <View style={[styles.reasonsCard, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
+                    <View style={styles.reasonsHeader}>
+                      <Feather name="help-circle" size={24} color="#F57C00" />
+                      <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
+                        Want to know reasons why you could have been missed?
+                      </ThemedText>
                     </View>
-                  ))}
-                </View>
-              </Animated.View>
+                  </View>
+                </Animated.View>
+
+                <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+                  <View style={styles.proceduresSection}>
+                    <ThemedText type="h3" style={[styles.sectionTitle, { color: BrandColors.green }]}>
+                      {COLLECTION_PROCEDURES.title}
+                    </ThemedText>
+                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.lg }}>
+                      1 of 2 - Roll Cart Curbside Procedures
+                    </ThemedText>
+
+                    {COLLECTION_PROCEDURES.curbsideProcedures.map((proc, index) => (
+                      <View key={index} style={styles.procedureItem}>
+                        <View style={[styles.procedureIcon, { backgroundColor: BrandColors.green + "20" }]}>
+                          <Feather name={proc.icon} size={20} color={BrandColors.green} />
+                        </View>
+                        <ThemedText type="body" style={{ flex: 1, lineHeight: 22 }}>{proc.text}</ThemedText>
+                      </View>
+                    ))}
+
+                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginTop: Spacing.lg, marginBottom: Spacing.md }}>
+                      2 of 2 - Residential Collection Procedures
+                    </ThemedText>
+
+                    {COLLECTION_PROCEDURES.procedures.map((proc, index) => (
+                      <View key={index} style={styles.procedureItem}>
+                        <View style={[styles.procedureIcon, { backgroundColor: BrandColors.green + "20" }]}>
+                          <Feather name={proc.icon} size={20} color={BrandColors.green} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <ThemedText type="body" style={{ fontWeight: "700", color: BrandColors.green }}>
+                            {proc.title}
+                          </ThemedText>
+                          <ThemedText type="small" style={{ color: theme.textSecondary, lineHeight: 20, marginTop: 2 }}>
+                            {proc.text}
+                          </ThemedText>
+                        </View>
+                      </View>
+                    ))}
+
+                    <View style={styles.websiteFooter}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: "center" }}>
+                        www.dekalbsanitation.com • @DKalbSanitation on X
+                      </ThemedText>
+                    </View>
+                  </View>
+                </Animated.View>
+              </>
             ) : null}
 
-            <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+            <Animated.View entering={FadeInDown.delay(650).duration(400)}>
               <Pressable onPress={() => handleSubmit()} disabled={isSubmitting}>
                 <LinearGradient
                   colors={service.gradientColors as [string, string, ...string[]]}
@@ -1309,29 +1412,64 @@ export default function ServiceDetailScreen() {
             ))}
 
             {serviceId.includes("missed") ? (
-              <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-                <View style={[styles.reasonsCard, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
-                  <View style={styles.reasonsHeader}>
-                    <Feather name="help-circle" size={24} color="#F57C00" />
-                    <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
-                      Want to know reasons why you could have been missed?
-                    </ThemedText>
-                  </View>
-                  <ThemedText type="small" style={{ color: "#E65100", marginBottom: Spacing.md }}>
-                    To help prevent future missed pickups, please review these common reasons:
-                  </ThemedText>
-                  {MISSED_PICKUP_REASONS.map((reason, index) => (
-                    <View key={index} style={styles.reasonItem}>
-                      <View style={styles.reasonNumber}>
-                        <ThemedText type="caption" style={{ color: "#FFFFFF", fontWeight: "700" }}>
-                          {index + 1}
-                        </ThemedText>
-                      </View>
-                      <ThemedText type="body" style={{ flex: 1, color: "#5D4037" }}>{reason}</ThemedText>
+              <>
+                <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+                  <View style={[styles.reasonsCard, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
+                    <View style={styles.reasonsHeader}>
+                      <Feather name="help-circle" size={24} color="#F57C00" />
+                      <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
+                        Want to know reasons why you could have been missed?
+                      </ThemedText>
                     </View>
-                  ))}
-                </View>
-              </Animated.View>
+                  </View>
+                </Animated.View>
+
+                <Animated.View entering={FadeInDown.delay(450).duration(400)}>
+                  <View style={styles.proceduresSection}>
+                    <ThemedText type="h3" style={[styles.sectionTitle, { color: BrandColors.green }]}>
+                      {COLLECTION_PROCEDURES.title}
+                    </ThemedText>
+                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.lg }}>
+                      1 of 2 - Roll Cart Curbside Procedures
+                    </ThemedText>
+
+                    {COLLECTION_PROCEDURES.curbsideProcedures.map((proc, index) => (
+                      <View key={index} style={styles.procedureItem}>
+                        <View style={[styles.procedureIcon, { backgroundColor: BrandColors.green + "20" }]}>
+                          <Feather name={proc.icon} size={20} color={BrandColors.green} />
+                        </View>
+                        <ThemedText type="body" style={{ flex: 1, lineHeight: 22 }}>{proc.text}</ThemedText>
+                      </View>
+                    ))}
+
+                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginTop: Spacing.lg, marginBottom: Spacing.md }}>
+                      2 of 2 - Residential Collection Procedures
+                    </ThemedText>
+
+                    {COLLECTION_PROCEDURES.procedures.map((proc, index) => (
+                      <View key={index} style={styles.procedureItem}>
+                        <View style={[styles.procedureIcon, { backgroundColor: BrandColors.green + "20" }]}>
+                          <Feather name={proc.icon} size={20} color={BrandColors.green} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <ThemedText type="body" style={{ fontWeight: "700", color: BrandColors.green }}>
+                            {proc.title}
+                          </ThemedText>
+                          <ThemedText type="small" style={{ color: theme.textSecondary, lineHeight: 20, marginTop: 2 }}>
+                            {proc.text}
+                          </ThemedText>
+                        </View>
+                      </View>
+                    ))}
+
+                    <View style={styles.websiteFooter}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: "center" }}>
+                        www.dekalbsanitation.com • @DKalbSanitation on X
+                      </ThemedText>
+                    </View>
+                  </View>
+                </Animated.View>
+              </>
             ) : null}
 
             <Animated.View entering={FadeInDown.delay(500).duration(400)}>
@@ -1385,18 +1523,28 @@ export default function ServiceDetailScreen() {
         ) : null}
 
         <Animated.View entering={FadeInDown.delay(700).duration(400)}>
-          <Pressable onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}>
-            <LinearGradient
-              colors={["#7C4DFF", "#651FFF"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.contactButton}
-            >
-              <Feather name="phone" size={22} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
-              <ThemedText type="h4" style={styles.contactText}>
-                Contact Us for Help
+          <Pressable 
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              showAlert("Live Chat", "Connecting you to a live representative...\n\nPlease wait while we connect you to the next available agent.");
+            }}
+            style={styles.liveChatButton}
+          >
+            <View style={styles.liveChatIconContainer}>
+              <Feather name="message-circle" size={28} color="#FFFFFF" />
+              <View style={styles.liveChatBadge}>
+                <View style={styles.liveChatDot} />
+              </View>
+            </View>
+            <View style={{ flex: 1, marginLeft: Spacing.md }}>
+              <ThemedText type="h4" style={{ color: "#FFFFFF" }}>
+                Chat with a Live Representative
               </ThemedText>
-            </LinearGradient>
+              <ThemedText type="caption" style={{ color: "rgba(255,255,255,0.8)", marginTop: 2 }}>
+                Available Mon-Fri 8AM-5PM
+              </ThemedText>
+            </View>
+            <Feather name="chevron-right" size={24} color="#FFFFFF" />
           </Pressable>
         </Animated.View>
       </ScrollView>
@@ -1768,5 +1916,64 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+  },
+  liveChatButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#7C4DFF",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    marginTop: Spacing.xl,
+  },
+  liveChatIconContainer: {
+    position: "relative",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  liveChatBadge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#4CAF50",
+    borderWidth: 2,
+    borderColor: "#7C4DFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  liveChatDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#FFFFFF",
+  },
+  proceduresSection: {
+    marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  procedureItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+  },
+  procedureIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  websiteFooter: {
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
   },
 });
