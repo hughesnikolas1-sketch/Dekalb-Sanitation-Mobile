@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator } from "react-native";
+import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, Platform } from "react-native";
 import { apiRequest } from "@/lib/query-client";
+
+const showAlert = (title: string, message: string, buttons?: { text: string; style?: string }[]) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message, buttons as any);
+  }
+};
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -755,13 +763,13 @@ export default function ServiceDetailScreen() {
       const result = await response.json();
 
       if (amount > 0) {
-        Alert.alert(
+        showAlert(
           "Request Submitted",
           `Your ${service.title} request has been submitted. Total: ${option?.price}.\n\nYou will receive payment instructions via email, or you can pay online at myaccount.dekalbcountyga.gov`,
           [{ text: "OK", style: "default" }]
         );
       } else {
-        Alert.alert(
+        showAlert(
           "Request Submitted Successfully!",
           `Your ${service.title} request has been received. Our team will process it within 24-48 hours.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}`,
           [{ text: "Great!", style: "default" }]
@@ -772,7 +780,7 @@ export default function ServiceDetailScreen() {
       setSelectedOption(null);
     } catch (error) {
       console.error("Submit error:", error);
-      Alert.alert(
+      showAlert(
         "Submission Error",
         "We couldn't submit your request. Please try again or contact us at (404) 294-2900.",
         [{ text: "OK" }]
@@ -789,7 +797,7 @@ export default function ServiceDetailScreen() {
 
   const handleOptionSubmit = () => {
     if (!selectedOption) {
-      Alert.alert("Please Select an Option", "Choose a service option before submitting.");
+      showAlert("Please Select an Option", "Choose a service option before submitting.");
       return;
     }
     handleSubmit(selectedOption);
