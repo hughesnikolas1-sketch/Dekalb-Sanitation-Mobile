@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, Platform } from "react-native";
+import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, Platform, Image } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { apiRequest } from "@/lib/query-client";
 
 const showAlert = (title: string, message: string, buttons?: { text: string; style?: string }[]) => {
@@ -51,6 +52,19 @@ const MISSED_PICKUP_REASONS = [
   "Prohibited items were visible in the cart",
   "Weather conditions or road issues prevented access",
   "Cart was placed behind a gate or in an inaccessible area",
+];
+
+const ADDITIONAL_CART_REASONS = [
+  "Household size increased",
+  "Frequently overflow on collection day",
+  "Seasonal yard waste volume",
+  "Other",
+];
+
+const SERVICE_LOCATIONS = [
+  { id: "1", name: "Default", label: "Default", type: "Rental Property" },
+  { id: "2", name: "Work", label: "Work", type: "Work" },
+  { id: "3", name: "Home", label: "Home Address", type: "Home" },
 ];
 
 type ServiceDetailRouteProp = RouteProp<ServicesStackParamList, "ServiceDetail">;
@@ -742,6 +756,14 @@ export default function ServiceDetailScreen() {
   const [selectedOption, setSelectedOption] = useState<ServiceOption | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  
+  const [showAdditionalCartForm, setShowAdditionalCartForm] = useState(false);
+  const [additionalCartStep, setAdditionalCartStep] = useState(1);
+  const [additionalCartReason, setAdditionalCartReason] = useState("");
+  const [additionalCartLocation, setAdditionalCartLocation] = useState("");
+  const [additionalCartDescription, setAdditionalCartDescription] = useState("");
+  const [additionalCartPhoto, setAdditionalCartPhoto] = useState<string | null>(null);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
   const updateFormValue = (questionIndex: number, value: string) => {
     setFormValues((prev) => ({ ...prev, [questionIndex]: value }));
@@ -824,6 +846,74 @@ export default function ServiceDetailScreen() {
     setSelectedOption(option);
     setShowCelebration(true);
     setTimeout(() => setShowCelebration(false), 1200);
+    
+    if (option.name === "Additional Trash Roll Cart") {
+      setShowAdditionalCartForm(true);
+      setAdditionalCartStep(1);
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setAdditionalCartPhoto(result.assets[0].uri);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  const handleChooseFile = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setAdditionalCartPhoto(result.assets[0].uri);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  const handleAdditionalCartSubmit = () => {
+    if (!additionalCartReason) {
+      showAlert("Selection Required", "Please select a reason for needing an additional cart.");
+      return;
+    }
+    if (!additionalCartPhoto) {
+      showAlert("Photo Required", "Please upload a photo of your roll cart to submit this request.");
+      return;
+    }
+    
+    setFormValues({
+      0: additionalCartReason,
+      1: additionalCartLocation || "Default",
+      2: additionalCartDescription,
+      3: "Photo attached",
+    });
+    
+    handleSubmit(selectedOption || undefined);
+    
+    setShowAdditionalCartForm(false);
+    setAdditionalCartStep(1);
+    setAdditionalCartReason("");
+    setAdditionalCartLocation("");
+    setAdditionalCartDescription("");
+    setAdditionalCartPhoto(null);
+  };
+
+  const resetAdditionalCartForm = () => {
+    setShowAdditionalCartForm(false);
+    setAdditionalCartStep(1);
+    setAdditionalCartReason("");
+    setAdditionalCartLocation("");
+    setAdditionalCartDescription("");
+    setAdditionalCartPhoto(null);
+    setSelectedOption(null);
   };
 
   const handleOptionSubmit = () => {
@@ -868,7 +958,205 @@ export default function ServiceDetailScreen() {
 
         <ServiceReminder color={service.color} />
 
-        {isFormService ? (
+        {showAdditionalCartForm ? (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+            <View style={[styles.additionalCartHeader, { backgroundColor: BrandColors.green + "15", borderColor: BrandColors.green }]}>
+              <View style={[styles.additionalCartIcon, { backgroundColor: BrandColors.green + "20" }]}>
+                <Feather name="arrow-up-circle" size={24} color={BrandColors.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText type="h4" style={{ color: "#1a1a1a" }}>
+                  Additional Trash Roll Cart - $25
+                </ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
+                  Your additional trash roll cart will be delivered within <ThemedText type="small" style={{ fontWeight: "700" }}>1-10 business days</ThemedText> after payment is processed. Payment will be collected after you submit this request.
+                </ThemedText>
+              </View>
+            </View>
+
+            {additionalCartStep === 1 ? (
+              <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+                <ThemedText type="h3" style={[styles.sectionTitle, { color: BrandColors.green }]}>
+                  Why do you need an additional cart?
+                </ThemedText>
+                <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                  Please select the option that best describes your situation
+                </ThemedText>
+
+                {ADDITIONAL_CART_REASONS.map((reason, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setAdditionalCartReason(reason);
+                      setAdditionalCartStep(2);
+                    }}
+                    style={[
+                      styles.reasonOption,
+                      additionalCartReason === reason && { borderColor: BrandColors.green, backgroundColor: BrandColors.green + "10" }
+                    ]}
+                  >
+                    <ThemedText type="body" style={{ color: "#1a1a1a" }}>{reason}</ThemedText>
+                    {additionalCartReason === reason ? (
+                      <Feather name="check-circle" size={20} color={BrandColors.green} />
+                    ) : null}
+                  </Pressable>
+                ))}
+              </Animated.View>
+            ) : additionalCartStep === 2 ? (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <ThemedText type="h4" style={styles.formLabel}>
+                  <Feather name="map-pin" size={16} color={BrandColors.green} /> Service Location
+                </ThemedText>
+                <Pressable
+                  onPress={() => setShowLocationDropdown(!showLocationDropdown)}
+                  style={styles.locationDropdown}
+                >
+                  <ThemedText type="body" style={{ color: additionalCartLocation ? "#1a1a1a" : theme.textSecondary }}>
+                    {additionalCartLocation || "Select a location..."}
+                  </ThemedText>
+                  <Feather name={showLocationDropdown ? "chevron-up" : "chevron-down"} size={20} color={theme.textSecondary} />
+                </Pressable>
+
+                {showLocationDropdown ? (
+                  <View style={styles.dropdownList}>
+                    {SERVICE_LOCATIONS.map((loc) => (
+                      <Pressable
+                        key={loc.id}
+                        onPress={() => {
+                          setAdditionalCartLocation(loc.label);
+                          setShowLocationDropdown(false);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.dropdownItem,
+                          additionalCartLocation === loc.label && { backgroundColor: BrandColors.green + "15" }
+                        ]}
+                      >
+                        <Feather name="map-pin" size={16} color={BrandColors.green} />
+                        <ThemedText type="body" style={{ marginLeft: Spacing.sm, flex: 1 }}>{loc.label}</ThemedText>
+                        <ThemedText type="caption" style={{ color: theme.textSecondary }}>({loc.type})</ThemedText>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
+
+                <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                  Please describe the issue or request in detail...
+                </ThemedText>
+                <TextInput
+                  style={[styles.descriptionInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                  placeholder="Enter additional details here..."
+                  placeholderTextColor={theme.textSecondary}
+                  value={additionalCartDescription}
+                  onChangeText={setAdditionalCartDescription}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+
+                <Pressable
+                  onPress={() => setAdditionalCartStep(3)}
+                  style={{ marginTop: Spacing.lg }}
+                >
+                  <LinearGradient
+                    colors={[BrandColors.green, "#1B5E20"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.submitButton}
+                  >
+                    <ThemedText type="h4" style={styles.submitText}>Continue</ThemedText>
+                    <Feather name="arrow-right" size={20} color="#FFFFFF" style={{ marginLeft: Spacing.sm }} />
+                  </LinearGradient>
+                </Pressable>
+
+                <Pressable onPress={() => setAdditionalCartStep(1)} style={styles.backButton}>
+                  <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                  <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <View style={[styles.photoRequiredBox, { backgroundColor: "#E3F2FD", borderColor: BrandColors.blue }]}>
+                  <Feather name="camera" size={24} color={BrandColors.blue} />
+                  <View style={{ flex: 1, marginLeft: Spacing.md }}>
+                    <ThemedText type="h4" style={{ color: BrandColors.blue }}>Photo Required</ThemedText>
+                    <ThemedText type="small" style={{ color: "#1565C0", marginTop: Spacing.xs }}>
+                      Please upload a photo of your roll cart. This helps us process your request faster.
+                    </ThemedText>
+                  </View>
+                </View>
+
+                <ThemedText type="body" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                  Photo of Roll Cart <ThemedText type="body" style={{ color: "#F44336" }}>*</ThemedText>
+                </ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+                  Take a clear photo showing the current condition of your cart
+                </ThemedText>
+
+                {additionalCartPhoto ? (
+                  <View style={styles.photoPreview}>
+                    <Image source={{ uri: additionalCartPhoto }} style={styles.previewImage} />
+                    <Pressable
+                      onPress={() => setAdditionalCartPhoto(null)}
+                      style={styles.removePhotoButton}
+                    >
+                      <Feather name="x" size={18} color="#FFFFFF" />
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View style={styles.photoButtons}>
+                    <Pressable onPress={handleTakePhoto} style={styles.photoButton}>
+                      <Feather name="camera" size={20} color={theme.textSecondary} />
+                      <ThemedText type="body" style={{ color: theme.text, marginLeft: Spacing.sm }}>Take Photo</ThemedText>
+                    </Pressable>
+                    <Pressable onPress={handleChooseFile} style={styles.photoButton}>
+                      <Feather name="upload" size={20} color={theme.textSecondary} />
+                      <ThemedText type="body" style={{ color: theme.text, marginLeft: Spacing.sm }}>Choose File</ThemedText>
+                    </Pressable>
+                  </View>
+                )}
+
+                {!additionalCartPhoto ? (
+                  <ThemedText type="small" style={{ color: "#F44336", marginTop: Spacing.sm }}>
+                    A photo is required to submit this request
+                  </ThemedText>
+                ) : null}
+
+                <Pressable
+                  onPress={handleAdditionalCartSubmit}
+                  disabled={isSubmitting}
+                  style={{ marginTop: Spacing.xl }}
+                >
+                  <LinearGradient
+                    colors={[BrandColors.green, "#1B5E20"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.submitButton}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <>
+                        <ThemedText type="h4" style={styles.submitText}>Submit Request</ThemedText>
+                      </>
+                    )}
+                  </LinearGradient>
+                </Pressable>
+
+                <Pressable onPress={() => setAdditionalCartStep(2)} style={styles.backButton}>
+                  <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                  <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                </Pressable>
+
+                <Pressable onPress={resetAdditionalCartForm} style={[styles.backButton, { marginTop: Spacing.sm }]}>
+                  <Feather name="x" size={18} color="#F44336" />
+                  <ThemedText type="body" style={{ color: "#F44336", marginLeft: Spacing.xs }}>Cancel Request</ThemedText>
+                </Pressable>
+              </Animated.View>
+            )}
+          </Animated.View>
+        ) : isFormService ? (
           <>
             <Animated.View entering={FadeInDown.delay(150).duration(400)}>
               <ThemedText type="h3" style={styles.sectionTitle}>
@@ -1367,5 +1655,118 @@ const styles = StyleSheet.create({
   },
   contactText: {
     color: "#FFFFFF",
+  },
+  additionalCartHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    marginBottom: Spacing.lg,
+  },
+  additionalCartIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  reasonOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+    marginBottom: Spacing.sm,
+  },
+  formLabel: {
+    marginBottom: Spacing.sm,
+    fontWeight: "600",
+  },
+  locationDropdown: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+  },
+  dropdownList: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    marginTop: Spacing.xs,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  descriptionInput: {
+    borderWidth: 2,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    fontSize: 16,
+    minHeight: 100,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  photoRequiredBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+  },
+  photoButtons: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  photoButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    borderStyle: "dashed",
+  },
+  photoPreview: {
+    position: "relative",
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+  },
+  previewImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: BorderRadius.lg,
+  },
+  removePhotoButton: {
+    position: "absolute",
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
