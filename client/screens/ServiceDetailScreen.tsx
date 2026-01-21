@@ -803,6 +803,17 @@ export default function ServiceDetailScreen() {
   const [additionalCartDescription, setAdditionalCartDescription] = useState("");
   const [additionalCartPhoto, setAdditionalCartPhoto] = useState<string | null>(null);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  
+  const [showRollOffForm, setShowRollOffForm] = useState(false);
+  const [rollOffStep, setRollOffStep] = useState(1);
+  const [rollOffAddress, setRollOffAddress] = useState("");
+  const [rollOffAddressLine2, setRollOffAddressLine2] = useState("");
+  const [rollOffCity, setRollOffCity] = useState("");
+  const [rollOffZip, setRollOffZip] = useState("");
+  const [rollOffDeliveryDate, setRollOffDeliveryDate] = useState("");
+  const [rollOffDetails, setRollOffDetails] = useState("");
+  const [rollOffPaymentComplete, setRollOffPaymentComplete] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const updateFormValue = (questionIndex: number, value: string) => {
     setFormValues((prev) => ({ ...prev, [questionIndex]: value }));
@@ -889,6 +900,84 @@ export default function ServiceDetailScreen() {
     if (serviceId.includes("roll-cart")) {
       setShowAdditionalCartForm(true);
       setAdditionalCartStep(1);
+    } else if (serviceId.includes("roll-off")) {
+      setShowRollOffForm(true);
+      setRollOffStep(1);
+    }
+  };
+
+  const resetRollOffForm = () => {
+    setShowRollOffForm(false);
+    setRollOffStep(1);
+    setRollOffAddress("");
+    setRollOffAddressLine2("");
+    setRollOffCity("");
+    setRollOffZip("");
+    setRollOffDeliveryDate("");
+    setRollOffDetails("");
+    setRollOffPaymentComplete(false);
+    setSelectedOption(null);
+  };
+
+  const getMinDeliveryDate = () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 3);
+    return today.toISOString().split("T")[0];
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  };
+
+  const handleRollOffPayment = async () => {
+    if (!selectedOption) return;
+    
+    const price = parsePrice(selectedOption.price);
+    if (price <= 0) {
+      showAlert("Price Error", "Unable to process payment. Please contact us at (404) 294-2900.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    try {
+      const response = await apiRequest("POST", "/api/create-payment-intent", {
+        amount: price,
+        serviceId,
+        serviceType: serviceId.startsWith("com-") ? "commercial" : "residential",
+      });
+
+      const data = await response.json();
+      
+      if (data.clientSecret) {
+        await apiRequest("POST", "/api/service-requests", {
+          serviceType: serviceId.startsWith("com-") ? "commercial" : "residential",
+          serviceId,
+          formData: {
+            selectedOption: selectedOption.name,
+            deliveryAddress: `${rollOffAddress}${rollOffAddressLine2 ? ", " + rollOffAddressLine2 : ""}, ${rollOffCity}, GA ${rollOffZip}`,
+            requestedDeliveryDate: rollOffDeliveryDate,
+            additionalDetails: rollOffDetails,
+          },
+          amount: price,
+        });
+
+        await apiRequest("POST", "/api/confirm-payment", {
+          paymentIntentId: data.paymentIntentId,
+        });
+
+        setRollOffPaymentComplete(true);
+        setRollOffStep(4);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      showAlert("Payment Error", "We couldn't process your payment. Please try again or call (404) 294-2900.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1220,6 +1309,371 @@ export default function ServiceDetailScreen() {
                 </Pressable>
               </Animated.View>
             )}
+          </Animated.View>
+        ) : showRollOffForm && selectedOption ? (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+            <View style={[styles.additionalCartHeader, { backgroundColor: service.color + "15", borderColor: service.color }]}>
+              <View style={[styles.additionalCartIcon, { backgroundColor: service.color + "20" }]}>
+                <Feather name="truck" size={24} color={service.color} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText type="h4" style={{ color: "#1a1a1a" }}>
+                  {selectedOption.name} - {selectedOption.price}
+                </ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
+                  2-week rental period. Container will be delivered to your specified address.
+                </ThemedText>
+              </View>
+            </View>
+
+            <View style={styles.stepIndicator}>
+              {[1, 2, 3, 4].map((step) => (
+                <View key={step} style={styles.stepRow}>
+                  <View style={[
+                    styles.stepCircle,
+                    { 
+                      backgroundColor: rollOffStep >= step ? service.color : theme.border,
+                      borderColor: rollOffStep >= step ? service.color : theme.border 
+                    }
+                  ]}>
+                    {rollOffStep > step ? (
+                      <Feather name="check" size={14} color="#FFF" />
+                    ) : (
+                      <ThemedText type="small" style={{ color: rollOffStep >= step ? "#FFF" : theme.textSecondary }}>{step}</ThemedText>
+                    )}
+                  </View>
+                  {step < 4 ? <View style={[styles.stepLine, { backgroundColor: rollOffStep > step ? service.color : theme.border }]} /> : null}
+                </View>
+              ))}
+            </View>
+            <View style={styles.stepLabels}>
+              <ThemedText type="caption" style={{ color: rollOffStep >= 1 ? service.color : theme.textSecondary }}>Address</ThemedText>
+              <ThemedText type="caption" style={{ color: rollOffStep >= 2 ? service.color : theme.textSecondary }}>Date</ThemedText>
+              <ThemedText type="caption" style={{ color: rollOffStep >= 3 ? service.color : theme.textSecondary }}>Payment</ThemedText>
+              <ThemedText type="caption" style={{ color: rollOffStep >= 4 ? service.color : theme.textSecondary }}>Done</ThemedText>
+            </View>
+
+            {rollOffStep === 1 ? (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <ThemedText type="h3" style={[styles.sectionTitle, { color: service.color }]}>
+                  Delivery Address
+                </ThemedText>
+                <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                  Where should we deliver the roll off container?
+                </ThemedText>
+
+                <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                  Street Address *
+                </ThemedText>
+                <TextInput
+                  style={[styles.textInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                  placeholder="123 Main Street"
+                  placeholderTextColor={theme.textSecondary}
+                  value={rollOffAddress}
+                  onChangeText={setRollOffAddress}
+                  autoCapitalize="words"
+                />
+
+                <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                  Apt/Suite/Unit (optional)
+                </ThemedText>
+                <TextInput
+                  style={[styles.textInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                  placeholder="Apt 4B"
+                  placeholderTextColor={theme.textSecondary}
+                  value={rollOffAddressLine2}
+                  onChangeText={setRollOffAddressLine2}
+                />
+
+                <View style={{ flexDirection: "row", gap: Spacing.md }}>
+                  <View style={{ flex: 2 }}>
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                      City *
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                      placeholder="Decatur"
+                      placeholderTextColor={theme.textSecondary}
+                      value={rollOffCity}
+                      onChangeText={setRollOffCity}
+                      autoCapitalize="words"
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                      ZIP *
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                      placeholder="30030"
+                      placeholderTextColor={theme.textSecondary}
+                      value={rollOffZip}
+                      onChangeText={setRollOffZip}
+                      keyboardType="number-pad"
+                      maxLength={5}
+                    />
+                  </View>
+                </View>
+
+                <Pressable
+                  onPress={() => {
+                    if (!rollOffAddress || !rollOffCity || !rollOffZip) {
+                      showAlert("Required Fields", "Please fill in all required address fields.");
+                      return;
+                    }
+                    setRollOffStep(2);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                  style={{ marginTop: Spacing.xl }}
+                >
+                  <LinearGradient
+                    colors={service.gradientColors || [service.color, service.color]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.submitButton}
+                  >
+                    <ThemedText type="h4" style={styles.submitText}>Continue to Delivery Date</ThemedText>
+                    <Feather name="arrow-right" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                  </LinearGradient>
+                </Pressable>
+
+                <Pressable onPress={resetRollOffForm} style={[styles.backButton, { marginTop: Spacing.md }]}>
+                  <Feather name="x" size={18} color="#F44336" />
+                  <ThemedText type="body" style={{ color: "#F44336", marginLeft: Spacing.xs }}>Cancel Request</ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : rollOffStep === 2 ? (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <ThemedText type="h3" style={[styles.sectionTitle, { color: service.color }]}>
+                  Requested Delivery Date
+                </ThemedText>
+                <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                  Select your preferred delivery date (minimum 3 business days from today)
+                </ThemedText>
+
+                <Pressable
+                  onPress={() => setShowDatePicker(true)}
+                  style={[styles.datePickerButton, { backgroundColor: theme.surface, borderColor: service.color }]}
+                >
+                  <Feather name="calendar" size={22} color={service.color} />
+                  <ThemedText type="body" style={{ marginLeft: Spacing.md, flex: 1, color: rollOffDeliveryDate ? theme.text : theme.textSecondary }}>
+                    {rollOffDeliveryDate ? formatDate(rollOffDeliveryDate) : "Select delivery date"}
+                  </ThemedText>
+                  <Feather name="chevron-down" size={20} color={theme.textSecondary} />
+                </Pressable>
+
+                {showDatePicker ? (
+                  <View style={[styles.dateInputContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text }]}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor={theme.textSecondary}
+                      value={rollOffDeliveryDate}
+                      onChangeText={(text) => {
+                        setRollOffDeliveryDate(text);
+                        if (text.length === 10) {
+                          setShowDatePicker(false);
+                        }
+                      }}
+                      keyboardType="numbers-and-punctuation"
+                      maxLength={10}
+                    />
+                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
+                      Enter date as YYYY-MM-DD (e.g., 2026-01-25)
+                    </ThemedText>
+                  </View>
+                ) : null}
+
+                <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                  Additional Details (optional)
+                </ThemedText>
+                <TextInput
+                  style={[styles.descriptionInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
+                  placeholder="Gate codes, placement instructions, access notes..."
+                  placeholderTextColor={theme.textSecondary}
+                  value={rollOffDetails}
+                  onChangeText={setRollOffDetails}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+
+                <View style={[styles.infoBox, { backgroundColor: service.color + "10", borderColor: service.color }]}>
+                  <Feather name="info" size={18} color={service.color} />
+                  <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                    <ThemedText type="body" style={{ fontWeight: "600", color: "#1a1a1a" }}>2-Week Rental Period</ThemedText>
+                    <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
+                      The roll off fee is applied once the container has been serviced by the driver and returned to the Sanitation Division.
+                    </ThemedText>
+                  </View>
+                </View>
+
+                <Pressable
+                  onPress={() => {
+                    if (!rollOffDeliveryDate) {
+                      showAlert("Required Field", "Please select a delivery date.");
+                      return;
+                    }
+                    setRollOffStep(3);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                  style={{ marginTop: Spacing.lg }}
+                >
+                  <LinearGradient
+                    colors={service.gradientColors || [service.color, service.color]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.submitButton}
+                  >
+                    <ThemedText type="h4" style={styles.submitText}>Continue to Payment</ThemedText>
+                    <Feather name="credit-card" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                  </LinearGradient>
+                </Pressable>
+
+                <Pressable onPress={() => setRollOffStep(1)} style={styles.backButton}>
+                  <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                  <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : rollOffStep === 3 ? (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <ThemedText type="h3" style={[styles.sectionTitle, { color: service.color }]}>
+                  Review & Payment
+                </ThemedText>
+                <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                  Review your order details and complete payment
+                </ThemedText>
+
+                <View style={[styles.reviewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <View style={styles.reviewRow}>
+                    <Feather name="package" size={18} color={service.color} />
+                    <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                      <ThemedText type="caption" style={{ color: theme.textSecondary }}>Container</ThemedText>
+                      <ThemedText type="body" style={{ fontWeight: "600" }}>{selectedOption.name}</ThemedText>
+                    </View>
+                  </View>
+                  <View style={[styles.reviewRow, { marginTop: Spacing.md }]}>
+                    <Feather name="map-pin" size={18} color={service.color} />
+                    <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                      <ThemedText type="caption" style={{ color: theme.textSecondary }}>Delivery Address</ThemedText>
+                      <ThemedText type="body">{rollOffAddress}{rollOffAddressLine2 ? `, ${rollOffAddressLine2}` : ""}</ThemedText>
+                      <ThemedText type="body">{rollOffCity}, GA {rollOffZip}</ThemedText>
+                    </View>
+                  </View>
+                  <View style={[styles.reviewRow, { marginTop: Spacing.md }]}>
+                    <Feather name="calendar" size={18} color={service.color} />
+                    <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                      <ThemedText type="caption" style={{ color: theme.textSecondary }}>Requested Delivery</ThemedText>
+                      <ThemedText type="body">{formatDate(rollOffDeliveryDate)}</ThemedText>
+                    </View>
+                  </View>
+                  {rollOffDetails ? (
+                    <View style={[styles.reviewRow, { marginTop: Spacing.md }]}>
+                      <Feather name="file-text" size={18} color={service.color} />
+                      <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                        <ThemedText type="caption" style={{ color: theme.textSecondary }}>Additional Details</ThemedText>
+                        <ThemedText type="body">{rollOffDetails}</ThemedText>
+                      </View>
+                    </View>
+                  ) : null}
+                </View>
+
+                <View style={[styles.totalCard, { backgroundColor: service.color + "15", borderColor: service.color }]}>
+                  <ThemedText type="h4" style={{ color: "#1a1a1a" }}>Total Due</ThemedText>
+                  <ThemedText type="h2" style={{ color: service.color }}>{selectedOption.price}</ThemedText>
+                </View>
+
+                <Pressable
+                  onPress={handleRollOffPayment}
+                  disabled={isSubmitting}
+                  style={{ marginTop: Spacing.lg }}
+                >
+                  <LinearGradient
+                    colors={["#4CAF50", "#2E7D32"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.submitButton}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <>
+                        <Feather name="lock" size={20} color="#FFF" />
+                        <ThemedText type="h4" style={[styles.submitText, { marginLeft: Spacing.sm }]}>Pay {selectedOption.price} Securely</ThemedText>
+                      </>
+                    )}
+                  </LinearGradient>
+                </Pressable>
+
+                <View style={styles.securityBadges}>
+                  <Feather name="shield" size={16} color={theme.textSecondary} />
+                  <ThemedText type="caption" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
+                    Secure payment powered by Stripe
+                  </ThemedText>
+                </View>
+
+                <Pressable onPress={() => setRollOffStep(2)} style={styles.backButton}>
+                  <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                  <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                </Pressable>
+              </Animated.View>
+            ) : rollOffStep === 4 ? (
+              <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+                <View style={[styles.confirmationCard, { backgroundColor: "#E8F5E9", borderColor: "#4CAF50" }]}>
+                  <View style={[styles.confirmationIcon, { backgroundColor: "#4CAF50" }]}>
+                    <Feather name="check" size={40} color="#FFF" />
+                  </View>
+                  <ThemedText type="h2" style={{ color: "#2E7D32", textAlign: "center", marginTop: Spacing.lg }}>
+                    Payment Successful!
+                  </ThemedText>
+                  <ThemedText type="body" style={{ color: "#1a1a1a", textAlign: "center", marginTop: Spacing.sm }}>
+                    Your roll off container request has been received.
+                  </ThemedText>
+                </View>
+
+                <View style={[styles.contactCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Feather name="mail" size={24} color={service.color} />
+                  <View style={{ flex: 1, marginLeft: Spacing.md }}>
+                    <ThemedText type="h4" style={{ color: "#1a1a1a" }}>We'll Be In Touch!</ThemedText>
+                    <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
+                      Our team will contact you via <ThemedText type="body" style={{ fontWeight: "700" }}>email</ThemedText> or <ThemedText type="body" style={{ fontWeight: "700" }}>phone</ThemedText> to confirm your delivery date and provide any additional instructions.
+                    </ThemedText>
+                  </View>
+                </View>
+
+                <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <ThemedText type="h4" style={{ color: "#1a1a1a", marginBottom: Spacing.md }}>Order Summary</ThemedText>
+                  <View style={styles.summaryRow}>
+                    <ThemedText type="body" style={{ color: theme.textSecondary }}>Container:</ThemedText>
+                    <ThemedText type="body" style={{ fontWeight: "600" }}>{selectedOption.name}</ThemedText>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <ThemedText type="body" style={{ color: theme.textSecondary }}>Amount Paid:</ThemedText>
+                    <ThemedText type="body" style={{ fontWeight: "600", color: "#4CAF50" }}>{selectedOption.price}</ThemedText>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <ThemedText type="body" style={{ color: theme.textSecondary }}>Rental Period:</ThemedText>
+                    <ThemedText type="body" style={{ fontWeight: "600" }}>2 Weeks</ThemedText>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <ThemedText type="body" style={{ color: theme.textSecondary }}>Delivery To:</ThemedText>
+                    <ThemedText type="body" style={{ fontWeight: "600", flex: 1, textAlign: "right" }}>{rollOffCity}, GA</ThemedText>
+                  </View>
+                </View>
+
+                <Pressable onPress={resetRollOffForm} style={{ marginTop: Spacing.xl }}>
+                  <LinearGradient
+                    colors={service.gradientColors || [service.color, service.color]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.submitButton}
+                  >
+                    <Feather name="home" size={20} color="#FFF" />
+                    <ThemedText type="h4" style={[styles.submitText, { marginLeft: Spacing.sm }]}>Back to Services</ThemedText>
+                  </LinearGradient>
+                </Pressable>
+              </Animated.View>
+            ) : null}
           </Animated.View>
         ) : isFormService ? (
           <>
@@ -1972,5 +2426,116 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: "#E0E0E0",
+  },
+  stepIndicator: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.sm,
+  },
+  stepRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepLine: {
+    width: 40,
+    height: 3,
+    marginHorizontal: Spacing.xs,
+  },
+  stepLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  datePickerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    minHeight: 60,
+  },
+  dateInputContainer: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+  },
+  infoBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginTop: Spacing.lg,
+  },
+  reviewCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    marginTop: Spacing.md,
+  },
+  reviewRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  totalCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    marginTop: Spacing.lg,
+  },
+  securityBadges: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: Spacing.md,
+  },
+  confirmationCard: {
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    alignItems: "center",
+    marginTop: Spacing.md,
+  },
+  confirmationIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  contactCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    marginTop: Spacing.lg,
+  },
+  summaryCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    marginTop: Spacing.lg,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
   },
 });

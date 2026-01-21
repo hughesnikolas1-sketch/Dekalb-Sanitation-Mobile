@@ -37,6 +37,13 @@ The project uses a monorepo structure with an Expo mobile client and an Express.
 
 ## Recent Changes
 
+- January 2026: **Roll Off Request Multi-Step Form** - Complete request flow with:
+  - Step 1: Delivery address form (street, apt/suite, city, ZIP)
+  - Step 2: Delivery date picker with 3-day minimum + additional details
+  - Step 3: Review & Payment with order summary and Stripe secure payment
+  - Step 4: Confirmation with "We'll contact you via email or phone" message
+- January 2026: **Dynamic Roll Cart Forms** - All roll cart options (not just Additional Trash) now trigger multi-step form with dynamic colors and headers based on selected option
+- January 2026: Removed "Complimentary 95-Gallon Trash Cart" from residential and commercial roll cart services
 - January 2026: **Stripe Payment Integration** - Full backend setup with webhook handlers, payment intent creation, and product syncing
 - January 2026: **Service Request Submission** - API endpoints for creating/viewing service requests with database storage
 - January 2026: **Interactive Option Selection** - Radio-button style option cards with visual selection feedback
