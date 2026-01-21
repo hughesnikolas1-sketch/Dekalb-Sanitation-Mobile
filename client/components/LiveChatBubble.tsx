@@ -222,7 +222,13 @@ export function LiveChatBubble() {
   return (
     <>
       <Pressable
-        style={[styles.bubbleContainer, { bottom: 100 + insets.bottom }]}
+        style={[
+          styles.bubbleContainer, 
+          { 
+            bottom: (position.bottom || 100) + insets.bottom,
+            ...(position.left !== undefined ? { left: position.left, right: undefined } : { right: position.right || 20 }),
+          }
+        ]}
         onPress={handleOpenChat}
       >
         <Animated.View style={[styles.glowEffect, glowAnimatedStyle]} />
@@ -239,10 +245,7 @@ export function LiveChatBubble() {
         <View style={styles.tooltipContainer}>
           <View style={styles.tooltip}>
             <Text style={styles.tooltipText}>
-              💬 Get stuck? Live agent ready to assist!
-            </Text>
-            <Text style={styles.tooltipSubtext}>
-              Click here to chat while completing your request
+              💬 Got stuck? A live agent can walk you through it by clicking chat bubble!
             </Text>
           </View>
           <View style={styles.tooltipArrow} />
@@ -345,9 +348,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const styles = StyleSheet.create({
   bubbleContainer: {
     position: 'absolute',
-    right: 20,
     zIndex: 1000,
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   glowEffect: {
     position: 'absolute',
