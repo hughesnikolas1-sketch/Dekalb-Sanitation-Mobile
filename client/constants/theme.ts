@@ -140,6 +140,17 @@ export const BorderRadius = {
   full: 9999,
 };
 
+// Font sizes for easy reference
+export const FontSizes = {
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 18,
+  xl: 22,
+  xxl: 26,
+  xxxl: 32,
+};
+
 // Senior-friendly typography - larger, more readable fonts
 export const Typography = {
   h1: {

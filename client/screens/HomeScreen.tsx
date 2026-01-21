@@ -534,7 +534,7 @@ export default function HomeScreen() {
         <QuickActionCard
           icon="help-circle"
           title="❓ Help & FAQ"
-          onPress={() => {}}
+          onPress={() => (navigation as any).navigate("HelpFAQ")}
           gradientColors={["#FF9100", "#FF6D00"]}
           delay={850}
         />

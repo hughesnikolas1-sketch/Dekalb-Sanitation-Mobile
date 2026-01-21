@@ -8,6 +8,8 @@ import MyAddressesScreen from "@/screens/MyAddressesScreen";
 import MyRequestsScreen from "@/screens/MyRequestsScreen";
 import BillingScreen from "@/screens/BillingScreen";
 import RateExperienceScreen from "@/screens/RateExperienceScreen";
+import HelpFAQScreen from "@/screens/HelpFAQScreen";
+import { LiveChatBubble } from "@/components/LiveChatBubble";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -20,6 +22,7 @@ export type RootStackParamList = {
   MyRequests: undefined;
   Billing: undefined;
   RateExperience: undefined;
+  HelpFAQ: undefined;
   SignIn: undefined;
   CreateAccount: undefined;
 };
@@ -40,6 +43,7 @@ export default function RootStackNavigator() {
   }
 
   return (
+    <>
     <Stack.Navigator screenOptions={screenOptions}>
       {isAuthenticated ? (
         <>
@@ -76,6 +80,11 @@ export default function RootStackNavigator() {
             component={RateExperienceScreen}
             options={{ headerTitle: "Rate Experience" }}
           />
+          <Stack.Screen
+            name="HelpFAQ"
+            component={HelpFAQScreen}
+            options={{ headerTitle: "Help & FAQ" }}
+          />
         </>
       ) : (
         <Stack.Screen
@@ -85,5 +94,7 @@ export default function RootStackNavigator() {
         />
       )}
     </Stack.Navigator>
+    {isAuthenticated && <LiveChatBubble />}
+    </>
   );
 }
