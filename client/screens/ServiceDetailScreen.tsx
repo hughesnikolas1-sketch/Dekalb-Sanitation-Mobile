@@ -213,6 +213,32 @@ const BAG_COUNT_OPTIONS = [
   "More than 20 bags",
 ];
 
+const CART_ISSUE_REASONS = [
+  "Cart was damaged by collection truck",
+  "Cart was damaged by weather/storm",
+  "Cart lid is broken or missing",
+  "Cart wheels are broken",
+  "Cart body is cracked or has holes",
+  "Cart handle is broken",
+  "Other damage",
+];
+
+const CART_STOLEN_DETAILS = [
+  "Cart was stolen from curb on collection day",
+  "Cart was stolen from my property",
+  "Cart went missing after a storm",
+  "Cart was taken by unknown party",
+  "Other",
+];
+
+const CART_RETURN_REASONS = [
+  "Moving out of DeKalb County",
+  "Selling/transferring property",
+  "No longer need additional cart",
+  "Downsizing service",
+  "Other",
+];
+
 const serviceDetails: Record<string, ServiceInfo> = {
   "res-missed-trash": {
     title: "Missed Trash Pickup",
@@ -281,8 +307,8 @@ const serviceDetails: Record<string, ServiceInfo> = {
       { id: "8", name: "Return Cart", size: "Schedule cart return/pickup", price: "Free", schedule: "Pickup within 5-7 days" },
     ],
     links: [
-      { text: "View Annual Prorated Fee Assessments", url: "https://dekalbcountyga.gov/prorated-fees" },
-      { text: "Pay via InvoiceCloud Portal", url: "https://dekalbcountyga.gov/invoicecloud" },
+      { text: "View Annual Prorated Fee Assessments", url: "https://www.dekalbcountyga.gov/sanitation/garbage-roll-cart-application" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
     ],
   },
   "res-roll-off": {
@@ -302,13 +328,13 @@ const serviceDetails: Record<string, ServiceInfo> = {
     ],
     rollOffInfo: {
       importantNotes: [
-        "In order to complete pre-payment for Roll-Off container 2 week rental, please complete all fields below. Required fields are denoted with an asterisk (*).",
-        "Residential roll off containers are ONLY for residents that receive weekly garbage and recycling service from Dekalb County Sanitation.",
-        "No Roll-Off containers will be delivered on Saturday, Sunday & County Observed Holidays.",
-        "Residential Roll-Offs cannot be placed in the streets.",
-        "If you have a sloped driveway please email Dekalb Sanitation for a site assessment review PRIOR to requesting and paying for a Roll-Off container.",
-        "Residents can submit a 10-, 20-, 30- or 40-yard Roll-Off container rental request. Containers are available for a maximum of a two-week rental period and cannot be used to replace standard long-term garbage service.",
-        "A pickup and return of the Roll-Off Container, resident is required to pay an additional 2 Week Rental charge.",
+        "No containers will be delivered on Saturday, Sunday, or county-observed holidays.",
+        "Containers should be placed in resident's driveway.",
+        "Residents with sloped driveways should email sanitation@dekalbcountyga.gov for a site assessment PRIOR to requesting and paying for a roll-off container.",
+        "Servicing and returning the container require payment of an additional two-week rental fee.",
+        "Residential roll off containers are ONLY for residents that receive weekly garbage and recycling service from DeKalb County Sanitation.",
+        "Roll-Off containers cannot be placed in the streets.",
+        "Containers are available for a maximum of a two-week rental period and cannot be used to replace standard long-term garbage service.",
       ],
       feeSchedule: [
         { size: "10 yard", price: "$226" },
@@ -396,8 +422,8 @@ const serviceDetails: Record<string, ServiceInfo> = {
       { id: "8", name: "Return Cart", size: "Schedule a cart return or pickup", price: "Free" },
     ],
     links: [
-      { text: "View Annual Prorated Fee Assessments", url: "https://dekalbcountyga.gov" },
-      { text: "Pay via InvoiceCloud Portal", url: "https://dekalbcountyga.gov" },
+      { text: "View Annual Prorated Fee Assessments", url: "https://www.dekalbcountyga.gov/sanitation/garbage-roll-cart-application" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
     ],
   },
   "com-roll-off": {
@@ -436,7 +462,7 @@ const serviceDetails: Record<string, ServiceInfo> = {
   },
   "com-new-requirements": {
     title: "Requirements for Establishing Commercial Sanitation Service",
-    description: "Office Location: 3720 Leroy Scott Drive, Decatur, GA 30032\nOffice Hours: Monday - Friday, 9 a.m. - 3 p.m.",
+    description: "Office Location: 3720 Leroy Scott Drive, Decatur, GA 30032\nOffice Hours: Monday - Friday, 8 a.m. - 3:30 p.m.",
     icon: "file-text",
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
@@ -504,7 +530,7 @@ const serviceDetails: Record<string, ServiceInfo> = {
         title: "In-Office Payments",
         content: [
           "Location: 3720 Leroy Scott Drive, Decatur, GA 30032",
-          "Hours: Monday - Friday, 9 a.m. - 3 p.m.",
+          "Hours: Monday - Friday, 8 a.m. - 3:30 p.m.",
           "Cash, check, money order, and credit/debit cards accepted",
         ],
       },
@@ -1003,15 +1029,15 @@ export default function ServiceDetailScreen() {
       if (serviceId.includes("roll-cart")) {
         if (Platform.OS === 'web') {
           const viewRequests = window.confirm(
-            `Request Under Investigation\n\nYour ${service.title} request has been submitted and is now under investigation.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nDelivery Timeline: 1-10 business days\n\nOur team will review your request and contact you via email or phone. You can track the status of your request in "My Requests".\n\nClick OK to view your requests.`
+            `Request Submitted Successfully!\n\nYour ${service.title} request has been submitted.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nYou will receive a confirmation email shortly. We will be in touch via phone or email with further instructions and updates.\n\nDelivery Timeline: 1-10 business days\n\nClick OK to view your requests.`
           );
           if (viewRequests) {
             navigation.navigate("MyRequests");
           }
         } else {
           Alert.alert(
-            "Request Under Investigation",
-            `Your ${service.title} request has been submitted and is now under investigation.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nDelivery Timeline: 1-10 business days\n\nOur team will review your request and contact you via email or phone.`,
+            "Request Submitted Successfully!",
+            `Your ${service.title} request has been submitted.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nYou will receive a confirmation email shortly. We will be in touch via phone or email with further instructions and updates.\n\nDelivery Timeline: 1-10 business days`,
             [
               { text: "OK", style: "cancel" },
               { text: "View My Requests", onPress: () => navigation.navigate("MyRequests") }
@@ -1292,13 +1318,25 @@ export default function ServiceDetailScreen() {
             {additionalCartStep === 1 ? (
               <Animated.View entering={FadeInDown.delay(200).duration(400)}>
                 <ThemedText type="h3" style={[styles.sectionTitle, { color: service.color }]}>
-                  Why do you need this cart service?
+                  {selectedOption.name.toLowerCase().includes("damaged") 
+                    ? "What happened to your roll cart?"
+                    : selectedOption.name.toLowerCase().includes("stolen")
+                    ? "Tell us about your stolen cart"
+                    : selectedOption.name.toLowerCase().includes("return")
+                    ? "Why are you returning your cart?"
+                    : "Why do you need this cart service?"}
                 </ThemedText>
                 <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
                   Please select the option that best describes your situation
                 </ThemedText>
 
-                {ADDITIONAL_CART_REASONS.map((reason, index) => (
+                {(selectedOption.name.toLowerCase().includes("damaged") 
+                  ? CART_ISSUE_REASONS 
+                  : selectedOption.name.toLowerCase().includes("stolen")
+                  ? CART_STOLEN_DETAILS
+                  : selectedOption.name.toLowerCase().includes("return")
+                  ? CART_RETURN_REASONS
+                  : ADDITIONAL_CART_REASONS).map((reason, index) => (
                   <Pressable
                     key={index}
                     onPress={() => {
@@ -1321,40 +1359,71 @@ export default function ServiceDetailScreen() {
             ) : additionalCartStep === 2 ? (
               <Animated.View entering={FadeInDown.delay(100).duration(400)}>
                 <ThemedText type="h4" style={styles.formLabel}>
-                  <Feather name="map-pin" size={16} color={service.color} /> Service Location
+                  <Feather name="map-pin" size={16} color={service.color} /> Service Address
                 </ThemedText>
-                <Pressable
-                  onPress={() => setShowLocationDropdown(!showLocationDropdown)}
-                  style={styles.locationDropdown}
-                >
-                  <ThemedText type="body" style={{ color: additionalCartLocation ? "#1a1a1a" : theme.textSecondary }}>
-                    {additionalCartLocation || "Select a location..."}
-                  </ThemedText>
-                  <Feather name={showLocationDropdown ? "chevron-up" : "chevron-down"} size={20} color={theme.textSecondary} />
-                </Pressable>
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+                  Select the address where this cart is located
+                </ThemedText>
+                
+                {savedAddresses && savedAddresses.length > 0 ? (
+                  <>
+                    <Pressable
+                      onPress={() => setShowLocationDropdown(!showLocationDropdown)}
+                      style={[styles.locationDropdown, { borderColor: service.color }]}
+                    >
+                      <Feather name="map-pin" size={18} color={service.color} />
+                      <ThemedText type="body" style={{ color: additionalCartLocation ? "#1a1a1a" : theme.textSecondary, flex: 1, marginLeft: Spacing.sm }}>
+                        {additionalCartLocation || "Select your saved address..."}
+                      </ThemedText>
+                      <Feather name={showLocationDropdown ? "chevron-up" : "chevron-down"} size={20} color={theme.textSecondary} />
+                    </Pressable>
 
-                {showLocationDropdown ? (
-                  <View style={styles.dropdownList}>
-                    {SERVICE_LOCATIONS.map((loc) => (
-                      <Pressable
-                        key={loc.id}
-                        onPress={() => {
-                          setAdditionalCartLocation(loc.label);
-                          setShowLocationDropdown(false);
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        }}
-                        style={[
-                          styles.dropdownItem,
-                          additionalCartLocation === loc.label && { backgroundColor: service.color + "15" }
-                        ]}
-                      >
-                        <Feather name="map-pin" size={16} color={service.color} />
-                        <ThemedText type="body" style={{ marginLeft: Spacing.sm, flex: 1 }}>{loc.label}</ThemedText>
-                        <ThemedText type="caption" style={{ color: theme.textSecondary }}>({loc.type})</ThemedText>
-                      </Pressable>
-                    ))}
+                    {showLocationDropdown ? (
+                      <View style={styles.dropdownList}>
+                        {savedAddresses.map((addr) => (
+                          <Pressable
+                            key={addr.id}
+                            onPress={() => {
+                              const fullAddr = `${addr.street}${addr.aptSuite ? `, ${addr.aptSuite}` : ""}, ${addr.city}, GA ${addr.zipCode}`;
+                              setAdditionalCartLocation(fullAddr);
+                              setShowLocationDropdown(false);
+                              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            }}
+                            style={[
+                              styles.dropdownItem,
+                              additionalCartLocation?.includes(addr.street) && { backgroundColor: service.color + "15" }
+                            ]}
+                          >
+                            <Feather name="map-pin" size={16} color={service.color} />
+                            <View style={{ marginLeft: Spacing.sm, flex: 1 }}>
+                              <ThemedText type="body" style={{ fontWeight: "600" }}>
+                                {addr.street}{addr.aptSuite ? `, ${addr.aptSuite}` : ""}
+                              </ThemedText>
+                              <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                                {addr.city}, GA {addr.zipCode}
+                              </ThemedText>
+                            </View>
+                            {addr.isDefault ? (
+                              <View style={[styles.defaultBadge, { backgroundColor: service.color }]}>
+                                <ThemedText type="caption" style={{ color: "#FFF", fontWeight: "600" }}>Default</ThemedText>
+                              </View>
+                            ) : null}
+                          </Pressable>
+                        ))}
+                      </View>
+                    ) : null}
+                  </>
+                ) : (
+                  <View style={[styles.infoBox, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
+                    <Feather name="alert-circle" size={20} color="#FF9800" />
+                    <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                      <ThemedText type="body" style={{ fontWeight: "600", color: "#E65100" }}>No Saved Addresses</ThemedText>
+                      <ThemedText type="small" style={{ color: "#795548", marginTop: Spacing.xs }}>
+                        Please add an address in "My Addresses" from the menu before submitting a cart request.
+                      </ThemedText>
+                    </View>
                   </View>
-                ) : null}
+                )}
 
                 <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
                   Please describe the issue or request in detail...
