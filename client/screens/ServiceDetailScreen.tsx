@@ -250,59 +250,32 @@ const serviceDetails: Record<string, ServiceInfo> = {
   },
   "com-missed-trash": {
     title: "Missed Trash Pickup",
-    description: "Report a missed trash collection. Please complete all required fields below.",
+    description: "Report a missed commercial trash collection. We will schedule a pickup within 24-48 hours of your report.",
     icon: "trash-2",
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
-    options: [],
-    formQuestions: [
-      { question: "Do you have a county issued roll cart?", type: "yesno" },
-      { question: "Did the roll cart have excess overflow?", type: "yesno" },
-      { question: "Was there anything in the roll cart that was not trash?", type: "text", placeholder: "Describe any non-trash items..." },
-      { question: "What time was the roll cart placed at the curb?", type: "time", placeholder: "e.g., 6:00 AM" },
-    ],
-    additionalInfo: [
-      "Would you like to know possible reasons you were missed?",
-      "Request Routeware Footage - View footage of collection vehicle at your location",
-      "Photo Required - Take Photo or Choose File from your device",
+    options: [
+      { id: "1", name: "Report Missed Pickup", price: "Free", schedule: "Response within 48 hours" },
     ],
   },
   "com-missed-recycling": {
     title: "Missed Recycling",
-    description: "Report a missed recycling collection. Please complete all required fields below.",
+    description: "Report a missed commercial recycling collection. Our team will address your concern promptly.",
     icon: "refresh-cw",
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
-    options: [],
-    formQuestions: [
-      { question: "Is there any glass in your roll cart?", type: "yesno" },
-      { question: "Is everything inside the cart considered recyclable?", type: "select", options: ["Yes", "No", "Not Sure"] },
-      { question: "How many boxes are at the curb?", type: "text", placeholder: "Enter number of boxes..." },
-    ],
-    additionalInfo: [
-      "Would you like to know possible reasons you were missed?",
-      "Request Routeware Footage - View footage of collection vehicle at your location",
-      "Photo Required - Take Photo or Choose File from your device",
+    options: [
+      { id: "1", name: "Report Missed Recycling", price: "Free", schedule: "Response within 48 hours" },
     ],
   },
   "com-missed-yard-waste": {
     title: "Missed Yard Waste",
-    description: "Report a missed yard waste collection. Please complete all required fields below.",
+    description: "Report a missed commercial yard waste collection. Available during seasonal collection periods.",
     icon: "feather",
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
-    options: [],
-    formQuestions: [
-      { question: "What type of debris is it?", type: "select", options: ["Leaves", "Grass Clippings", "Branches/Limbs", "Mixed Yard Waste"] },
-      { question: "How many bags are at the curb currently?", type: "text", placeholder: "Enter number of bags..." },
-      { question: "Are there any dirt in the bags?", type: "yesno" },
-      { question: "Are the bags biodegradable?", type: "select", options: ["Yes", "No", "N/A - loose pile"] },
-      { question: "Are the tree branches and limbs cut down to 4 feet or less?", type: "select", options: ["Yes", "No", "N/A - no branches"] },
-      { question: "What time were items placed at the curb?", type: "time", placeholder: "e.g., 6:00 AM" },
-    ],
-    additionalInfo: [
-      "Would you like to know possible reasons you were missed?",
-      "Photo Required - Take Photo or Choose File from your device",
+    options: [
+      { id: "1", name: "Report Missed Yard Waste", price: "Free", schedule: "Response within 48 hours" },
     ],
   },
   "com-roll-cart": {
@@ -989,6 +962,32 @@ export default function ServiceDetailScreen() {
       showAlert("Please Select an Option", "Choose a service option before submitting.");
       return;
     }
+    
+    if (serviceId.includes("roll-cart")) {
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm(
+          "Important Notice\n\n" +
+          "Before submitting your roll cart request, please review the Annual Sanitation Assessment Fee Chart.\n\n" +
+          "Prices vary based on cart type and service level.\n\n" +
+          "For more information, visit:\nhttps://www.dekalbcountyga.gov/sanitation/garbage-roll-cart-application\n\n" +
+          "Click OK to continue with your request."
+        );
+        if (confirmed) {
+          handleSubmit(selectedOption);
+        }
+      } else {
+        Alert.alert(
+          "Important Notice",
+          "Before submitting your roll cart request, please review the Annual Sanitation Assessment Fee Chart.\n\nPrices vary based on cart type and service level.\n\nFor more information, visit:\nwww.dekalbcountyga.gov/sanitation/garbage-roll-cart-application",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Continue", onPress: () => handleSubmit(selectedOption) },
+          ]
+        );
+      }
+      return;
+    }
+    
     handleSubmit(selectedOption);
   };
 
