@@ -37,6 +37,20 @@ The project uses a monorepo structure with an Expo mobile client and an Express.
 
 ## Recent Changes
 
+- January 2026: **Live Chat Bubble** - Floating animated chat bubble follows users on every page with:
+  - Pulsing blue/green gradient bubble in bottom right corner
+  - Tooltip message: "Get stuck? Live agent ready to assist!"
+  - Opens full chat interface when clicked
+  - Chat modal with agent avatar, online status, typing indicators
+  - Users can message live agent while completing requests
+- January 2026: **Help & FAQ Screen** - Comprehensive FAQ with accordion sections:
+  - Landfill Information (location, hours, fees, accepted waste, directions)
+  - Residential Recycling Program (subscription, glass recycling, collection times)
+  - Curbside Collection Procedures (furniture, paint, tree parts, building materials, tires, dead animals)
+  - Sanitation Service Fees (establishing service, billing, included services)
+  - Beautification Unit (mowing, litter collection)
+  - Quick call button for Seminole Road Landfill: (404) 687-4040
+- January 2026: **4D Visual Effects** - FloatingParticles and LiveAgentBanner components on all screens
 - January 2026: **Establish New Residential Service Form** - Complete 3-step application form with:
   - Step 1: Customer Information (name, address, phone, email, special instructions)
   - Step 2: Property Information (home purchase date, property type dropdown)
