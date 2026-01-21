@@ -187,7 +187,7 @@ export default function MyRequestsScreen() {
         ListHeaderComponent={
           <Animated.View entering={FadeInDown.duration(400)}>
             <LinearGradient
-              colors={FuturisticGradients.blueGreen as [string, string, ...string[]]}
+              colors={FuturisticGradients.greenBlue as [string, string, ...string[]]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.headerCard}

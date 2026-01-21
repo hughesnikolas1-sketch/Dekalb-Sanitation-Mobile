@@ -80,19 +80,23 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
 
   return (
     <>
-      <AnimatedPressable onPress={handleToggle} style={[styles.menuButton, iconStyle]}>
-        <LinearGradient
-          colors={FuturisticGradients.greenBlue as [string, string, ...string[]]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.menuButtonGradient}
-        >
-          <Feather name={isOpen ? "x" : "menu"} size={22} color="#FFFFFF" />
-          <View style={styles.menuBadge}>
-            <ThemedText style={{ fontSize: 10 }}>🌟</ThemedText>
-          </View>
-        </LinearGradient>
-      </AnimatedPressable>
+      <View style={styles.menuButton}>
+        <Pressable onPress={handleToggle} testID="menu-toggle-button">
+          <Animated.View style={iconStyle}>
+            <LinearGradient
+              colors={FuturisticGradients.greenBlue as [string, string, ...string[]]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.menuButtonGradient}
+            >
+              <Feather name={isOpen ? "x" : "menu"} size={22} color="#FFFFFF" />
+              <View style={styles.menuBadge}>
+                <ThemedText style={{ fontSize: 10 }}>🌟</ThemedText>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+        </Pressable>
+      </View>
 
       <Modal
         visible={isOpen}
@@ -118,6 +122,7 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
                 <Pressable
                   style={[styles.menuItem, { borderBottomColor: theme.divider }]}
                   onPress={item.onPress}
+                  testID={`menu-item-${item.id}`}
                 >
                   <View style={styles.menuItemLeft}>
                     <ThemedText style={{ fontSize: 20 }}>{item.emoji}</ThemedText>
