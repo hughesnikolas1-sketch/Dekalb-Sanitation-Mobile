@@ -1010,6 +1010,32 @@ export default function ServiceDetailScreen() {
               />
             ))}
 
+            {serviceId.includes("missed") ? (
+              <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+                <View style={[styles.reasonsCard, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
+                  <View style={styles.reasonsHeader}>
+                    <Feather name="help-circle" size={24} color="#F57C00" />
+                    <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
+                      Want to know reasons why you could have been missed?
+                    </ThemedText>
+                  </View>
+                  <ThemedText type="small" style={{ color: "#E65100", marginBottom: Spacing.md }}>
+                    To help prevent future missed pickups, please review these common reasons:
+                  </ThemedText>
+                  {MISSED_PICKUP_REASONS.map((reason, index) => (
+                    <View key={index} style={styles.reasonItem}>
+                      <View style={styles.reasonNumber}>
+                        <ThemedText type="caption" style={{ color: "#FFFFFF", fontWeight: "700" }}>
+                          {index + 1}
+                        </ThemedText>
+                      </View>
+                      <ThemedText type="body" style={{ flex: 1, color: "#5D4037" }}>{reason}</ThemedText>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            ) : null}
+
             <Animated.View entering={FadeInDown.delay(500).duration(400)}>
               <Pressable 
                 onPress={handleOptionSubmit}

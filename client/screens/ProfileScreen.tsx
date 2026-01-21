@@ -259,7 +259,7 @@ export default function ProfileScreen() {
             style={[styles.signOutButton, { borderColor: theme.error }]}
           >
             <Feather name="log-out" size={20} color={theme.error} />
-            <ThemedText type="button" style={{ color: theme.error, marginLeft: Spacing.sm }}>
+            <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm, fontWeight: "600" }}>
               Sign Out
             </ThemedText>
           </Pressable>

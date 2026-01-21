@@ -349,8 +349,8 @@ function ServiceCard({
           animatedStyle,
           glowStyle,
           {
-            shadowColor: glowColor,
             ...GlowEffects.small,
+            shadowColor: glowColor,
           },
         ]}
       >
