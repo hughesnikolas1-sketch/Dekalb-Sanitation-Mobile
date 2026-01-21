@@ -37,6 +37,14 @@ The project uses a monorepo structure with an Expo mobile client and an Express.
 
 ## Recent Changes
 
+- January 2026: **Navigation Menu System** - Added hamburger menu with 5 navigation options:
+  - My Addresses: Manage saved delivery addresses with add/delete functionality
+  - My Requests: Track submitted service requests with status updates (pending, investigating, in_progress, completed)
+  - Billing & Payments: View transaction history with summary stats
+  - Sanitation Issues: Report service issues
+  - Rate Experience: 5-star rating system for experience and accessibility feedback
+- January 2026: **Address Selection in Forms** - Roll-off and roll cart forms now allow selecting from saved addresses
+- January 2026: **Roll Cart Confirmation Flow** - After submission, shows "Request Under Investigation" message with 1-10 business day delivery timeline and option to view My Requests
 - January 2026: **Roll Off Request Multi-Step Form** - Complete request flow with:
   - Step 1: Delivery address form (street, apt/suite, city, ZIP)
   - Step 2: Delivery date picker with 3-day minimum + additional details
