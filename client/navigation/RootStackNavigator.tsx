@@ -101,7 +101,7 @@ export default function RootStackNavigator() {
         />
       )}
     </Stack.Navigator>
-    {isAuthenticated ? <LiveChatBubble /> : null}
+    <LiveChatBubble />
     </>
   );
 }

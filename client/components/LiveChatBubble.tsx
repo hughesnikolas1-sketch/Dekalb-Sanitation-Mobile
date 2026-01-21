@@ -24,7 +24,6 @@ import Animated, {
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigationState, NavigationState } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { BrandColors, Spacing, BorderRadius, FontSizes } from '@/constants/theme';
 
@@ -79,28 +78,16 @@ export function LiveChatBubble() {
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
-  const navIndex = useNavigationState((state: NavigationState | undefined) => {
-    try {
-      return state?.index ?? 0;
-    } catch {
-      return 0;
-    }
-  });
-  const routeName = useNavigationState((state: NavigationState | undefined) => {
-    try {
-      if (!state || !state.routes || state.index === undefined) return 'Main';
-      const route = state.routes[state.index];
-      return route?.name ?? 'Main';
-    } catch {
-      return 'Main';
-    }
-  });
+  const [positionIndex, setPositionIndex] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPositionIndex(prev => (prev + 1) % BUBBLE_POSITIONS.length);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const position = useMemo(() => {
-    const screenHash = routeName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const posIndex = (screenHash + navIndex) % BUBBLE_POSITIONS.length;
-    return BUBBLE_POSITIONS[posIndex];
-  }, [routeName, navIndex]);
+  const position = BUBBLE_POSITIONS[positionIndex];
 
   const pulseScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.5);
@@ -256,7 +243,10 @@ export function LiveChatBubble() {
         <View style={styles.tooltipContainer}>
           <View style={styles.tooltip}>
             <Text style={styles.tooltipText}>
-              💬 Got stuck? A live agent can walk you through it by clicking chat bubble!
+              💬 Get stuck? Live agent ready to assist!
+            </Text>
+            <Text style={styles.tooltipSubtext}>
+              Just click here - you can talk with a live agent while completing your request! 🤝
             </Text>
           </View>
           <View style={styles.tooltipArrow} />
