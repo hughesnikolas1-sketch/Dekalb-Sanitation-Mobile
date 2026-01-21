@@ -176,6 +176,39 @@ interface ServiceInfo {
     importantNotes: string[];
     feeSchedule: { size: string; price: string }[];
   };
+  isBulkSpecialForm?: boolean;
+  isNewServiceForm?: boolean;
+  isFrontLoadApplication?: boolean;
+  bulkItems?: {
+    title: string;
+    items: string[];
+  };
+  specialCollectionItems?: {
+    title: string;
+    items: string[];
+  };
+  specialCollectionPricing?: { item: string; price: string }[];
+  formFields?: {
+    itemsReady?: { question: string; type: string; required: boolean };
+    itemCategory?: { question: string; type: string; required: boolean; options?: string[] };
+    details?: { question: string; type: string; placeholder?: string; required: boolean };
+    photo?: { question: string; type: string; required: boolean; note?: string };
+  };
+  applicationInfo?: {
+    containerFee: string;
+    paymentNote: string;
+    schedulingNote: string;
+  };
+  newServiceFormFields?: {
+    residentName?: { label: string; required: boolean };
+    serviceAddress?: { label: string; required: boolean };
+    phone?: { label: string; required: boolean };
+    email?: { label: string; required: boolean };
+    specialInstructions?: { label: string; required: boolean };
+    homePurchaseDate?: { label: string; required: boolean; type: string };
+    propertyType?: { label: string; required: boolean; options: string[] };
+    recyclingOption?: { label: string; required: boolean; options: { id: string; name: string; price: string }[] };
+  };
 }
 
 const CURB_TIME_OPTIONS = [
@@ -703,16 +736,22 @@ const serviceDetails: Record<string, ServiceInfo> = {
   },
   "com-front-load": {
     title: "Front Load Dumpster",
-    description: "Front load dumpster service for commercial businesses.",
+    description: "Front load dumpster service for commercial businesses. Select a container size to begin your application.",
     icon: "box",
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
+    isFrontLoadApplication: true,
     options: [
-      { id: "1", name: "2 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
-      { id: "2", name: "4 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
-      { id: "3", name: "6 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
-      { id: "4", name: "8 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
+      { id: "fl-2yard", name: "2 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
+      { id: "fl-4yard", name: "4 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
+      { id: "fl-6yard", name: "6 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
+      { id: "fl-8yard", name: "8 Yard Front Load", price: "Contact for pricing", schedule: "Scheduled service" },
     ],
+    applicationInfo: {
+      containerFee: "$150.00",
+      paymentNote: "A container delivery and removal fee of $150 AND the equivalent of one monthly service fee MUST be paid in person at the Sanitation Division's administration building, 3720 Leroy Scott Drive, Decatur, Monday through Friday, 9 a.m. through 3 p.m., before container delivery.",
+      schedulingNote: "Customers can be serviced up to six times per week; service days will be determined by the commercial collection team and provided to customers.",
+    },
   },
   "com-special-collection": {
     title: "Commercial Bulk & Special Collection",
@@ -1183,6 +1222,28 @@ export default function ServiceDetailScreen() {
   const [showBulkCategoryDropdown, setShowBulkCategoryDropdown] = useState(false);
   const [showBulkLocationDropdown, setShowBulkLocationDropdown] = useState(false);
 
+  // Front Load Dumpster Application State
+  const [showFrontLoadApplication, setShowFrontLoadApplication] = useState(false);
+  const [selectedDumpsterSize, setSelectedDumpsterSize] = useState<string>("");
+  const [flBusinessName, setFlBusinessName] = useState("");
+  const [flServiceAddress, setFlServiceAddress] = useState("");
+  const [flPhone, setFlPhone] = useState("");
+  const [flEmail, setFlEmail] = useState("");
+  const [flBillingAddress, setFlBillingAddress] = useState("");
+  const [flAuthorizedContactName, setFlAuthorizedContactName] = useState("");
+  const [flAuthorizedPhone, setFlAuthorizedPhone] = useState("");
+  const [flAuthorizedEmail, setFlAuthorizedEmail] = useState("");
+  const [flCurrentDumpsterOnSite, setFlCurrentDumpsterOnSite] = useState<string | null>(null);
+  const [flCurrentDumpsterSize, setFlCurrentDumpsterSize] = useState("");
+  const [flContainerType, setFlContainerType] = useState<"county" | "customer">("county");
+  const [flSelectedContainerSize, setFlSelectedContainerSize] = useState("");
+  const [flCustomerCompactorSize, setFlCustomerCompactorSize] = useState("");
+  const [flCustomerDumpsterSize, setFlCustomerDumpsterSize] = useState("");
+  const [flServicingFrequency, setFlServicingFrequency] = useState<number | null>(null);
+  const [flPrepaymentAmount, setFlPrepaymentAmount] = useState("");
+  const [flMonthlyFee, setFlMonthlyFee] = useState("");
+  const [flApplicationStep, setFlApplicationStep] = useState(1);
+
   interface SavedAddress {
     id: string;
     street: string;
@@ -1634,6 +1695,120 @@ export default function ServiceDetailScreen() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Front Load Dumpster Application Submit
+  const handleFrontLoadApplicationSubmit = async () => {
+    // Validate required fields
+    if (!flBusinessName || !flServiceAddress || !flPhone || !flEmail || !flBillingAddress) {
+      showAlert("Required Fields", "Please fill in all required business information fields.");
+      return;
+    }
+    if (!flAuthorizedContactName || !flAuthorizedPhone || !flAuthorizedEmail) {
+      showAlert("Required Fields", "Please fill in all authorized contact information.");
+      return;
+    }
+    if (flCurrentDumpsterOnSite === null) {
+      showAlert("Required Field", "Please indicate if there is currently a dumpster on site.");
+      return;
+    }
+    if (flServicingFrequency === null) {
+      showAlert("Required Field", "Please select a servicing frequency.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    try {
+      const formData = {
+        serviceId,
+        serviceTitle: service.title,
+        selectedOption: selectedDumpsterSize,
+        formAnswers: [
+          { question: "Business Name", answer: flBusinessName },
+          { question: "Service Address", answer: flServiceAddress },
+          { question: "Phone", answer: flPhone },
+          { question: "Email", answer: flEmail },
+          { question: "Billing Address", answer: flBillingAddress },
+          { question: "Authorized Contact Name", answer: flAuthorizedContactName },
+          { question: "Authorized Contact Phone", answer: flAuthorizedPhone },
+          { question: "Authorized Contact Email", answer: flAuthorizedEmail },
+          { question: "Currently a Dumpster on Site?", answer: flCurrentDumpsterOnSite },
+          { question: "Current Dumpster Size", answer: flCurrentDumpsterSize || "N/A" },
+          { question: "Container Type", answer: flContainerType === "county" ? "County-provided" : "Customer-provided" },
+          { question: "Container Size", answer: flContainerType === "county" ? selectedDumpsterSize : `Compactor: ${flCustomerCompactorSize || "N/A"}, Dumpster: ${flCustomerDumpsterSize || "N/A"}` },
+          { question: "Servicing Frequency (days/week)", answer: String(flServicingFrequency) },
+          { question: "Prepayment Amount", answer: flPrepaymentAmount || "N/A" },
+          { question: "Monthly Fee", answer: flMonthlyFee || "N/A" },
+        ],
+        submittedAt: new Date().toISOString(),
+      };
+
+      const response = await apiRequest("POST", "/api/service-requests", {
+        serviceType: "commercial",
+        serviceId,
+        formData,
+        amount: null,
+      });
+
+      const result = await response.json();
+
+      if (Platform.OS === 'web') {
+        window.alert(
+          `Application Submitted Successfully!\n\nYour Commercial Account Application for a ${selectedDumpsterSize} dumpster has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nIMPORTANT: A container delivery and removal fee of $150 AND the equivalent of one monthly service fee MUST be paid in person at the Sanitation Division's administration building:\n\n3720 Leroy Scott Drive, Decatur\nMonday - Friday, 9 a.m. - 3 p.m.\n\nPayment must be completed before container delivery.\n\nWe will contact you via email or phone to confirm your application and schedule delivery.`
+        );
+      } else {
+        Alert.alert(
+          "Application Submitted!",
+          `Your Commercial Account Application for a ${selectedDumpsterSize} dumpster has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nIMPORTANT: Payment of $150 + monthly fee must be made in person before delivery.\n\nWe will contact you to confirm your application.`,
+          [
+            { text: "OK", style: "default" },
+            { text: "View My Requests", onPress: () => navigation.navigate("MyRequests") }
+          ]
+        );
+      }
+
+      // Reset form and go back to options
+      setShowFrontLoadApplication(false);
+      setFlApplicationStep(1);
+      setFlBusinessName("");
+      setFlServiceAddress("");
+      setFlPhone("");
+      setFlEmail("");
+      setFlBillingAddress("");
+      setFlAuthorizedContactName("");
+      setFlAuthorizedPhone("");
+      setFlAuthorizedEmail("");
+      setFlCurrentDumpsterOnSite(null);
+      setFlCurrentDumpsterSize("");
+      setFlContainerType("county");
+      setFlSelectedContainerSize("");
+      setFlCustomerCompactorSize("");
+      setFlCustomerDumpsterSize("");
+      setFlServicingFrequency(null);
+      setFlPrepaymentAmount("");
+      setFlMonthlyFee("");
+      setSelectedDumpsterSize("");
+    } catch (error) {
+      console.error("Submit error:", error);
+      showAlert(
+        "Submission Error",
+        "We couldn't submit your application. Please try again or contact us at (404) 294-2900.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle Front Load dumpster size selection
+  const handleFrontLoadOptionSelect = (option: ServiceOption) => {
+    setSelectedDumpsterSize(option.name);
+    setFlSelectedContainerSize(option.name);
+    setShowFrontLoadApplication(true);
+    setFlApplicationStep(1);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
   const handleOptionSubmit = () => {
@@ -3164,14 +3339,14 @@ export default function ServiceDetailScreen() {
           </>
         ) : null}
 
-        {service.options.length > 0 ? (
+        {service.options.length > 0 && !showFrontLoadApplication ? (
           <>
             <Animated.View entering={FadeInDown.delay(150).duration(400)}>
               <ThemedText type="h3" style={styles.sectionTitle}>
-                Pricing & Options
+                {service.isFrontLoadApplication ? "Select Container Size" : "Pricing & Options"}
               </ThemedText>
               <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
-                Select an option to continue
+                {service.isFrontLoadApplication ? "Choose a dumpster size to begin your application" : "Select an option to continue"}
               </ThemedText>
             </Animated.View>
 
@@ -3182,8 +3357,8 @@ export default function ServiceDetailScreen() {
                 color={service.color}
                 index={index}
                 gradientColors={service.gradientColors}
-                isSelected={selectedOption?.id === option.id}
-                onSelect={handleOptionSelect}
+                isSelected={selectedOption?.id === option.id || selectedDumpsterSize === option.name}
+                onSelect={service.isFrontLoadApplication ? handleFrontLoadOptionSelect : handleOptionSelect}
               />
             ))}
 
@@ -3305,6 +3480,484 @@ export default function ServiceDetailScreen() {
               </Pressable>
             </Animated.View>
           </>
+        ) : null}
+
+        {/* Front Load Dumpster Application Form */}
+        {showFrontLoadApplication && service.isFrontLoadApplication ? (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+            {/* Selected Size Header */}
+            <View style={[styles.selectedSizeHeader, { backgroundColor: service.color + "15", borderColor: service.color }]}>
+              <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                <View style={[styles.contentSectionIcon, { backgroundColor: service.color }]}>
+                  <Feather name="box" size={20} color="#FFFFFF" />
+                </View>
+                <View style={{ marginLeft: Spacing.md, flex: 1 }}>
+                  <ThemedText type="small" style={{ color: theme.textSecondary }}>Selected Container</ThemedText>
+                  <ThemedText type="h4" style={{ color: service.color }}>{selectedDumpsterSize}</ThemedText>
+                </View>
+              </View>
+              <Pressable
+                onPress={() => {
+                  setShowFrontLoadApplication(false);
+                  setSelectedDumpsterSize("");
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+                style={styles.changeButton}
+              >
+                <Feather name="edit-2" size={16} color={service.color} />
+                <ThemedText type="small" style={{ color: service.color, marginLeft: Spacing.xs }}>Change</ThemedText>
+              </Pressable>
+            </View>
+
+            {/* Application Form */}
+            <View style={[styles.newServiceFormContainer, { backgroundColor: theme.surface, borderColor: service.color + "40" }]}>
+              <View style={[styles.formHeader, { backgroundColor: service.color + "15" }]}>
+                <Feather name="file-text" size={24} color={service.color} />
+                <ThemedText type="h3" style={{ color: service.color, marginLeft: Spacing.sm, flex: 1 }}>
+                  Commercial Account Application
+                </ThemedText>
+              </View>
+
+              {/* Step Indicator */}
+              <View style={styles.stepIndicatorContainer}>
+                {[1, 2, 3].map((step) => (
+                  <View key={step} style={styles.stepIndicator}>
+                    <View style={[
+                      styles.stepCircle,
+                      { backgroundColor: flApplicationStep >= step ? service.color : theme.border }
+                    ]}>
+                      <ThemedText type="small" style={{ color: flApplicationStep >= step ? "#FFFFFF" : theme.textSecondary, fontWeight: "700" }}>
+                        {step}
+                      </ThemedText>
+                    </View>
+                    <ThemedText type="caption" style={{ color: flApplicationStep >= step ? service.color : theme.textSecondary, marginTop: Spacing.xs }}>
+                      {step === 1 ? "Business Info" : step === 2 ? "Container Info" : "Review"}
+                    </ThemedText>
+                    {step < 3 ? (
+                      <View style={[styles.stepLine, { backgroundColor: flApplicationStep > step ? service.color : theme.border }]} />
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.formBody}>
+                {/* Step 1: Business Information */}
+                {flApplicationStep === 1 ? (
+                  <>
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      Business Information
+                    </ThemedText>
+
+                    <ThemedText type="small" style={styles.formLabel}>
+                      Business Name <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: flBusinessName ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter business name"
+                      placeholderTextColor={theme.textSecondary}
+                      value={flBusinessName}
+                      onChangeText={setFlBusinessName}
+                      autoCapitalize="words"
+                    />
+
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                      Service Address <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: flServiceAddress ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter service address"
+                      placeholderTextColor={theme.textSecondary}
+                      value={flServiceAddress}
+                      onChangeText={setFlServiceAddress}
+                      autoCapitalize="words"
+                    />
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md }}>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Phone <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: flPhone ? service.color : theme.border, color: theme.text }]}
+                          placeholder="(xxx) xxx-xxxx"
+                          placeholderTextColor={theme.textSecondary}
+                          value={flPhone}
+                          onChangeText={setFlPhone}
+                          keyboardType="phone-pad"
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Email <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: flEmail ? service.color : theme.border, color: theme.text }]}
+                          placeholder="email@business.com"
+                          placeholderTextColor={theme.textSecondary}
+                          value={flEmail}
+                          onChangeText={setFlEmail}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+                    </View>
+
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                      Billing Address <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: flBillingAddress ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter billing address"
+                      placeholderTextColor={theme.textSecondary}
+                      value={flBillingAddress}
+                      onChangeText={setFlBillingAddress}
+                      autoCapitalize="words"
+                    />
+
+                    <View style={[styles.divider, { backgroundColor: theme.border, marginVertical: Spacing.lg }]} />
+
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      Authorized Account Contact
+                    </ThemedText>
+
+                    <ThemedText type="small" style={styles.formLabel}>
+                      Contact Name <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: flAuthorizedContactName ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter authorized contact name"
+                      placeholderTextColor={theme.textSecondary}
+                      value={flAuthorizedContactName}
+                      onChangeText={setFlAuthorizedContactName}
+                      autoCapitalize="words"
+                    />
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md }}>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Phone <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: flAuthorizedPhone ? service.color : theme.border, color: theme.text }]}
+                          placeholder="(xxx) xxx-xxxx"
+                          placeholderTextColor={theme.textSecondary}
+                          value={flAuthorizedPhone}
+                          onChangeText={setFlAuthorizedPhone}
+                          keyboardType="phone-pad"
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Email <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: flAuthorizedEmail ? service.color : theme.border, color: theme.text }]}
+                          placeholder="email@business.com"
+                          placeholderTextColor={theme.textSecondary}
+                          value={flAuthorizedEmail}
+                          onChangeText={setFlAuthorizedEmail}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+                    </View>
+
+                    <Pressable
+                      onPress={() => {
+                        if (!flBusinessName || !flServiceAddress || !flPhone || !flEmail || !flBillingAddress) {
+                          showAlert("Required Fields", "Please fill in all business information fields.");
+                          return;
+                        }
+                        if (!flAuthorizedContactName || !flAuthorizedPhone || !flAuthorizedEmail) {
+                          showAlert("Required Fields", "Please fill in all authorized contact information.");
+                          return;
+                        }
+                        setFlApplicationStep(2);
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }}
+                      style={{ marginTop: Spacing.xl }}
+                    >
+                      <LinearGradient
+                        colors={service.gradientColors as [string, string, ...string[]]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.submitButton}
+                      >
+                        <ThemedText type="h4" style={styles.submitText}>Continue to Container Info</ThemedText>
+                        <Feather name="arrow-right" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                      </LinearGradient>
+                    </Pressable>
+                  </>
+                ) : null}
+
+                {/* Step 2: Container Information */}
+                {flApplicationStep === 2 ? (
+                  <>
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      Container Information
+                    </ThemedText>
+
+                    <ThemedText type="small" style={styles.formLabel}>
+                      Is there currently a dumpster on site? <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm }}>
+                      <Pressable
+                        onPress={() => {
+                          setFlCurrentDumpsterOnSite("Yes");
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.yesNoButton,
+                          flCurrentDumpsterOnSite === "Yes" && { borderColor: BrandColors.green, backgroundColor: BrandColors.green + "10" }
+                        ]}
+                      >
+                        <View style={[styles.radioCircle, flCurrentDumpsterOnSite === "Yes" && { borderColor: BrandColors.green }]}>
+                          {flCurrentDumpsterOnSite === "Yes" ? <View style={[styles.radioFill, { backgroundColor: BrandColors.green }]} /> : null}
+                        </View>
+                        <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>Yes</ThemedText>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          setFlCurrentDumpsterOnSite("No");
+                          setFlCurrentDumpsterSize("");
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.yesNoButton,
+                          flCurrentDumpsterOnSite === "No" && { borderColor: "#F44336", backgroundColor: "#F44336" + "10" }
+                        ]}
+                      >
+                        <View style={[styles.radioCircle, flCurrentDumpsterOnSite === "No" && { borderColor: "#F44336" }]}>
+                          {flCurrentDumpsterOnSite === "No" ? <View style={[styles.radioFill, { backgroundColor: "#F44336" }]} /> : null}
+                        </View>
+                        <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>No</ThemedText>
+                      </Pressable>
+                    </View>
+
+                    {flCurrentDumpsterOnSite === "Yes" ? (
+                      <>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Current Dumpster Size
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: flCurrentDumpsterSize ? service.color : theme.border, color: theme.text }]}
+                          placeholder="e.g., 4-yard"
+                          placeholderTextColor={theme.textSecondary}
+                          value={flCurrentDumpsterSize}
+                          onChangeText={setFlCurrentDumpsterSize}
+                        />
+                      </>
+                    ) : null}
+
+                    <View style={[styles.divider, { backgroundColor: theme.border, marginVertical: Spacing.lg }]} />
+
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      County-Provided Containers
+                    </ThemedText>
+
+                    <ThemedText type="body" style={{ marginBottom: Spacing.md, color: theme.textSecondary }}>
+                      Selected: <ThemedText type="body" style={{ fontWeight: "700", color: service.color }}>{selectedDumpsterSize}</ThemedText>
+                    </ThemedText>
+
+                    <View style={[styles.infoBox, { backgroundColor: "#E3F2FD", borderColor: BrandColors.blue, marginBottom: Spacing.lg }]}>
+                      <Feather name="info" size={20} color={BrandColors.blue} />
+                      <ThemedText type="small" style={{ color: "#1565C0", flex: 1, marginLeft: Spacing.sm }}>
+                        Available sizes: 3-yard, 4-yard, 6-yard, 8-yard (Front-load) or 30-yard (Compactor)
+                      </ThemedText>
+                    </View>
+
+                    <ThemedText type="small" style={styles.formLabel}>
+                      Servicing Frequency (days per week) <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>
+                      Please check one; container options and pricing list available online
+                    </ThemedText>
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm }}>
+                      {[1, 2, 3, 4, 5, 6].map((freq) => (
+                        <Pressable
+                          key={freq}
+                          onPress={() => {
+                            setFlServicingFrequency(freq);
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          }}
+                          style={[
+                            styles.frequencyButton,
+                            flServicingFrequency === freq && { borderColor: service.color, backgroundColor: service.color + "15" }
+                          ]}
+                        >
+                          <View style={[styles.radioCircle, { width: 20, height: 20 }, flServicingFrequency === freq && { borderColor: service.color }]}>
+                            {flServicingFrequency === freq ? <View style={[styles.radioFill, { width: 10, height: 10, backgroundColor: service.color }]} /> : null}
+                          </View>
+                          <ThemedText type="body" style={{ marginLeft: Spacing.sm, fontWeight: flServicingFrequency === freq ? "700" : "400" }}>{freq}</ThemedText>
+                        </Pressable>
+                      ))}
+                    </View>
+
+                    <View style={[styles.infoBox, { backgroundColor: "#FFF3E0", borderColor: "#FF9800", marginTop: Spacing.lg }]}>
+                      <Feather name="calendar" size={20} color="#FF9800" />
+                      <ThemedText type="small" style={{ color: "#E65100", flex: 1, marginLeft: Spacing.sm }}>
+                        Scheduled collection day(s): Customers can be serviced up to six times per week; service days will be determined by the commercial collection team and provided to customers.
+                      </ThemedText>
+                    </View>
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl }}>
+                      <Pressable onPress={() => setFlApplicationStep(1)} style={[styles.backButton, { flex: 1 }]}>
+                        <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                        <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          if (flCurrentDumpsterOnSite === null) {
+                            showAlert("Required Field", "Please indicate if there is currently a dumpster on site.");
+                            return;
+                          }
+                          if (flServicingFrequency === null) {
+                            showAlert("Required Field", "Please select a servicing frequency.");
+                            return;
+                          }
+                          setFlApplicationStep(3);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={{ flex: 2 }}
+                      >
+                        <LinearGradient
+                          colors={service.gradientColors as [string, string, ...string[]]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.submitButton}
+                        >
+                          <ThemedText type="h4" style={styles.submitText}>Review Application</ThemedText>
+                          <Feather name="arrow-right" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : null}
+
+                {/* Step 3: Review & Submit */}
+                {flApplicationStep === 3 ? (
+                  <>
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      Review Your Application
+                    </ThemedText>
+
+                    <View style={[styles.reviewSection, { borderColor: theme.border }]}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Business Information</ThemedText>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Business Name:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flBusinessName}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Service Address:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600", flex: 1, textAlign: "right" }}>{flServiceAddress}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Phone:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flPhone}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Email:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flEmail}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Billing Address:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600", flex: 1, textAlign: "right" }}>{flBillingAddress}</ThemedText>
+                      </View>
+                    </View>
+
+                    <View style={[styles.reviewSection, { borderColor: theme.border }]}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Authorized Contact</ThemedText>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Name:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flAuthorizedContactName}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Phone:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flAuthorizedPhone}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Email:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flAuthorizedEmail}</ThemedText>
+                      </View>
+                    </View>
+
+                    <View style={[styles.reviewSection, { borderColor: theme.border }]}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Container Information</ThemedText>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Container Size:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "700", color: service.color }}>{selectedDumpsterSize}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Currently on Site:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flCurrentDumpsterOnSite}</ThemedText>
+                      </View>
+                      {flCurrentDumpsterSize ? (
+                        <View style={styles.reviewRow}>
+                          <ThemedText type="body" style={{ color: theme.textSecondary }}>Current Size:</ThemedText>
+                          <ThemedText type="body" style={{ fontWeight: "600" }}>{flCurrentDumpsterSize}</ThemedText>
+                        </View>
+                      ) : null}
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Service Frequency:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{flServicingFrequency} day(s)/week</ThemedText>
+                      </View>
+                    </View>
+
+                    {/* Payment Info */}
+                    <View style={[styles.paymentInfoBox, { backgroundColor: "#E8F5E9", borderColor: BrandColors.green }]}>
+                      <View style={styles.paymentInfoHeader}>
+                        <Feather name="dollar-sign" size={24} color={BrandColors.green} />
+                        <ThemedText type="h4" style={{ color: BrandColors.green, marginLeft: Spacing.sm }}>Payment Information</ThemedText>
+                      </View>
+                      <View style={[styles.pricingRow, { borderBottomColor: BrandColors.green + "30" }]}>
+                        <ThemedText type="body">One-time Container Fee</ThemedText>
+                        <ThemedText type="h4" style={{ color: BrandColors.green }}>$150.00</ThemedText>
+                      </View>
+                      <View style={[styles.pricingRow, { borderBottomWidth: 0 }]}>
+                        <ThemedText type="body">Monthly Service Fee</ThemedText>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Contact for pricing</ThemedText>
+                      </View>
+                    </View>
+
+                    <View style={[styles.infoBox, { backgroundColor: "#FFF3E0", borderColor: "#FF9800", marginTop: Spacing.md }]}>
+                      <Feather name="alert-circle" size={20} color="#FF9800" />
+                      <ThemedText type="small" style={{ color: "#E65100", flex: 1, marginLeft: Spacing.sm, lineHeight: 20 }}>
+                        A container delivery and removal fee of $150 AND the equivalent of one monthly service fee MUST be paid in person at the Sanitation Division's administration building, 3720 Leroy Scott Drive, Decatur, Monday through Friday, 9 a.m. through 3 p.m., before container delivery.
+                      </ThemedText>
+                    </View>
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl }}>
+                      <Pressable onPress={() => setFlApplicationStep(2)} style={[styles.backButton, { flex: 1 }]}>
+                        <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                        <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                      </Pressable>
+                      <Pressable
+                        onPress={handleFrontLoadApplicationSubmit}
+                        disabled={isSubmitting}
+                        style={{ flex: 2 }}
+                      >
+                        <LinearGradient
+                          colors={["#4CAF50", "#2E7D32"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.submitButton}
+                        >
+                          {isSubmitting ? (
+                            <ActivityIndicator color="#FFFFFF" size="small" />
+                          ) : (
+                            <>
+                              <Feather name="send" size={20} color="#FFF" />
+                              <ThemedText type="h4" style={[styles.submitText, { marginLeft: Spacing.sm }]}>Submit Application</ThemedText>
+                            </>
+                          )}
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : null}
+              </View>
+            </View>
+          </Animated.View>
         ) : null}
 
         {service.links && service.links.length > 0 ? (
@@ -4029,5 +4682,84 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
+  },
+  selectedSizeHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    marginBottom: Spacing.lg,
+  },
+  changeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    backgroundColor: "#FFFFFF",
+  },
+  stepIndicatorContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+  },
+  stepIndicator: {
+    alignItems: "center",
+    flex: 1,
+    position: "relative",
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepLine: {
+    position: "absolute",
+    top: 16,
+    left: "60%",
+    right: "-40%",
+    height: 2,
+  },
+  divider: {
+    height: 1,
+    width: "100%",
+  },
+  frequencyButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+  },
+  reviewSection: {
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  reviewRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Spacing.xs,
+  },
+  paymentInfoBox: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    marginTop: Spacing.md,
+  },
+  paymentInfoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
 });
