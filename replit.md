@@ -37,6 +37,12 @@ The project uses a monorepo structure with an Expo mobile client and an Express.
 
 ## Recent Changes
 
+- January 2026: **Stripe Payment Integration** - Full backend setup with webhook handlers, payment intent creation, and product syncing
+- January 2026: **Service Request Submission** - API endpoints for creating/viewing service requests with database storage
+- January 2026: **Interactive Option Selection** - Radio-button style option cards with visual selection feedback
+- January 2026: **Submit with Pricing** - Submit button displays selected option price, sends to backend API
+- January 2026: **Confirmation Alerts** - Platform-compatible alerts (window.alert on web, Alert.alert on mobile)
+- January 2026: **Database Tables** - PostgreSQL with users and service_requests tables for data persistence
 - January 2026: Added word-for-word content from web app for all Commercial Services
 - January 2026: Missed Trash/Recycling/Yard Waste now show exact form questions from web app
 - January 2026: Requirements for Establishing Commercial Service shows complete documentation:
