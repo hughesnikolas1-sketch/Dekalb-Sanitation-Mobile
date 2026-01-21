@@ -556,7 +556,18 @@ export default function HomeScreen() {
 
   const handleMenuNavigate = useCallback((screen: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, []);
+    const screenMap: Record<string, string> = {
+      addresses: "MyAddresses",
+      requests: "MyRequests",
+      billing: "Billing",
+      issues: "ReportIssue",
+      rate: "RateExperience",
+    };
+    const targetScreen = screenMap[screen];
+    if (targetScreen) {
+      (navigation as any).navigate(targetScreen);
+    }
+  }, [navigation]);
 
   return (
     <ThemedView style={styles.container}>

@@ -1,9 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "node:http";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import crypto from "crypto";
 import { db } from "./db";
-import { users, serviceRequests, insertUserSchema, loginSchema, insertServiceRequestSchema } from "@shared/schema";
+import { users, serviceRequests, userAddresses, transactions, feedback, insertUserSchema, loginSchema, insertServiceRequestSchema } from "@shared/schema";
 import { stripeService } from "./stripeService";
 import { stripeStorage } from "./stripeStorage";
 import { getStripePublishableKey } from "./stripeClient";
@@ -224,6 +224,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Products with prices error:", error);
       res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  // User Addresses endpoints
+  app.get("/api/addresses", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const addresses = await db
+        .select()
+        .from(userAddresses)
+        .where(eq(userAddresses.userId, userId))
+        .orderBy(desc(userAddresses.createdAt));
+
+      res.json(addresses);
+    } catch (error) {
+      console.error("Get addresses error:", error);
+      res.status(500).json({ message: "Failed to fetch addresses" });
+    }
+  });
+
+  app.post("/api/addresses", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const { street, apt, city, state, zip } = req.body;
+      if (!street || !city || !zip) {
+        return res.status(400).json({ message: "Street, city, and ZIP are required" });
+      }
+
+      const [address] = await db.insert(userAddresses).values({
+        userId,
+        street,
+        apt,
+        city,
+        state: state || "GA",
+        zip,
+        isDefault: false,
+      }).returning();
+
+      res.json(address);
+    } catch (error) {
+      console.error("Add address error:", error);
+      res.status(500).json({ message: "Failed to add address" });
+    }
+  });
+
+  app.delete("/api/addresses/:id", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const { id } = req.params;
+      await db.delete(userAddresses).where(eq(userAddresses.id, id));
+
+      res.json({ message: "Address deleted" });
+    } catch (error) {
+      console.error("Delete address error:", error);
+      res.status(500).json({ message: "Failed to delete address" });
+    }
+  });
+
+  // Service Requests endpoints
+  app.get("/api/service-requests", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const requests = await db
+        .select()
+        .from(serviceRequests)
+        .where(eq(serviceRequests.userId, userId))
+        .orderBy(desc(serviceRequests.createdAt));
+
+      res.json(requests);
+    } catch (error) {
+      console.error("Get service requests error:", error);
+      res.status(500).json({ message: "Failed to fetch service requests" });
+    }
+  });
+
+  // Transactions endpoints
+  app.get("/api/transactions", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+
+      const txns = await db
+        .select()
+        .from(transactions)
+        .where(eq(transactions.userId, userId))
+        .orderBy(desc(transactions.createdAt));
+
+      res.json(txns);
+    } catch (error) {
+      console.error("Get transactions error:", error);
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  // Feedback endpoint
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const userId = req.headers["x-user-id"] as string;
+      const { experienceRating, accessibilityRating, feedback: feedbackText } = req.body;
+
+      if (!experienceRating || !accessibilityRating) {
+        return res.status(400).json({ message: "Ratings are required" });
+      }
+
+      const [newFeedback] = await db.insert(feedback).values({
+        userId: userId || null,
+        experienceRating,
+        accessibilityRating,
+        feedback: feedbackText || null,
+      }).returning();
+
+      res.json(newFeedback);
+    } catch (error) {
+      console.error("Submit feedback error:", error);
+      res.status(500).json({ message: "Failed to submit feedback" });
     }
   });
 

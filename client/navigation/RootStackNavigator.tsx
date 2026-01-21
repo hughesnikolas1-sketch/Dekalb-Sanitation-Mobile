@@ -4,6 +4,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import MainTabNavigator from "@/navigation/MainTabNavigator";
 import AuthStackNavigator from "@/navigation/AuthStackNavigator";
 import ReportIssueScreen from "@/screens/ReportIssueScreen";
+import MyAddressesScreen from "@/screens/MyAddressesScreen";
+import MyRequestsScreen from "@/screens/MyRequestsScreen";
+import BillingScreen from "@/screens/BillingScreen";
+import RateExperienceScreen from "@/screens/RateExperienceScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -12,6 +16,10 @@ export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
   ReportIssue: undefined;
+  MyAddresses: undefined;
+  MyRequests: undefined;
+  Billing: undefined;
+  RateExperience: undefined;
   SignIn: undefined;
   CreateAccount: undefined;
 };
@@ -47,6 +55,26 @@ export default function RootStackNavigator() {
               presentation: "modal",
               headerTitle: "Report Issue",
             }}
+          />
+          <Stack.Screen
+            name="MyAddresses"
+            component={MyAddressesScreen}
+            options={{ headerTitle: "My Addresses" }}
+          />
+          <Stack.Screen
+            name="MyRequests"
+            component={MyRequestsScreen}
+            options={{ headerTitle: "My Requests" }}
+          />
+          <Stack.Screen
+            name="Billing"
+            component={BillingScreen}
+            options={{ headerTitle: "Billing & Payments" }}
+          />
+          <Stack.Screen
+            name="RateExperience"
+            component={RateExperienceScreen}
+            options={{ headerTitle: "Rate Experience" }}
           />
         </>
       ) : (
