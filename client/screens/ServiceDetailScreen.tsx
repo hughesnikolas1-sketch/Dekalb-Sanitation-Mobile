@@ -36,6 +36,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { DCLogo, SelectionCelebration } from "@/components/DCLogo";
 import { LiveAgentBanner } from "@/components/LiveAgentBanner";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import { SecurePaymentModal } from "@/components/SecurePaymentModal";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Spacing,
@@ -1230,6 +1231,10 @@ export default function ServiceDetailScreen() {
   const [rollOffPaymentComplete, setRollOffPaymentComplete] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [paymentServiceName, setPaymentServiceName] = useState('');
+  const [paymentFormData, setPaymentFormData] = useState<Record<string, unknown> | undefined>(undefined);
 
   // New Service Form State
   const [newServiceResidentName, setNewServiceResidentName] = useState("");
@@ -1444,7 +1449,7 @@ export default function ServiceDetailScreen() {
     return date.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   };
 
-  const handleRollOffPayment = async () => {
+  const handleRollOffPayment = () => {
     if (!selectedOption) return;
     
     const price = parsePrice(selectedOption.price);
@@ -1453,45 +1458,53 @@ export default function ServiceDetailScreen() {
       return;
     }
 
-    setIsSubmitting(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    setPaymentAmount(price);
+    setPaymentServiceName(selectedOption.name);
+    setPaymentFormData({
+      selectedOption: selectedOption.name,
+      deliveryAddress: `${rollOffAddress}${rollOffAddressLine2 ? ", " + rollOffAddressLine2 : ""}, ${rollOffCity}, GA ${rollOffZip}`,
+      requestedDeliveryDate: rollOffDeliveryDate,
+      additionalDetails: rollOffDetails,
+    });
+    setShowPaymentModal(true);
+  };
 
-    try {
-      const response = await apiRequest("POST", "/api/create-payment-intent", {
-        amount: price,
-        serviceId,
-        serviceType: serviceId.startsWith("com-") ? "commercial" : "residential",
-      });
-
-      const data = await response.json();
-      
-      if (data.clientSecret) {
-        await apiRequest("POST", "/api/service-requests", {
-          serviceType: serviceId.startsWith("com-") ? "commercial" : "residential",
-          serviceId,
-          formData: {
-            selectedOption: selectedOption.name,
-            deliveryAddress: `${rollOffAddress}${rollOffAddressLine2 ? ", " + rollOffAddressLine2 : ""}, ${rollOffCity}, GA ${rollOffZip}`,
-            requestedDeliveryDate: rollOffDeliveryDate,
-            additionalDetails: rollOffDetails,
-          },
-          amount: price,
-        });
-
-        await apiRequest("POST", "/api/confirm-payment", {
-          paymentIntentId: data.paymentIntentId,
-        });
-
-        setRollOffPaymentComplete(true);
-        setRollOffStep(4);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    setShowPaymentModal(false);
+    
+    if (serviceId.includes("roll-off")) {
+      setRollOffPaymentComplete(true);
+      setRollOffStep(4);
+    } else {
+      if (Platform.OS === 'web') {
+        const viewRequests = window.confirm(
+          `Payment Successful!\n\nYour payment of $${paymentAmount.toFixed(2)} has been processed.\n\nYour ${paymentServiceName} request is now confirmed.\n\nReference: ${paymentIntentId.slice(0, 12)}...\n\nClick OK to view your requests.`
+        );
+        if (viewRequests) {
+          navigation.navigate("MyRequests");
+        }
+      } else {
+        Alert.alert(
+          "Payment Successful!",
+          `Your payment of $${paymentAmount.toFixed(2)} has been processed.\n\nYour ${paymentServiceName} request is now confirmed.`,
+          [
+            { text: "OK", style: "cancel" },
+            { text: "View My Requests", onPress: () => navigation.navigate("MyRequests") }
+          ]
+        );
       }
-    } catch (error) {
-      console.error("Payment error:", error);
-      showAlert("Payment Error", "We couldn't process your payment. Please try again or call (404) 294-2900.");
-    } finally {
-      setIsSubmitting(false);
     }
+    
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  const openPaymentModal = (amount: number, serviceName: string, formData?: Record<string, unknown>) => {
+    setPaymentAmount(amount);
+    setPaymentServiceName(serviceName);
+    setPaymentFormData(formData);
+    setShowPaymentModal(true);
   };
 
   const handleTakePhoto = async () => {
@@ -1949,6 +1962,27 @@ export default function ServiceDetailScreen() {
   const handleOptionSubmit = () => {
     if (!selectedOption) {
       showAlert("Please Select an Option", "Choose a service option before submitting.");
+      return;
+    }
+    
+    const price = parsePrice(selectedOption.price);
+    const isPaidService = price > 0;
+    
+    if (isPaidService) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      
+      const formData = {
+        serviceId,
+        serviceTitle: service.title,
+        selectedOption: selectedOption.name,
+        formAnswers: service.formQuestions?.map((q, idx) => ({
+          question: q.question,
+          answer: formValues[idx] || "",
+        })) || [],
+        submittedAt: new Date().toISOString(),
+      };
+      
+      openPaymentModal(price, selectedOption.name, formData);
       return;
     }
     
@@ -4600,6 +4634,18 @@ export default function ServiceDetailScreen() {
 
         <LiveAgentBanner />
       </ScrollView>
+
+      <SecurePaymentModal
+        visible={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+        amount={paymentAmount}
+        serviceName={paymentServiceName}
+        serviceDescription={selectedOption?.size}
+        serviceType={serviceId.startsWith("com-") ? "commercial" : "residential"}
+        serviceId={serviceId}
+        formData={paymentFormData}
+      />
     </ThemedView>
   );
 }

@@ -95,7 +95,7 @@ export function SecurePaymentModal({
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   
   const insets = useSafeAreaInsets();
-  const theme = useTheme();
+  const { theme } = useTheme();
   
   const scaleAnim = useSharedValue(0.9);
   const successScale = useSharedValue(0);
@@ -247,7 +247,7 @@ export function SecurePaymentModal({
     >
       <View style={styles.orderSummary}>
         <LinearGradient
-          colors={serviceType === 'residential' ? FuturisticGradients.residential : FuturisticGradients.commercial}
+          colors={serviceType === 'residential' ? FuturisticGradients.residential as [string, string, ...string[]] : FuturisticGradients.commercial as [string, string, ...string[]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.summaryGradient}
@@ -289,7 +289,7 @@ export function SecurePaymentModal({
           <TextInput
             style={[
               styles.input,
-              { backgroundColor: theme.inputBackground, color: theme.text, borderColor: errors.cardholderName ? '#ef4444' : theme.border }
+              { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: errors.cardholderName ? '#ef4444' : theme.divider }
             ]}
             placeholder="John Doe"
             placeholderTextColor={theme.textSecondary}
@@ -311,7 +311,7 @@ export function SecurePaymentModal({
               style={[
                 styles.input,
                 styles.cardInput,
-                { backgroundColor: theme.inputBackground, color: theme.text, borderColor: errors.cardNumber ? '#ef4444' : theme.border }
+                { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: errors.cardNumber ? '#ef4444' : theme.divider }
               ]}
               placeholder="1234 5678 9012 3456"
               placeholderTextColor={theme.textSecondary}
@@ -339,7 +339,7 @@ export function SecurePaymentModal({
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: theme.inputBackground, color: theme.text, borderColor: errors.expiry ? '#ef4444' : theme.border }
+                { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: errors.expiry ? '#ef4444' : theme.divider }
               ]}
               placeholder="MM/YY"
               placeholderTextColor={theme.textSecondary}
@@ -360,7 +360,7 @@ export function SecurePaymentModal({
             <TextInput
               style={[
                 styles.input,
-                { backgroundColor: theme.inputBackground, color: theme.text, borderColor: errors.cvc ? '#ef4444' : theme.border }
+                { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: errors.cvc ? '#ef4444' : theme.divider }
               ]}
               placeholder="123"
               placeholderTextColor={theme.textSecondary}
@@ -383,7 +383,7 @@ export function SecurePaymentModal({
           <TextInput
             style={[
               styles.input,
-              { backgroundColor: theme.inputBackground, color: theme.text, borderColor: errors.zipCode ? '#ef4444' : theme.border }
+              { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: errors.zipCode ? '#ef4444' : theme.divider }
             ]}
             placeholder="30032"
             placeholderTextColor={theme.textSecondary}
@@ -560,7 +560,7 @@ export function SecurePaymentModal({
           </LinearGradient>
         </Pressable>
         <Pressable
-          style={[styles.cancelButton, { borderColor: theme.border }]}
+          style={[styles.cancelButton, { borderColor: theme.divider }]}
           onPress={handleClose}
         >
           <Text style={[styles.cancelButtonText, { color: theme.text }]}>Cancel</Text>
@@ -583,7 +583,7 @@ export function SecurePaymentModal({
         <Animated.View 
           style={[
             styles.modalContainer, 
-            { backgroundColor: theme.card, paddingBottom: insets.bottom + Spacing.md },
+            { backgroundColor: theme.backgroundDefault, paddingBottom: insets.bottom + Spacing.md },
             animatedStyle
           ]}
         >
