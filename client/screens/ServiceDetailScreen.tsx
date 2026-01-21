@@ -170,6 +170,10 @@ interface ServiceInfo {
   contentSections?: ContentSection[];
   additionalInfo?: string[];
   links?: { text: string; url: string }[];
+  rollOffInfo?: {
+    importantNotes: string[];
+    feeSchedule: { size: string; price: string }[];
+  };
 }
 
 const serviceDetails: Record<string, ServiceInfo> = {
@@ -225,16 +229,37 @@ const serviceDetails: Record<string, ServiceInfo> = {
     ],
   },
   "res-roll-off": {
-    title: "Roll Off Requests",
-    description: "Request a roll off container for residential projects, renovations, or cleanouts.",
+    title: "Residential Roll-Off Container (2 Week Rental)",
+    description: "ATTENTION: ROLL OFF CONTAINERS ARE ONLY FOR RESIDENTS THAT RECEIVE WEEKLY GARBAGE AND RECYCLING SERVICE FROM DEKALB COUNTY SANITATION.",
     icon: "truck",
     color: BrandColors.blue,
     gradientColors: FuturisticGradients.residential,
     options: [
-      { id: "1", name: "Small Container", size: "10 Yard", price: "Contact for pricing", schedule: "By appointment" },
-      { id: "2", name: "Medium Container", size: "20 Yard", price: "Contact for pricing", schedule: "By appointment" },
-      { id: "3", name: "Large Container", size: "30 Yard", price: "Contact for pricing", schedule: "By appointment" },
+      { id: "1", name: "10 Yard Container", size: "2-week rental period", price: "$226" },
+      { id: "2", name: "20 Yard Container", size: "2-week rental period", price: "$451" },
+      { id: "3", name: "30 Yard Container", size: "2-week rental period", price: "$677" },
+      { id: "4", name: "40 Yard Container", size: "2-week rental period", price: "$902" },
     ],
+    links: [
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
+    ],
+    rollOffInfo: {
+      importantNotes: [
+        "In order to complete pre-payment for Roll-Off container 2 week rental, please complete all fields below. Required fields are denoted with an asterisk (*).",
+        "Residential roll off containers are ONLY for residents that receive weekly garbage and recycling service from Dekalb County Sanitation.",
+        "No Roll-Off containers will be delivered on Saturday, Sunday & County Observed Holidays.",
+        "Residential Roll-Offs cannot be placed in the streets.",
+        "If you have a sloped driveway please email Dekalb Sanitation for a site assessment review PRIOR to requesting and paying for a Roll-Off container.",
+        "Residents can submit a 10-, 20-, 30- or 40-yard Roll-Off container rental request. Containers are available for a maximum of a two-week rental period and cannot be used to replace standard long-term garbage service.",
+        "A pickup and return of the Roll-Off Container, resident is required to pay an additional 2 Week Rental charge.",
+      ],
+      feeSchedule: [
+        { size: "10 yard", price: "$226" },
+        { size: "20 yard", price: "$451" },
+        { size: "30 yard", price: "$677" },
+        { size: "40 yard", price: "$902" },
+      ],
+    },
   },
   "res-bulk-special": {
     title: "Bulk & Special Collection",
@@ -299,7 +324,7 @@ const serviceDetails: Record<string, ServiceInfo> = {
     ],
   },
   "com-roll-off": {
-    title: "Roll Off Request",
+    title: "Commercial Roll-Off Container (2 Week Rental)",
     description: "Roll off containers are available for 2-week rental periods. The roll off fee is applied once the container has been serviced by the driver and returned to the Sanitation Division.",
     icon: "truck",
     color: BrandColors.green,
@@ -312,8 +337,25 @@ const serviceDetails: Record<string, ServiceInfo> = {
       { id: "5", name: "Request Early Pickup", size: "If your container is full before the 2-week period ends, request an early pickup", price: "Included" },
     ],
     links: [
-      { text: "Pay via InvoiceCloud Portal", url: "https://dekalbcountyga.gov" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
     ],
+    rollOffInfo: {
+      importantNotes: [
+        "In order to complete pre-payment for Roll-Off container 2 week rental, please complete all fields below. Required fields are denoted with an asterisk (*).",
+        "Roll off containers are ONLY for businesses that receive weekly garbage and recycling service from Dekalb County Sanitation.",
+        "No Roll-Off containers will be delivered on Saturday, Sunday & County Observed Holidays.",
+        "Roll-Offs cannot be placed in the streets.",
+        "If you have a sloped driveway please email Dekalb Sanitation for a site assessment review PRIOR to requesting and paying for a Roll-Off container.",
+        "Businesses can submit a 10-, 20-, 30- or 40-yard Roll-Off container rental request. Containers are available for a maximum of a two-week rental period and cannot be used to replace standard long-term garbage service.",
+        "A pickup and return of the Roll-Off Container requires payment of an additional 2 Week Rental charge.",
+      ],
+      feeSchedule: [
+        { size: "10 yard", price: "$226" },
+        { size: "20 yard", price: "$451" },
+        { size: "30 yard", price: "$677" },
+        { size: "40 yard", price: "$902" },
+      ],
+    },
   },
   "com-new-requirements": {
     title: "Requirements for Establishing Commercial Sanitation Service",
@@ -1923,6 +1965,39 @@ export default function ServiceDetailScreen() {
               </>
             ) : null}
 
+            {service.rollOffInfo ? (
+              <Animated.View entering={FadeInDown.delay(450).duration(400)}>
+                <View style={[styles.rollOffInfoCard, { backgroundColor: "#FFF8E1", borderColor: "#FF9800" }]}>
+                  <View style={styles.rollOffInfoHeader}>
+                    <Feather name="alert-triangle" size={22} color="#F57C00" />
+                    <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
+                      Important Information
+                    </ThemedText>
+                  </View>
+                  {service.rollOffInfo.importantNotes.map((note, index) => (
+                    <View key={index} style={styles.rollOffInfoItem}>
+                      <View style={[styles.rollOffBullet, { backgroundColor: "#F57C00" }]} />
+                      <ThemedText type="small" style={{ flex: 1, color: "#5D4037", lineHeight: 20 }}>
+                        {note}
+                      </ThemedText>
+                    </View>
+                  ))}
+                </View>
+
+                <View style={[styles.feeScheduleCard, { backgroundColor: service.color + "10", borderColor: service.color }]}>
+                  <ThemedText type="h4" style={{ color: "#1a1a1a", marginBottom: Spacing.md }}>
+                    2 Week Rental Fees
+                  </ThemedText>
+                  {service.rollOffInfo.feeSchedule.map((fee, index) => (
+                    <View key={index} style={styles.feeRow}>
+                      <ThemedText type="body" style={{ color: theme.textSecondary }}>{fee.size}</ThemedText>
+                      <ThemedText type="body" style={{ fontWeight: "700", color: service.color }}>{fee.price}</ThemedText>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            ) : null}
+
             <Animated.View entering={FadeInDown.delay(500).duration(400)}>
               <Pressable 
                 onPress={handleOptionSubmit}
@@ -2537,5 +2612,44 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: Spacing.sm,
+  },
+  rollOffInfoCard: {
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    borderWidth: 2,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  rollOffInfoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  rollOffInfoItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: Spacing.sm,
+    paddingRight: Spacing.sm,
+  },
+  rollOffBullet: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 6,
+    marginRight: Spacing.sm,
+  },
+  feeScheduleCard: {
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    borderWidth: 2,
+    marginBottom: Spacing.md,
+  },
+  feeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.08)",
   },
 });
