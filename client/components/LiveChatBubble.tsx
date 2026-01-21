@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -27,7 +26,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { BrandColors, Spacing, BorderRadius, FontSizes } from '@/constants/theme';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const BUBBLE_POSITION = { right: 16, bottom: 20 };
 
@@ -339,48 +337,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
-  },
-  tooltipContainer: {
-    position: 'absolute',
-    right: 75,
-    top: 5,
-    alignItems: 'flex-end',
-  },
-  tooltip: {
-    backgroundColor: '#fff',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    maxWidth: SCREEN_WIDTH - 120,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  tooltipText: {
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    color: BrandColors.blue,
-  },
-  tooltipSubtext: {
-    fontSize: FontSizes.xs,
-    color: '#666',
-    marginTop: 2,
-  },
-  tooltipArrow: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#fff',
-    position: 'absolute',
-    right: -5,
-    top: 20,
-    transform: [{ rotate: '-90deg' }],
   },
   chatContainer: {
     flex: 1,
