@@ -50,6 +50,12 @@ The project uses a monorepo structure with an Expo mobile client and an Express.
   - Sanitation Service Fees (establishing service, billing, included services)
   - Beautification Unit (mowing, litter collection)
   - Quick call button for Seminole Road Landfill: (404) 687-4040
+- January 2026: **2026 Collection Schedule Screen** - Complete holiday calendar accessible from "View Schedule" button:
+  - 2026 Events & Recycling Initiatives (sticky note design): Christmas Tree Collection, Spring/Fall Paper Shredding Events
+  - Full holiday schedule with 10 holidays: New Year's, MLK Day, Presidents Day, Memorial Day, Juneteenth, Independence Day, Labor Day, Veterans Day, Thanksgiving, Christmas
+  - Each holiday shows date observed and collection schedule changes
+  - Contact information for DeKalb County Sanitation Division
+  - Values: Efficiency, Accountability, Resilience, Integrity
 - January 2026: **4D Visual Effects** - FloatingParticles and LiveAgentBanner components on all screens
 - January 2026: **Establish New Residential Service Form** - Complete 3-step application form with:
   - Step 1: Customer Information (name, address, phone, email, special instructions)

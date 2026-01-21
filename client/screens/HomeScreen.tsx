@@ -517,7 +517,7 @@ export default function HomeScreen() {
         <QuickActionCard
           icon="calendar"
           title="📅 View Schedule"
-          onPress={() => handleCategoryPress("residential")}
+          onPress={() => (navigation as any).navigate("ViewSchedule")}
           gradientColors={FuturisticGradients.residential}
           delay={750}
         />

@@ -9,6 +9,7 @@ import MyRequestsScreen from "@/screens/MyRequestsScreen";
 import BillingScreen from "@/screens/BillingScreen";
 import RateExperienceScreen from "@/screens/RateExperienceScreen";
 import HelpFAQScreen from "@/screens/HelpFAQScreen";
+import ViewScheduleScreen from "@/screens/ViewScheduleScreen";
 import { LiveChatBubble } from "@/components/LiveChatBubble";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   Billing: undefined;
   RateExperience: undefined;
   HelpFAQ: undefined;
+  ViewSchedule: undefined;
   SignIn: undefined;
   CreateAccount: undefined;
 };
@@ -84,6 +86,11 @@ export default function RootStackNavigator() {
             name="HelpFAQ"
             component={HelpFAQScreen}
             options={{ headerTitle: "Help & FAQ" }}
+          />
+          <Stack.Screen
+            name="ViewSchedule"
+            component={ViewScheduleScreen}
+            options={{ headerTitle: "2026 Schedule" }}
           />
         </>
       ) : (
