@@ -123,14 +123,24 @@ const serviceDetails: Record<string, ServiceInfo> = {
   },
   "res-roll-cart": {
     title: "Roll Cart Request",
-    description: "Request a new roll cart, replacement cart, or additional cart for your residential property.",
+    description: "Request a new roll cart, replacement cart, or additional cart for your residential property. An annual prorated assessment fee applies when receiving an additional cart.",
     icon: "box",
     color: BrandColors.blue,
     gradientColors: FuturisticGradients.residential,
     options: [
-      { id: "1", name: "New Cart", size: "96 Gallon", price: "Contact for pricing", schedule: "Delivery within 5-7 days" },
-      { id: "2", name: "Replacement Cart", size: "96 Gallon", price: "Contact for pricing", schedule: "Delivery within 5-7 days" },
-      { id: "3", name: "Additional Cart", size: "96 Gallon", price: "Contact for pricing", schedule: "Delivery within 5-7 days" },
+      { id: "1", name: "Complimentary 95-Gallon Trash Cart", size: "Free trash roll cart for new customers", price: "Free", schedule: "Delivery within 5-7 days" },
+      { id: "2", name: "Complimentary 45-Gallon Recycle Cart", size: "Free recycle roll cart for new customers", price: "Free", schedule: "Delivery within 5-7 days" },
+      { id: "3", name: "Additional Trash Roll Cart", size: "Add another trash cart - $25", price: "$25", schedule: "Delivery within 5-7 days" },
+      { id: "4", name: "New 45-Gallon Recycle Cart", size: "Request a new 45-gallon recycle cart", price: "$42.50", schedule: "Delivery within 5-7 days" },
+      { id: "5", name: "New 65-Gallon Recycle Cart", size: "Request a new 65-gallon recycle cart - $52.30", price: "$52.30", schedule: "Delivery within 5-7 days" },
+      { id: "6", name: "New Trash Roll Cart", size: "Request a new trash cart - $60.55", price: "$60.55", schedule: "Delivery within 5-7 days" },
+      { id: "7", name: "Damaged Cart", size: "Repair or refurbished replacement (free)", price: "Free", schedule: "Response within 3-5 days" },
+      { id: "8", name: "Stolen Cart", size: "Refurbished replacement provided (free)", price: "Free", schedule: "Response within 3-5 days" },
+      { id: "9", name: "Return Cart", size: "Schedule cart return/pickup", price: "Free", schedule: "Pickup within 5-7 days" },
+    ],
+    links: [
+      { text: "View Annual Prorated Fee Assessments", url: "https://dekalbcountyga.gov/prorated-fees" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://dekalbcountyga.gov/invoicecloud" },
     ],
   },
   "res-roll-off": {
