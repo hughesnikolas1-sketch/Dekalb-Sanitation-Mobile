@@ -24,7 +24,7 @@ import Animated, {
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigationState } from '@react-navigation/native';
+import { useNavigationState, NavigationState } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { BrandColors, Spacing, BorderRadius, FontSizes } from '@/constants/theme';
 
@@ -79,10 +79,21 @@ export function LiveChatBubble() {
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
-  const navIndex = useNavigationState(state => state?.index ?? 0);
-  const routeName = useNavigationState(state => {
-    const route = state?.routes?.[state.index];
-    return route?.name ?? 'Main';
+  const navIndex = useNavigationState((state: NavigationState | undefined) => {
+    try {
+      return state?.index ?? 0;
+    } catch {
+      return 0;
+    }
+  });
+  const routeName = useNavigationState((state: NavigationState | undefined) => {
+    try {
+      if (!state || !state.routes || state.index === undefined) return 'Main';
+      const route = state.routes[state.index];
+      return route?.name ?? 'Main';
+    } catch {
+      return 'Main';
+    }
   });
 
   const position = useMemo(() => {
@@ -343,8 +354,6 @@ export function LiveChatBubble() {
   );
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   bubbleContainer: {
     position: 'absolute',
@@ -357,8 +366,6 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: BrandColors.blue,
-    right: -5,
-    top: -5,
   },
   bubble: {
     width: 64,
