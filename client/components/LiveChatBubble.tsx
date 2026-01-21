@@ -29,15 +29,7 @@ import { BrandColors, Spacing, BorderRadius, FontSizes } from '@/constants/theme
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const BUBBLE_POSITIONS = [
-  { right: 20, bottom: 100 },
-  { right: 20, bottom: 180 },
-  { right: 20, bottom: 140 },
-  { left: 20, bottom: 120 },
-  { right: 30, bottom: 160 },
-  { left: 25, bottom: 150 },
-  { right: 15, bottom: 200 },
-];
+const BUBBLE_POSITION = { right: 16, bottom: 20 };
 
 interface Message {
   id: string;
@@ -78,17 +70,7 @@ export function LiveChatBubble() {
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
-  const [positionIndex, setPositionIndex] = useState(0);
   
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPositionIndex(prev => (prev + 1) % BUBBLE_POSITIONS.length);
-    }, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const position = BUBBLE_POSITIONS[positionIndex];
-
   const pulseScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.5);
   const bounceY = useSharedValue(0);
@@ -223,8 +205,8 @@ export function LiveChatBubble() {
         style={[
           styles.bubbleContainer, 
           { 
-            bottom: (position.bottom || 100) + insets.bottom,
-            ...(position.left !== undefined ? { left: position.left, right: undefined } : { right: position.right || 20 }),
+            bottom: BUBBLE_POSITION.bottom + insets.bottom,
+            right: BUBBLE_POSITION.right,
           }
         ]}
         onPress={handleOpenChat}
