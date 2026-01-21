@@ -209,6 +209,14 @@ interface ServiceInfo {
     propertyType?: { label: string; required: boolean; options: string[] };
     recyclingOption?: { label: string; required: boolean; options: { id: string; name: string; price: string }[] };
   };
+  isHandPickApplication?: boolean;
+  handPickInfo?: {
+    garbageCartOptions: { id: string; name: string; price: string; prepaidFee: string }[];
+    recyclingCartOptions: { id: string; name: string; price: string; prepaidFee: string }[];
+    importantNotes: string[];
+    paymentNote: string;
+    checkNote: string;
+  };
 }
 
 const CURB_TIME_OPTIONS = [
@@ -826,13 +834,33 @@ const serviceDetails: Record<string, ServiceInfo> = {
   },
   "com-hand-pick": {
     title: "Commercial Hand-Pick Up",
-    description: "Hand-pick up service for commercial businesses with specific collection needs.",
+    description: "Hand-collection service for businesses unable to accommodate a 3-yard garbage container. Select to begin your application.",
     icon: "clipboard",
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
-    options: [
-      { id: "1", name: "Hand-Pick Up Service", price: "Contact for pricing", schedule: "Scheduled service" },
-    ],
+    isHandPickApplication: true,
+    options: [],
+    handPickInfo: {
+      garbageCartOptions: [
+        { id: "garbage-2", name: "Two 95-gallon roll carts", price: "$46/month", prepaidFee: "$25 per cart" },
+        { id: "garbage-3", name: "Three 95-gallon roll carts", price: "$63/month", prepaidFee: "$25 per cart" },
+      ],
+      recyclingCartOptions: [
+        { id: "recycle-1", name: "One 65-gallon roll cart", price: "$36/month", prepaidFee: "$25 per cart" },
+        { id: "recycle-2", name: "Two 65-gallon roll carts", price: "$40/month", prepaidFee: "$25 per cart" },
+        { id: "recycle-3", name: "Three 65-gallon roll carts", price: "$57/month", prepaidFee: "$25 per cart" },
+        { id: "recycle-4", name: "Four 65-gallon roll carts", price: "$64/month", prepaidFee: "$25 per cart" },
+      ],
+      importantNotes: [
+        "A site assessment must be completed by the Commercial Services team.",
+        "This service is only available to businesses unable to accommodate a 3-yard garbage container and does not include yard trimmings collection service.",
+        "Requests beyond three roll carts require a commercial dumpster or roll-off container.",
+        "No complimentary replacement roll carts for missing/stolen/lost garbage and recycling roll carts; a $60.55 fee applies for replacement roll cart requests.",
+        "Applications can be submitted in person or via email.",
+      ],
+      paymentNote: "The first month's service fee and applicable roll cart fee MUST be paid in person at the Sanitation Division's administration building, 3720 Leroy Scott Drive, Decatur, Monday through Friday, 9 a.m. through 3 p.m.",
+      checkNote: "Please make checks payable to the DeKalb County Sanitation Division.",
+    },
   },
 };
 
@@ -1243,6 +1271,20 @@ export default function ServiceDetailScreen() {
   const [flPrepaymentAmount, setFlPrepaymentAmount] = useState("");
   const [flMonthlyFee, setFlMonthlyFee] = useState("");
   const [flApplicationStep, setFlApplicationStep] = useState(1);
+
+  // Commercial Hand-Pick Application State
+  const [hpServiceName, setHpServiceName] = useState("");
+  const [hpServiceAddress, setHpServiceAddress] = useState("");
+  const [hpPhone, setHpPhone] = useState("");
+  const [hpEmail, setHpEmail] = useState("");
+  const [hpBillingName, setHpBillingName] = useState("");
+  const [hpBillingAddress, setHpBillingAddress] = useState("");
+  const [hpAuthorizedContactName, setHpAuthorizedContactName] = useState("");
+  const [hpAuthorizedPhone, setHpAuthorizedPhone] = useState("");
+  const [hpAuthorizedEmail, setHpAuthorizedEmail] = useState("");
+  const [hpSelectedGarbageCart, setHpSelectedGarbageCart] = useState<string | null>(null);
+  const [hpSelectedRecyclingCart, setHpSelectedRecyclingCart] = useState<string | null>(null);
+  const [hpApplicationStep, setHpApplicationStep] = useState(1);
 
   interface SavedAddress {
     id: string;
@@ -1809,6 +1851,97 @@ export default function ServiceDetailScreen() {
     setShowFrontLoadApplication(true);
     setFlApplicationStep(1);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
+  // Commercial Hand-Pick Application Submit
+  const handleHandPickApplicationSubmit = async () => {
+    // Validate required fields
+    if (!hpServiceName || !hpServiceAddress || !hpPhone || !hpEmail || !hpBillingAddress) {
+      showAlert("Required Fields", "Please fill in all required business information fields.");
+      return;
+    }
+    if (!hpAuthorizedContactName || !hpAuthorizedPhone || !hpAuthorizedEmail) {
+      showAlert("Required Fields", "Please fill in all authorized contact information.");
+      return;
+    }
+    if (!hpSelectedGarbageCart) {
+      showAlert("Required Field", "Please select a garbage roll cart option.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    try {
+      const garbageOption = service.handPickInfo?.garbageCartOptions.find(o => o.id === hpSelectedGarbageCart);
+      const recyclingOption = service.handPickInfo?.recyclingCartOptions.find(o => o.id === hpSelectedRecyclingCart);
+
+      const formData = {
+        serviceId,
+        serviceTitle: service.title,
+        formAnswers: [
+          { question: "Service Name", answer: hpServiceName },
+          { question: "Service Address", answer: hpServiceAddress },
+          { question: "Phone", answer: hpPhone },
+          { question: "Email", answer: hpEmail },
+          { question: "Billing Name", answer: hpBillingName || hpServiceName },
+          { question: "Billing Address", answer: hpBillingAddress },
+          { question: "Authorized Contact Name", answer: hpAuthorizedContactName },
+          { question: "Authorized Contact Phone", answer: hpAuthorizedPhone },
+          { question: "Authorized Contact Email", answer: hpAuthorizedEmail },
+          { question: "Garbage Roll Carts", answer: garbageOption ? `${garbageOption.name} - ${garbageOption.price}` : "None" },
+          { question: "Recycling Roll Carts", answer: recyclingOption ? `${recyclingOption.name} - ${recyclingOption.price}` : "None selected" },
+        ],
+        submittedAt: new Date().toISOString(),
+      };
+
+      const response = await apiRequest("POST", "/api/service-requests", {
+        serviceType: "commercial",
+        serviceId,
+        formData,
+        amount: null,
+      });
+
+      const result = await response.json();
+
+      if (Platform.OS === 'web') {
+        window.alert(
+          `Application Submitted Successfully!\n\nYour Commercial Hand-collection Account Application has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nA site assessment will be completed by the Commercial Services team.\n\nIMPORTANT: The first month's service fee and applicable roll cart fee ($25 per cart) MUST be paid in person at the Sanitation Division's administration building:\n\n3720 Leroy Scott Drive, Decatur\nMonday - Friday, 9 a.m. - 3 p.m.\n\nPlease make checks payable to the DeKalb County Sanitation Division.\n\nWe will contact you via email or phone to confirm your application.`
+        );
+      } else {
+        Alert.alert(
+          "Application Submitted!",
+          `Your Commercial Hand-collection Account Application has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nA site assessment will be completed by our team.\n\nPayment must be made in person before service begins.`,
+          [
+            { text: "OK", style: "default" },
+            { text: "View My Requests", onPress: () => navigation.navigate("MyRequests") }
+          ]
+        );
+      }
+
+      // Reset form
+      setHpApplicationStep(1);
+      setHpServiceName("");
+      setHpServiceAddress("");
+      setHpPhone("");
+      setHpEmail("");
+      setHpBillingName("");
+      setHpBillingAddress("");
+      setHpAuthorizedContactName("");
+      setHpAuthorizedPhone("");
+      setHpAuthorizedEmail("");
+      setHpSelectedGarbageCart(null);
+      setHpSelectedRecyclingCart(null);
+    } catch (error) {
+      console.error("Submit error:", error);
+      showAlert(
+        "Submission Error",
+        "We couldn't submit your application. Please try again or contact us at (404) 294-2900.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleOptionSubmit = () => {
@@ -3960,6 +4093,458 @@ export default function ServiceDetailScreen() {
           </Animated.View>
         ) : null}
 
+        {/* Commercial Hand-Pick Application Form */}
+        {service.isHandPickApplication ? (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+            {/* Important Notes Section */}
+            <View style={[styles.infoBox, { backgroundColor: "#FFF3E0", borderColor: "#FF9800", marginBottom: Spacing.lg }]}>
+              <Feather name="alert-triangle" size={24} color="#FF9800" />
+              <View style={{ flex: 1, marginLeft: Spacing.md }}>
+                <ThemedText type="h4" style={{ color: "#E65100", marginBottom: Spacing.sm }}>Important Service Information</ThemedText>
+                {service.handPickInfo?.importantNotes.map((note, idx) => (
+                  <View key={idx} style={{ flexDirection: "row", marginBottom: Spacing.xs }}>
+                    <ThemedText type="small" style={{ color: "#FF9800", marginRight: Spacing.sm }}>•</ThemedText>
+                    <ThemedText type="small" style={{ color: "#5D4037", flex: 1, lineHeight: 20 }}>{note}</ThemedText>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Replacement Fee Note */}
+            <View style={[styles.infoBox, { backgroundColor: "#FFEBEE", borderColor: "#F44336", marginBottom: Spacing.lg }]}>
+              <Feather name="alert-circle" size={20} color="#F44336" />
+              <ThemedText type="small" style={{ color: "#C62828", flex: 1, marginLeft: Spacing.sm, lineHeight: 20 }}>
+                No complimentary replacement roll carts for missing/stolen/lost garbage and recycling roll carts; a $60.55 fee applies for replacement roll cart requests.
+              </ThemedText>
+            </View>
+
+            {/* Application Form */}
+            <View style={[styles.newServiceFormContainer, { backgroundColor: theme.surface, borderColor: service.color + "40" }]}>
+              <View style={[styles.formHeader, { backgroundColor: service.color + "15" }]}>
+                <Feather name="file-text" size={24} color={service.color} />
+                <ThemedText type="h3" style={{ color: service.color, marginLeft: Spacing.sm, flex: 1 }}>
+                  Commercial Hand-collection Account Application
+                </ThemedText>
+              </View>
+
+              {/* Step Indicator */}
+              <View style={styles.stepIndicatorContainer}>
+                {[1, 2, 3].map((step) => (
+                  <View key={step} style={styles.stepIndicator}>
+                    <View style={[
+                      styles.stepCircle,
+                      { backgroundColor: hpApplicationStep >= step ? service.color : theme.border }
+                    ]}>
+                      <ThemedText type="small" style={{ color: hpApplicationStep >= step ? "#FFFFFF" : theme.textSecondary, fontWeight: "700" }}>
+                        {step}
+                      </ThemedText>
+                    </View>
+                    <ThemedText type="caption" style={{ color: hpApplicationStep >= step ? service.color : theme.textSecondary, marginTop: Spacing.xs }}>
+                      {step === 1 ? "Business Info" : step === 2 ? "Cart Options" : "Review"}
+                    </ThemedText>
+                    {step < 3 ? (
+                      <View style={[styles.stepLine, { backgroundColor: hpApplicationStep > step ? service.color : theme.border }]} />
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.formBody}>
+                {/* Step 1: Business Information */}
+                {hpApplicationStep === 1 ? (
+                  <>
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      Business Information
+                    </ThemedText>
+
+                    <ThemedText type="small" style={styles.formLabel}>
+                      Service Name <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpServiceName ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter business/service name"
+                      placeholderTextColor={theme.textSecondary}
+                      value={hpServiceName}
+                      onChangeText={setHpServiceName}
+                      autoCapitalize="words"
+                    />
+
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                      Service Address <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpServiceAddress ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter service address"
+                      placeholderTextColor={theme.textSecondary}
+                      value={hpServiceAddress}
+                      onChangeText={setHpServiceAddress}
+                      autoCapitalize="words"
+                    />
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md }}>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Phone <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpPhone ? service.color : theme.border, color: theme.text }]}
+                          placeholder="(xxx) xxx-xxxx"
+                          placeholderTextColor={theme.textSecondary}
+                          value={hpPhone}
+                          onChangeText={setHpPhone}
+                          keyboardType="phone-pad"
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Email <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpEmail ? service.color : theme.border, color: theme.text }]}
+                          placeholder="email@business.com"
+                          placeholderTextColor={theme.textSecondary}
+                          value={hpEmail}
+                          onChangeText={setHpEmail}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+                    </View>
+
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                      Billing Name
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpBillingName ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Leave blank if same as service name"
+                      placeholderTextColor={theme.textSecondary}
+                      value={hpBillingName}
+                      onChangeText={setHpBillingName}
+                      autoCapitalize="words"
+                    />
+
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                      Billing Address <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.xs }}>
+                      If different from service location address
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpBillingAddress ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter billing address"
+                      placeholderTextColor={theme.textSecondary}
+                      value={hpBillingAddress}
+                      onChangeText={setHpBillingAddress}
+                      autoCapitalize="words"
+                    />
+
+                    <View style={[styles.divider, { backgroundColor: theme.border, marginVertical: Spacing.lg }]} />
+
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      Authorized Account Contact
+                    </ThemedText>
+
+                    <ThemedText type="small" style={styles.formLabel}>
+                      Contact Name <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpAuthorizedContactName ? service.color : theme.border, color: theme.text }]}
+                      placeholder="Enter authorized contact name"
+                      placeholderTextColor={theme.textSecondary}
+                      value={hpAuthorizedContactName}
+                      onChangeText={setHpAuthorizedContactName}
+                      autoCapitalize="words"
+                    />
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md }}>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Phone <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpAuthorizedPhone ? service.color : theme.border, color: theme.text }]}
+                          placeholder="(xxx) xxx-xxxx"
+                          placeholderTextColor={theme.textSecondary}
+                          value={hpAuthorizedPhone}
+                          onChangeText={setHpAuthorizedPhone}
+                          keyboardType="phone-pad"
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.md }]}>
+                          Email <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                        </ThemedText>
+                        <TextInput
+                          style={[styles.textInput, { backgroundColor: theme.background, borderColor: hpAuthorizedEmail ? service.color : theme.border, color: theme.text }]}
+                          placeholder="email@business.com"
+                          placeholderTextColor={theme.textSecondary}
+                          value={hpAuthorizedEmail}
+                          onChangeText={setHpAuthorizedEmail}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                        />
+                      </View>
+                    </View>
+
+                    <Pressable
+                      onPress={() => {
+                        if (!hpServiceName || !hpServiceAddress || !hpPhone || !hpEmail || !hpBillingAddress) {
+                          showAlert("Required Fields", "Please fill in all required business information fields.");
+                          return;
+                        }
+                        if (!hpAuthorizedContactName || !hpAuthorizedPhone || !hpAuthorizedEmail) {
+                          showAlert("Required Fields", "Please fill in all authorized contact information.");
+                          return;
+                        }
+                        setHpApplicationStep(2);
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }}
+                      style={{ marginTop: Spacing.xl }}
+                    >
+                      <LinearGradient
+                        colors={service.gradientColors as [string, string, ...string[]]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.submitButton}
+                      >
+                        <ThemedText type="h4" style={styles.submitText}>Continue to Cart Options</ThemedText>
+                        <Feather name="arrow-right" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                      </LinearGradient>
+                    </Pressable>
+                  </>
+                ) : null}
+
+                {/* Step 2: Cart Options */}
+                {hpApplicationStep === 2 ? (
+                  <>
+                    <ThemedText type="h4" style={{ color: "#2E7D32", marginBottom: Spacing.sm }}>
+                      Garbage Roll Carts
+                    </ThemedText>
+                    <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+                      Serviced once per week; requires one-time prepaid fee of $25 per roll cart
+                    </ThemedText>
+
+                    {service.handPickInfo?.garbageCartOptions.map((option) => (
+                      <Pressable
+                        key={option.id}
+                        onPress={() => {
+                          setHpSelectedGarbageCart(option.id);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.cartOptionCard,
+                          { borderColor: hpSelectedGarbageCart === option.id ? "#2E7D32" : theme.border },
+                          hpSelectedGarbageCart === option.id && { backgroundColor: "#E8F5E9" }
+                        ]}
+                      >
+                        <View style={[styles.radioCircle, hpSelectedGarbageCart === option.id && { borderColor: "#2E7D32" }]}>
+                          {hpSelectedGarbageCart === option.id ? <View style={[styles.radioFill, { backgroundColor: "#2E7D32" }]} /> : null}
+                        </View>
+                        <View style={{ flex: 1, marginLeft: Spacing.md }}>
+                          <ThemedText type="body" style={{ fontWeight: "600" }}>{option.name}</ThemedText>
+                        </View>
+                        <ThemedText type="body" style={{ fontWeight: "700", color: "#2E7D32" }}>{option.price}</ThemedText>
+                      </Pressable>
+                    ))}
+
+                    <View style={[styles.divider, { backgroundColor: theme.border, marginVertical: Spacing.lg }]} />
+
+                    <ThemedText type="h4" style={{ color: BrandColors.blue, marginBottom: Spacing.sm }}>
+                      Recycling Roll Carts
+                    </ThemedText>
+                    <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+                      Serviced once per week; requires one-time prepaid fee of $25 per roll cart
+                    </ThemedText>
+
+                    {service.handPickInfo?.recyclingCartOptions.map((option) => (
+                      <Pressable
+                        key={option.id}
+                        onPress={() => {
+                          setHpSelectedRecyclingCart(hpSelectedRecyclingCart === option.id ? null : option.id);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.cartOptionCard,
+                          { borderColor: hpSelectedRecyclingCart === option.id ? BrandColors.blue : theme.border },
+                          hpSelectedRecyclingCart === option.id && { backgroundColor: "#E3F2FD" }
+                        ]}
+                      >
+                        <View style={[styles.radioCircle, hpSelectedRecyclingCart === option.id && { borderColor: BrandColors.blue }]}>
+                          {hpSelectedRecyclingCart === option.id ? <View style={[styles.radioFill, { backgroundColor: BrandColors.blue }]} /> : null}
+                        </View>
+                        <View style={{ flex: 1, marginLeft: Spacing.md }}>
+                          <ThemedText type="body" style={{ fontWeight: "600" }}>{option.name}</ThemedText>
+                        </View>
+                        <ThemedText type="body" style={{ fontWeight: "700", color: BrandColors.blue }}>{option.price}</ThemedText>
+                      </Pressable>
+                    ))}
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl }}>
+                      <Pressable onPress={() => setHpApplicationStep(1)} style={[styles.backButton, { flex: 1 }]}>
+                        <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                        <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          if (!hpSelectedGarbageCart) {
+                            showAlert("Required Field", "Please select a garbage roll cart option.");
+                            return;
+                          }
+                          setHpApplicationStep(3);
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={{ flex: 2 }}
+                      >
+                        <LinearGradient
+                          colors={service.gradientColors as [string, string, ...string[]]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.submitButton}
+                        >
+                          <ThemedText type="h4" style={styles.submitText}>Review Application</ThemedText>
+                          <Feather name="arrow-right" size={20} color="#FFF" style={{ marginLeft: Spacing.sm }} />
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : null}
+
+                {/* Step 3: Review & Submit */}
+                {hpApplicationStep === 3 ? (
+                  <>
+                    <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.md }}>
+                      Review Your Application
+                    </ThemedText>
+
+                    <View style={[styles.reviewSection, { borderColor: theme.border }]}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Business Information</ThemedText>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Service Name:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{hpServiceName}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Service Address:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600", flex: 1, textAlign: "right" }}>{hpServiceAddress}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Phone:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{hpPhone}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Email:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{hpEmail}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Billing Address:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600", flex: 1, textAlign: "right" }}>{hpBillingAddress}</ThemedText>
+                      </View>
+                    </View>
+
+                    <View style={[styles.reviewSection, { borderColor: theme.border }]}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Authorized Contact</ThemedText>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Name:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{hpAuthorizedContactName}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Phone:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{hpAuthorizedPhone}</ThemedText>
+                      </View>
+                      <View style={styles.reviewRow}>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>Email:</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>{hpAuthorizedEmail}</ThemedText>
+                      </View>
+                    </View>
+
+                    <View style={[styles.reviewSection, { borderColor: theme.border }]}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Selected Roll Carts</ThemedText>
+                      {hpSelectedGarbageCart ? (
+                        <View style={styles.reviewRow}>
+                          <ThemedText type="body" style={{ color: "#2E7D32" }}>Garbage:</ThemedText>
+                          <ThemedText type="body" style={{ fontWeight: "700", color: "#2E7D32" }}>
+                            {service.handPickInfo?.garbageCartOptions.find(o => o.id === hpSelectedGarbageCart)?.name} - {service.handPickInfo?.garbageCartOptions.find(o => o.id === hpSelectedGarbageCart)?.price}
+                          </ThemedText>
+                        </View>
+                      ) : null}
+                      {hpSelectedRecyclingCart ? (
+                        <View style={styles.reviewRow}>
+                          <ThemedText type="body" style={{ color: BrandColors.blue }}>Recycling:</ThemedText>
+                          <ThemedText type="body" style={{ fontWeight: "700", color: BrandColors.blue }}>
+                            {service.handPickInfo?.recyclingCartOptions.find(o => o.id === hpSelectedRecyclingCart)?.name} - {service.handPickInfo?.recyclingCartOptions.find(o => o.id === hpSelectedRecyclingCart)?.price}
+                          </ThemedText>
+                        </View>
+                      ) : (
+                        <View style={styles.reviewRow}>
+                          <ThemedText type="body" style={{ color: theme.textSecondary }}>Recycling:</ThemedText>
+                          <ThemedText type="body" style={{ color: theme.textSecondary, fontStyle: "italic" }}>Not selected</ThemedText>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Payment Info */}
+                    <View style={[styles.paymentInfoBox, { backgroundColor: "#E8F5E9", borderColor: BrandColors.green }]}>
+                      <View style={styles.paymentInfoHeader}>
+                        <Feather name="dollar-sign" size={24} color={BrandColors.green} />
+                        <ThemedText type="h4" style={{ color: BrandColors.green, marginLeft: Spacing.sm }}>Payment Information</ThemedText>
+                      </View>
+                      <View style={[styles.pricingRow, { borderBottomColor: BrandColors.green + "30" }]}>
+                        <ThemedText type="body">One-time prepaid fee</ThemedText>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>$25 per cart</ThemedText>
+                      </View>
+                      <View style={[styles.pricingRow, { borderBottomWidth: 0 }]}>
+                        <ThemedText type="body">First month's service fee</ThemedText>
+                        <ThemedText type="body" style={{ color: theme.textSecondary }}>See selected options above</ThemedText>
+                      </View>
+                    </View>
+
+                    <View style={[styles.infoBox, { backgroundColor: "#FFF3E0", borderColor: "#FF9800", marginTop: Spacing.md }]}>
+                      <Feather name="alert-circle" size={20} color="#FF9800" />
+                      <ThemedText type="small" style={{ color: "#E65100", flex: 1, marginLeft: Spacing.sm, lineHeight: 20 }}>
+                        {service.handPickInfo?.paymentNote}
+                      </ThemedText>
+                    </View>
+
+                    <View style={[styles.infoBox, { backgroundColor: "#E3F2FD", borderColor: BrandColors.blue, marginTop: Spacing.sm }]}>
+                      <Feather name="info" size={20} color={BrandColors.blue} />
+                      <ThemedText type="small" style={{ color: "#1565C0", flex: 1, marginLeft: Spacing.sm }}>
+                        {service.handPickInfo?.checkNote}
+                      </ThemedText>
+                    </View>
+
+                    <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.xl }}>
+                      <Pressable onPress={() => setHpApplicationStep(2)} style={[styles.backButton, { flex: 1 }]}>
+                        <Feather name="arrow-left" size={18} color={theme.textSecondary} />
+                        <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>Back</ThemedText>
+                      </Pressable>
+                      <Pressable
+                        onPress={handleHandPickApplicationSubmit}
+                        disabled={isSubmitting}
+                        style={{ flex: 2 }}
+                      >
+                        <LinearGradient
+                          colors={["#4CAF50", "#2E7D32"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={styles.submitButton}
+                        >
+                          {isSubmitting ? (
+                            <ActivityIndicator color="#FFFFFF" size="small" />
+                          ) : (
+                            <>
+                              <Feather name="send" size={20} color="#FFF" />
+                              <ThemedText type="h4" style={[styles.submitText, { marginLeft: Spacing.sm }]}>Submit Application</ThemedText>
+                            </>
+                          )}
+                        </LinearGradient>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : null}
+              </View>
+            </View>
+          </Animated.View>
+        ) : null}
+
         {service.links && service.links.length > 0 ? (
           <Animated.View entering={FadeInDown.delay(600).duration(400)}>
             <ThemedText type="h4" style={[styles.sectionTitle, { marginTop: Spacing.lg }]}>
@@ -4761,5 +5346,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: Spacing.md,
+  },
+  cartOptionCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    marginBottom: Spacing.md,
+    backgroundColor: "#FFFFFF",
   },
 });
