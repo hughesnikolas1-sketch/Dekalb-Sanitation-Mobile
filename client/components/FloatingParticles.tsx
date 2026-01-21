@@ -23,8 +23,12 @@ interface Particle {
 
 const PARTICLE_COLORS = [
   "#1565C0", "#2E7D32", "#42A5F5", "#66BB6A", 
-  "#4FC3F7", "#81C784", "#00BCD4", "#8BC34A"
+  "#4FC3F7", "#81C784", "#00BCD4", "#8BC34A",
+  "#FFD54F", "#FF8A65", "#BA68C8", "#4DD0E1"
 ];
+
+const PARTICLE_SHAPES = ["circle", "star", "diamond", "heart"] as const;
+type ParticleShape = typeof PARTICLE_SHAPES[number];
 
 function generateParticles(count: number): Particle[] {
   return Array.from({ length: count }, (_, i) => ({
