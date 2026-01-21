@@ -13,7 +13,8 @@ const showAlert = (title: string, message: string, buttons?: { text: string; sty
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -818,6 +819,7 @@ function OptionCard({
 
 export default function ServiceDetailScreen() {
   const route = useRoute<ServiceDetailRouteProp>();
+  const navigation = useNavigation<StackNavigationProp<any>>();
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
@@ -899,7 +901,25 @@ export default function ServiceDetailScreen() {
 
       const result = await response.json();
 
-      if (amount > 0) {
+      if (serviceId.includes("roll-cart")) {
+        if (Platform.OS === 'web') {
+          const viewRequests = window.confirm(
+            `Request Under Investigation\n\nYour ${service.title} request has been submitted and is now under investigation.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nDelivery Timeline: 1-10 business days\n\nOur team will review your request and contact you via email or phone. You can track the status of your request in "My Requests".\n\nClick OK to view your requests.`
+          );
+          if (viewRequests) {
+            navigation.navigate("MyRequests");
+          }
+        } else {
+          Alert.alert(
+            "Request Under Investigation",
+            `Your ${service.title} request has been submitted and is now under investigation.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nDelivery Timeline: 1-10 business days\n\nOur team will review your request and contact you via email or phone.`,
+            [
+              { text: "OK", style: "cancel" },
+              { text: "View My Requests", onPress: () => navigation.navigate("MyRequests") }
+            ]
+          );
+        }
+      } else if (amount > 0) {
         showAlert(
           "Request Submitted",
           `Your ${service.title} request has been submitted. Total: ${option?.price}.\n\nYou will receive payment instructions via email, or you can pay online at myaccount.dekalbcountyga.gov`,
