@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,12 +19,26 @@ import Animated, {
   withTiming,
   withSpring,
   Easing,
+  interpolate,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigationState } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { BrandColors, Spacing, BorderRadius, FontSizes } from '@/constants/theme';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const BUBBLE_POSITIONS = [
+  { right: 20, bottom: 100 },
+  { right: 20, bottom: 180 },
+  { right: 20, bottom: 140 },
+  { left: 20, bottom: 120 },
+  { right: 30, bottom: 160 },
+  { left: 25, bottom: 150 },
+  { right: 15, bottom: 200 },
+];
 
 interface Message {
   id: string;
@@ -65,15 +79,28 @@ export function LiveChatBubble() {
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
 
+  const navIndex = useNavigationState(state => state?.index ?? 0);
+  const routeName = useNavigationState(state => {
+    const route = state?.routes?.[state.index];
+    return route?.name ?? 'Main';
+  });
+
+  const position = useMemo(() => {
+    const screenHash = routeName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const posIndex = (screenHash + navIndex) % BUBBLE_POSITIONS.length;
+    return BUBBLE_POSITIONS[posIndex];
+  }, [routeName, navIndex]);
+
   const pulseScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.5);
   const bounceY = useSharedValue(0);
+  const floatX = useSharedValue(0);
 
   useEffect(() => {
     pulseScale.value = withRepeat(
       withSequence(
-        withTiming(1.1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
+        withTiming(1.15, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
       true
@@ -81,8 +108,8 @@ export function LiveChatBubble() {
 
     glowOpacity.value = withRepeat(
       withSequence(
-        withTiming(0.8, { duration: 1000 }),
-        withTiming(0.4, { duration: 1000 })
+        withTiming(0.9, { duration: 1200 }),
+        withTiming(0.3, { duration: 1200 })
       ),
       -1,
       true
@@ -90,8 +117,19 @@ export function LiveChatBubble() {
 
     bounceY.value = withRepeat(
       withSequence(
-        withTiming(-5, { duration: 600, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 600, easing: Easing.inOut(Easing.ease) })
+        withTiming(-8, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(4, { duration: 600, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+
+    floatX.value = withRepeat(
+      withSequence(
+        withTiming(6, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(-6, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 1000, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
       true
@@ -102,6 +140,7 @@ export function LiveChatBubble() {
     transform: [
       { scale: pulseScale.value },
       { translateY: bounceY.value },
+      { translateX: floatX.value },
     ],
   }));
 
