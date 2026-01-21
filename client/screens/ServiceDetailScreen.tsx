@@ -178,6 +178,16 @@ interface ServiceInfo {
   };
 }
 
+const CURB_TIME_OPTIONS = [
+  "Before 6:00 AM",
+  "6:00 AM - 7:00 AM",
+  "7:00 AM - 8:00 AM",
+  "8:00 AM - 9:00 AM",
+  "9:00 AM - 10:00 AM",
+  "After 10:00 AM",
+  "The night before collection day",
+];
+
 const serviceDetails: Record<string, ServiceInfo> = {
   "res-missed-trash": {
     title: "Missed Trash Pickup",
@@ -187,6 +197,12 @@ const serviceDetails: Record<string, ServiceInfo> = {
     gradientColors: FuturisticGradients.residential,
     options: [
       { id: "1", name: "Report Missed Pickup", price: "Free", schedule: "Response within 48 hours" },
+    ],
+    formQuestions: [
+      { question: "Do you have a county issued roll cart?", type: "yesno" },
+      { question: "Did the roll cart have excess overflow?", type: "yesno" },
+      { question: "Was there anything in the roll cart that was not trash?", type: "yesno" },
+      { question: "What time was the roll cart placed at the curb?", type: "select", options: CURB_TIME_OPTIONS },
     ],
   },
   "res-missed-recycling": {
@@ -282,6 +298,12 @@ const serviceDetails: Record<string, ServiceInfo> = {
     gradientColors: FuturisticGradients.commercial,
     options: [
       { id: "1", name: "Report Missed Pickup", price: "Free", schedule: "Response within 48 hours" },
+    ],
+    formQuestions: [
+      { question: "Do you have a county issued roll cart?", type: "yesno" },
+      { question: "Did the roll cart have excess overflow?", type: "yesno" },
+      { question: "Was there anything in the roll cart that was not trash?", type: "yesno" },
+      { question: "What time was the roll cart placed at the curb?", type: "select", options: CURB_TIME_OPTIONS },
     ],
   },
   "com-missed-recycling": {
