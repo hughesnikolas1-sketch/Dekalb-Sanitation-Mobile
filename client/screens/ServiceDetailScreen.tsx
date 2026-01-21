@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, StyleSheet, Pressable, TextInput } from "react-native";
+import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator } from "react-native";
+import { apiRequest } from "@/lib/query-client";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -576,7 +577,21 @@ function ServiceReminder({ color }: { color: string }) {
   );
 }
 
-function OptionCard({ option, color, index, gradientColors }: { option: ServiceOption; color: string; index: number; gradientColors: string[] }) {
+function OptionCard({ 
+  option, 
+  color, 
+  index, 
+  gradientColors, 
+  isSelected, 
+  onSelect 
+}: { 
+  option: ServiceOption; 
+  color: string; 
+  index: number; 
+  gradientColors: string[];
+  isSelected?: boolean;
+  onSelect?: (option: ServiceOption) => void;
+}) {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
   const glowIntensity = useSharedValue(0.2);
@@ -608,20 +623,42 @@ function OptionCard({ option, color, index, gradientColors }: { option: ServiceO
     scale.value = withSpring(1, { damping: 15, stiffness: 150 });
   };
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (onSelect) {
+      onSelect(option);
+    }
+  };
+
   return (
     <Animated.View entering={ZoomIn.delay(200 + index * 60).duration(400).springify()}>
       <AnimatedPressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+        onPress={handlePress}
         style={[
           styles.optionCard,
           animatedStyle,
           glowStyle,
-          { backgroundColor: theme.backgroundSecondary, borderColor: color + "40", shadowColor: color },
+          { 
+            backgroundColor: isSelected ? color + "20" : theme.backgroundSecondary, 
+            borderColor: isSelected ? color : color + "40", 
+            borderWidth: isSelected ? 2.5 : 1.5,
+            shadowColor: color,
+          },
         ]}
       >
         <View style={styles.optionHeader}>
+          <View style={{ width: 28, marginRight: Spacing.sm }}>
+            <View
+              style={[
+                styles.radioOuter,
+                { borderColor: isSelected ? color : theme.textSecondary },
+              ]}
+            >
+              {isSelected ? <View style={[styles.radioInner, { backgroundColor: color }]} /> : null}
+            </View>
+          </View>
           <View style={styles.optionInfo}>
             <ThemedText type="h4" style={{ flex: 1 }}>{option.name}</ThemedText>
             <LinearGradient
@@ -637,12 +674,12 @@ function OptionCard({ option, color, index, gradientColors }: { option: ServiceO
           </View>
         </View>
         {option.size ? (
-          <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm }}>
+          <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.sm, marginLeft: 36 }}>
             {option.size}
           </ThemedText>
         ) : null}
         {option.schedule ? (
-          <View style={styles.scheduleRow}>
+          <View style={[styles.scheduleRow, { marginLeft: 36 }]}>
             <Feather name="calendar" size={16} color={color} />
             <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
               {option.schedule}
@@ -672,6 +709,8 @@ export default function ServiceDetailScreen() {
   };
 
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [selectedOption, setSelectedOption] = useState<ServiceOption | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateFormValue = (questionIndex: number, value: string) => {
     setFormValues((prev) => ({ ...prev, [questionIndex]: value }));
@@ -680,8 +719,80 @@ export default function ServiceDetailScreen() {
   const isFormService = service.formQuestions && service.formQuestions.length > 0;
   const hasContentSections = service.contentSections && service.contentSections.length > 0;
 
-  const handleSubmit = () => {
+  const parsePrice = (priceStr: string): number => {
+    const match = priceStr.match(/\$?([\d,]+(?:\.\d{2})?)/);
+    if (match) {
+      return parseFloat(match[1].replace(",", ""));
+    }
+    return 0;
+  };
+
+  const handleSubmit = async (option?: ServiceOption) => {
+    setIsSubmitting(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    try {
+      const formData = {
+        serviceId,
+        serviceTitle: service.title,
+        selectedOption: option?.name || null,
+        formAnswers: service.formQuestions?.map((q, idx) => ({
+          question: q.question,
+          answer: formValues[idx] || "",
+        })) || [],
+        submittedAt: new Date().toISOString(),
+      };
+
+      const amount = option ? parsePrice(option.price) : 0;
+
+      const response = await apiRequest("POST", "/api/service-requests", {
+        serviceType: serviceId.startsWith("com-") ? "commercial" : "residential",
+        serviceId,
+        formData,
+        amount: amount > 0 ? Math.round(amount * 100) : null,
+      });
+
+      const result = await response.json();
+
+      if (amount > 0) {
+        Alert.alert(
+          "Request Submitted",
+          `Your ${service.title} request has been submitted. Total: ${option?.price}.\n\nYou will receive payment instructions via email, or you can pay online at myaccount.dekalbcountyga.gov`,
+          [{ text: "OK", style: "default" }]
+        );
+      } else {
+        Alert.alert(
+          "Request Submitted Successfully!",
+          `Your ${service.title} request has been received. Our team will process it within 24-48 hours.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}`,
+          [{ text: "Great!", style: "default" }]
+        );
+      }
+
+      setFormValues({});
+      setSelectedOption(null);
+    } catch (error) {
+      console.error("Submit error:", error);
+      Alert.alert(
+        "Submission Error",
+        "We couldn't submit your request. Please try again or contact us at (404) 294-2900.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOptionSelect = (option: ServiceOption) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedOption(option);
+  };
+
+  const handleOptionSubmit = () => {
+    if (!selectedOption) {
+      Alert.alert("Please Select an Option", "Choose a service option before submitting.");
+      return;
+    }
+    handleSubmit(selectedOption);
   };
 
   return (
@@ -756,16 +867,20 @@ export default function ServiceDetailScreen() {
             ) : null}
 
             <Animated.View entering={FadeInDown.delay(600).duration(400)}>
-              <Pressable onPress={handleSubmit}>
+              <Pressable onPress={() => handleSubmit()} disabled={isSubmitting}>
                 <LinearGradient
                   colors={service.gradientColors as [string, string, ...string[]]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.submitButton}
                 >
-                  <Feather name="send" size={22} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" style={{ marginRight: Spacing.sm }} />
+                  ) : (
+                    <Feather name="send" size={22} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
+                  )}
                   <ThemedText type="h4" style={styles.submitText}>
-                    Submit Request
+                    {isSubmitting ? "Submitting..." : "Submit Request"}
                   </ThemedText>
                 </LinearGradient>
               </Pressable>
@@ -822,6 +937,9 @@ export default function ServiceDetailScreen() {
               <ThemedText type="h3" style={styles.sectionTitle}>
                 Pricing & Options
               </ThemedText>
+              <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+                Select an option to continue
+              </ThemedText>
             </Animated.View>
 
             {service.options.map((option, index) => (
@@ -831,8 +949,34 @@ export default function ServiceDetailScreen() {
                 color={service.color}
                 index={index}
                 gradientColors={service.gradientColors}
+                isSelected={selectedOption?.id === option.id}
+                onSelect={handleOptionSelect}
               />
             ))}
+
+            <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+              <Pressable 
+                onPress={handleOptionSubmit}
+                disabled={isSubmitting || !selectedOption}
+                style={{ opacity: selectedOption ? 1 : 0.6 }}
+              >
+                <LinearGradient
+                  colors={service.gradientColors as [string, string, ...string[]]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.submitButton}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" style={{ marginRight: Spacing.sm }} />
+                  ) : (
+                    <Feather name="check-circle" size={22} color="#FFFFFF" style={{ marginRight: Spacing.sm }} />
+                  )}
+                  <ThemedText type="h4" style={styles.submitText}>
+                    {isSubmitting ? "Submitting..." : selectedOption ? `Submit Request - ${selectedOption.price}` : "Select an Option"}
+                  </ThemedText>
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
           </>
         ) : null}
 
