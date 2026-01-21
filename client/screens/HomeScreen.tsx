@@ -295,8 +295,8 @@ function ServiceCategoryCard({
           animatedStyle,
           glowStyle,
           {
-            shadowColor: category.glowColor,
             ...GlowEffects.medium,
+            shadowColor: category.glowColor,
           },
         ]}
       >
@@ -465,7 +465,7 @@ export default function HomeScreen() {
   }, []);
 
   const handleCategoryPress = useCallback((categoryId: string) => {
-    navigation.navigate("Main", { screen: "ServicesTab", params: { category: categoryId } });
+    (navigation as any).navigate("Main", { screen: "ServicesTab", params: { category: categoryId } });
   }, [navigation]);
 
   const handleReportIssue = useCallback(() => {
