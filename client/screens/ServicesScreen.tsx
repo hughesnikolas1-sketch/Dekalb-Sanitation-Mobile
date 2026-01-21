@@ -146,20 +146,6 @@ const commercialServices: ServiceItem[] = [
     category: "commercial",
   },
   {
-    id: "com-new-garbage",
-    title: "Establish New Garbage Service",
-    description: "Set up new commercial garbage collection",
-    icon: "plus-square",
-    category: "commercial",
-  },
-  {
-    id: "com-new-recycle",
-    title: "Establish New Recycle Service",
-    description: "Set up new commercial recycling service",
-    icon: "refresh-cw",
-    category: "commercial",
-  },
-  {
     id: "com-front-load",
     title: "Front Load Dumpster",
     description: "Front load dumpster rental and service",
