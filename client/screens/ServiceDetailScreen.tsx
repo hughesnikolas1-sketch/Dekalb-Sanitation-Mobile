@@ -34,6 +34,8 @@ import Animated, {
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { DCLogo, SelectionCelebration } from "@/components/DCLogo";
+import { LiveAgentBanner } from "@/components/LiveAgentBanner";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Spacing,
@@ -1980,6 +1982,7 @@ export default function ServiceDetailScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <FloatingParticles count={8} />
       <SelectionCelebration visible={showCelebration} />
       <ScrollView
         style={{ flex: 1 }}
@@ -4594,6 +4597,8 @@ export default function ServiceDetailScreen() {
             <Feather name="chevron-right" size={24} color="#FFFFFF" />
           </Pressable>
         </Animated.View>
+
+        <LiveAgentBanner />
       </ScrollView>
     </ThemedView>
   );

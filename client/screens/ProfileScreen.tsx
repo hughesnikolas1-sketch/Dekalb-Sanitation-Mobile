@@ -18,6 +18,8 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { LiveAgentBanner } from "@/components/LiveAgentBanner";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
@@ -139,6 +141,7 @@ export default function ProfileScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <FloatingParticles count={8} />
       <KeyboardAwareScrollViewCompat
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -264,6 +267,8 @@ export default function ProfileScreen() {
             </ThemedText>
           </Pressable>
         </Animated.View>
+
+        <LiveAgentBanner />
       </KeyboardAwareScrollViewCompat>
     </ThemedView>
   );

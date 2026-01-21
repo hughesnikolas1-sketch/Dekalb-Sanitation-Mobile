@@ -31,6 +31,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { NavigationMenu } from "@/components/NavigationMenu";
 import { LiveChatButton } from "@/components/LiveChatButton";
+import { LiveAgentBanner } from "@/components/LiveAgentBanner";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -551,6 +553,8 @@ export default function HomeScreen() {
         </View>
         <Feather name="chevron-right" size={24} color={theme.textSecondary} />
       </Animated.View>
+
+      <LiveAgentBanner />
     </View>
   );
 
@@ -571,6 +575,7 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <FloatingParticles count={12} />
       <NavigationMenu onNavigate={handleMenuNavigate} />
       <FlatList
         style={{ flex: 1 }}

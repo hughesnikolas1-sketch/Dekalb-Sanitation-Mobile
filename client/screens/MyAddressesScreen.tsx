@@ -20,6 +20,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { LiveAgentBanner } from "@/components/LiveAgentBanner";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { Spacing, BorderRadius, BrandColors, FuturisticGradients } from "@/constants/theme";
@@ -252,6 +254,7 @@ export default function MyAddressesScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <FloatingParticles count={8} />
       <FlatList
         data={addresses}
         keyExtractor={(item) => item.id}
@@ -303,6 +306,7 @@ export default function MyAddressesScreen() {
             <ActivityIndicator size="large" color={BrandColors.green} />
           </View>
         ) : renderEmptyState()}
+        ListFooterComponent={<LiveAgentBanner />}
       />
     </ThemedView>
   );

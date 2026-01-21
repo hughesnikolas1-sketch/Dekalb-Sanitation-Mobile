@@ -22,6 +22,8 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { LiveAgentBanner } from "@/components/LiveAgentBanner";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Spacing,
@@ -422,30 +424,34 @@ export default function ServicesScreen() {
   );
 
   const renderFooter = () => (
-    <Animated.View
-      entering={FadeInUp.delay(600).duration(400)}
-      style={[styles.helpCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.cardBorder }]}
-    >
-      <View style={styles.helpIconWrapper}>
-        <LinearGradient
-          colors={["#7C4DFF", "#651FFF"]}
-          style={styles.helpIcon}
-        >
-          <Feather name="phone-call" size={24} color="#FFFFFF" />
-        </LinearGradient>
-      </View>
-      <View style={styles.helpContent}>
-        <ThemedText type="h4">Need Help Choosing?</ThemedText>
-        <ThemedText type="small" style={{ color: theme.textSecondary }}>
-          Our friendly team is ready to assist you!
-        </ThemedText>
-      </View>
-      <Feather name="chevron-right" size={22} color={theme.textSecondary} />
-    </Animated.View>
+    <>
+      <Animated.View
+        entering={FadeInUp.delay(600).duration(400)}
+        style={[styles.helpCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.cardBorder }]}
+      >
+        <View style={styles.helpIconWrapper}>
+          <LinearGradient
+            colors={["#7C4DFF", "#651FFF"]}
+            style={styles.helpIcon}
+          >
+            <Feather name="phone-call" size={24} color="#FFFFFF" />
+          </LinearGradient>
+        </View>
+        <View style={styles.helpContent}>
+          <ThemedText type="h4">Need Help Choosing?</ThemedText>
+          <ThemedText type="small" style={{ color: theme.textSecondary }}>
+            Our friendly team is ready to assist you!
+          </ThemedText>
+        </View>
+        <Feather name="chevron-right" size={22} color={theme.textSecondary} />
+      </Animated.View>
+      <LiveAgentBanner />
+    </>
   );
 
   return (
     <ThemedView style={styles.container}>
+      <FloatingParticles count={10} />
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{
