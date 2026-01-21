@@ -210,15 +210,14 @@ const serviceDetails: Record<string, ServiceInfo> = {
     color: BrandColors.blue,
     gradientColors: FuturisticGradients.residential,
     options: [
-      { id: "1", name: "Complimentary 95-Gallon Trash Cart", size: "Free trash roll cart for new customers", price: "Free", schedule: "Delivery within 5-7 days" },
-      { id: "2", name: "Complimentary 45-Gallon Recycle Cart", size: "Free recycle roll cart for new customers", price: "Free", schedule: "Delivery within 5-7 days" },
-      { id: "3", name: "Additional Trash Roll Cart", size: "Add another trash cart - $25", price: "$25", schedule: "Delivery within 5-7 days" },
-      { id: "4", name: "New 45-Gallon Recycle Cart", size: "Request a new 45-gallon recycle cart", price: "$42.50", schedule: "Delivery within 5-7 days" },
-      { id: "5", name: "New 65-Gallon Recycle Cart", size: "Request a new 65-gallon recycle cart - $52.30", price: "$52.30", schedule: "Delivery within 5-7 days" },
-      { id: "6", name: "New Trash Roll Cart", size: "Request a new trash cart - $60.55", price: "$60.55", schedule: "Delivery within 5-7 days" },
-      { id: "7", name: "Damaged Cart", size: "Repair or refurbished replacement (free)", price: "Free", schedule: "Response within 3-5 days" },
-      { id: "8", name: "Stolen Cart", size: "Refurbished replacement provided (free)", price: "Free", schedule: "Response within 3-5 days" },
-      { id: "9", name: "Return Cart", size: "Schedule cart return/pickup", price: "Free", schedule: "Pickup within 5-7 days" },
+      { id: "1", name: "Complimentary 45-Gallon Recycle Cart", size: "Free recycle roll cart for new customers", price: "Free", schedule: "Delivery within 5-7 days" },
+      { id: "2", name: "Additional Trash Roll Cart", size: "Add another trash cart - $25", price: "$25", schedule: "Delivery within 5-7 days" },
+      { id: "3", name: "New 45-Gallon Recycle Cart", size: "Request a new 45-gallon recycle cart", price: "$42.50", schedule: "Delivery within 5-7 days" },
+      { id: "4", name: "New 65-Gallon Recycle Cart", size: "Request a new 65-gallon recycle cart - $52.30", price: "$52.30", schedule: "Delivery within 5-7 days" },
+      { id: "5", name: "New Trash Roll Cart", size: "Request a new trash cart - $60.55", price: "$60.55", schedule: "Delivery within 5-7 days" },
+      { id: "6", name: "Damaged Cart", size: "Repair or refurbished replacement (free)", price: "Free", schedule: "Response within 3-5 days" },
+      { id: "7", name: "Stolen Cart", size: "Refurbished replacement provided (free)", price: "Free", schedule: "Response within 3-5 days" },
+      { id: "8", name: "Return Cart", size: "Schedule cart return/pickup", price: "Free", schedule: "Pickup within 5-7 days" },
     ],
     links: [
       { text: "View Annual Prorated Fee Assessments", url: "https://dekalbcountyga.gov/prorated-fees" },
@@ -285,15 +284,14 @@ const serviceDetails: Record<string, ServiceInfo> = {
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
     options: [
-      { id: "1", name: "Complimentary 95-Gallon Trash Cart", size: "One complimentary 95-gallon trash roll cart provided to each new residential customer", price: "Free" },
-      { id: "2", name: "Complimentary 45-Gallon Recycle Cart", size: "One complimentary 45-gallon recycle roll cart provided to each new residential customer", price: "Free" },
-      { id: "3", name: "Additional Trash Roll Cart", size: "Request an additional trash roll cart for your property", price: "$25" },
-      { id: "4", name: "New 45-Gallon Recycle Cart", size: "Request a new 45-gallon recycle cart", price: "$42.50" },
-      { id: "5", name: "New 65-Gallon Recycle Cart", size: "Request a new 65-gallon recycle cart", price: "$52.30" },
-      { id: "6", name: "New Trash Roll Cart", size: "Request a new trash roll cart", price: "$60.55" },
-      { id: "7", name: "Damaged Cart", size: "Repair or refurbished replacement provided at no charge", price: "Free" },
-      { id: "8", name: "Stolen Cart", size: "Refurbished replacement provided at no charge", price: "Free" },
-      { id: "9", name: "Return Cart", size: "Schedule a cart return or pickup", price: "Free" },
+      { id: "1", name: "Complimentary 45-Gallon Recycle Cart", size: "One complimentary 45-gallon recycle roll cart provided to each new commercial customer", price: "Free" },
+      { id: "2", name: "Additional Trash Roll Cart", size: "Request an additional trash roll cart for your property", price: "$25" },
+      { id: "3", name: "New 45-Gallon Recycle Cart", size: "Request a new 45-gallon recycle cart", price: "$42.50" },
+      { id: "4", name: "New 65-Gallon Recycle Cart", size: "Request a new 65-gallon recycle cart", price: "$52.30" },
+      { id: "5", name: "New Trash Roll Cart", size: "Request a new trash roll cart", price: "$60.55" },
+      { id: "6", name: "Damaged Cart", size: "Repair or refurbished replacement provided at no charge", price: "Free" },
+      { id: "7", name: "Stolen Cart", size: "Refurbished replacement provided at no charge", price: "Free" },
+      { id: "8", name: "Return Cart", size: "Schedule a cart return or pickup", price: "Free" },
     ],
     links: [
       { text: "View Annual Prorated Fee Assessments", url: "https://dekalbcountyga.gov" },
@@ -888,7 +886,7 @@ export default function ServiceDetailScreen() {
     setShowCelebration(true);
     setTimeout(() => setShowCelebration(false), 1200);
     
-    if (option.name === "Additional Trash Roll Cart") {
+    if (serviceId.includes("roll-cart")) {
       setShowAdditionalCartForm(true);
       setAdditionalCartStep(1);
     }
@@ -1025,26 +1023,26 @@ export default function ServiceDetailScreen() {
 
         <ServiceReminder color={service.color} />
 
-        {showAdditionalCartForm ? (
+        {showAdditionalCartForm && selectedOption ? (
           <Animated.View entering={FadeInDown.delay(100).duration(400)}>
-            <View style={[styles.additionalCartHeader, { backgroundColor: BrandColors.green + "15", borderColor: BrandColors.green }]}>
-              <View style={[styles.additionalCartIcon, { backgroundColor: BrandColors.green + "20" }]}>
-                <Feather name="arrow-up-circle" size={24} color={BrandColors.green} />
+            <View style={[styles.additionalCartHeader, { backgroundColor: service.color + "15", borderColor: service.color }]}>
+              <View style={[styles.additionalCartIcon, { backgroundColor: service.color + "20" }]}>
+                <Feather name="arrow-up-circle" size={24} color={service.color} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText type="h4" style={{ color: "#1a1a1a" }}>
-                  Additional Trash Roll Cart - $25
+                  {selectedOption.name} - {selectedOption.price}
                 </ThemedText>
                 <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.xs }}>
-                  Your additional trash roll cart will be delivered within <ThemedText type="small" style={{ fontWeight: "700" }}>1-10 business days</ThemedText> after payment is processed. Payment will be collected after you submit this request.
+                  Your request will be processed within <ThemedText type="small" style={{ fontWeight: "700" }}>1-10 business days</ThemedText> after payment is processed. Payment will be collected after you submit this request.
                 </ThemedText>
               </View>
             </View>
 
             {additionalCartStep === 1 ? (
               <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-                <ThemedText type="h3" style={[styles.sectionTitle, { color: BrandColors.green }]}>
-                  Why do you need an additional cart?
+                <ThemedText type="h3" style={[styles.sectionTitle, { color: service.color }]}>
+                  Why do you need this cart service?
                 </ThemedText>
                 <ThemedText type="small" style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
                   Please select the option that best describes your situation
@@ -1060,12 +1058,12 @@ export default function ServiceDetailScreen() {
                     }}
                     style={[
                       styles.reasonOption,
-                      additionalCartReason === reason && { borderColor: BrandColors.green, backgroundColor: BrandColors.green + "10" }
+                      additionalCartReason === reason && { borderColor: service.color, backgroundColor: service.color + "10" }
                     ]}
                   >
                     <ThemedText type="body" style={{ color: "#1a1a1a" }}>{reason}</ThemedText>
                     {additionalCartReason === reason ? (
-                      <Feather name="check-circle" size={20} color={BrandColors.green} />
+                      <Feather name="check-circle" size={20} color={service.color} />
                     ) : null}
                   </Pressable>
                 ))}
@@ -1073,7 +1071,7 @@ export default function ServiceDetailScreen() {
             ) : additionalCartStep === 2 ? (
               <Animated.View entering={FadeInDown.delay(100).duration(400)}>
                 <ThemedText type="h4" style={styles.formLabel}>
-                  <Feather name="map-pin" size={16} color={BrandColors.green} /> Service Location
+                  <Feather name="map-pin" size={16} color={service.color} /> Service Location
                 </ThemedText>
                 <Pressable
                   onPress={() => setShowLocationDropdown(!showLocationDropdown)}
@@ -1097,10 +1095,10 @@ export default function ServiceDetailScreen() {
                         }}
                         style={[
                           styles.dropdownItem,
-                          additionalCartLocation === loc.label && { backgroundColor: BrandColors.green + "15" }
+                          additionalCartLocation === loc.label && { backgroundColor: service.color + "15" }
                         ]}
                       >
-                        <Feather name="map-pin" size={16} color={BrandColors.green} />
+                        <Feather name="map-pin" size={16} color={service.color} />
                         <ThemedText type="body" style={{ marginLeft: Spacing.sm, flex: 1 }}>{loc.label}</ThemedText>
                         <ThemedText type="caption" style={{ color: theme.textSecondary }}>({loc.type})</ThemedText>
                       </Pressable>
@@ -1127,7 +1125,7 @@ export default function ServiceDetailScreen() {
                   style={{ marginTop: Spacing.lg }}
                 >
                   <LinearGradient
-                    colors={[BrandColors.green, "#1B5E20"]}
+                    colors={service.gradientColors || [service.color, service.color]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.submitButton}
@@ -1196,7 +1194,7 @@ export default function ServiceDetailScreen() {
                   style={{ marginTop: Spacing.xl }}
                 >
                   <LinearGradient
-                    colors={[BrandColors.green, "#1B5E20"]}
+                    colors={service.gradientColors || [service.color, service.color]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.submitButton}
