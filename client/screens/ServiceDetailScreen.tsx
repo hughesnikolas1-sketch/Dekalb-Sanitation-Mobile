@@ -346,14 +346,74 @@ const serviceDetails: Record<string, ServiceInfo> = {
   },
   "res-bulk-special": {
     title: "Bulk & Special Collection",
-    description: "Schedule pickup for bulk items like furniture, appliances, and other large items.",
+    description: "Please confirm your details and provide any additional information needed.",
     icon: "package",
     color: BrandColors.blue,
     gradientColors: FuturisticGradients.residential,
-    options: [
-      { id: "1", name: "Bulk Item Pickup", price: "Contact for pricing", schedule: "By appointment" },
-      { id: "2", name: "Special Collection", price: "Contact for pricing", schedule: "By appointment" },
+    isBulkSpecialForm: true,
+    options: [],
+    contentSections: [
+      {
+        title: "Collection Process",
+        content: [
+          "Once items have been placed curbside, residents must complete a bulky item or special collection request.",
+          "Bulky items are included in residents' annual sanitation assessment fees, but special collection items incur a prepaid special collection fee (see pricing below).",
+          "After a request has been submitted, an assessment will be completed, and residents will be provided with further instructions for completing the process.",
+          "For all requests, a copy of the completed special collection form (SCAF) will be left at the resident's home.",
+        ],
+      },
     ],
+    bulkItems: {
+      title: "Bulk Items (Included in Annual Fee)",
+      items: [
+        "Toilets",
+        "Furniture",
+        "Mattresses & box springs",
+        "Household appliances (must be empty and all doors removed)",
+      ],
+    },
+    specialCollectionItems: {
+      title: "Special Collection Items (Prepaid Fee Required)",
+      items: [
+        "Commingled piles",
+        "Landlord evictions",
+        "Excess garbage bags",
+        "Wood, metal fences, decking",
+        "Improperly prepared yard trimmings",
+        "Logs/limbs too large or greater than 3\" diameter",
+        "Large volumes of garbage or yard trimmings",
+        "Tree limbs cut by hired/professional contractors",
+      ],
+    },
+    specialCollectionPricing: [
+      { item: "General special collection pile", price: "$100 min / $225 per truckload" },
+      { item: "Tree parts greater than 3\" diameter", price: "$200 min / $450 per truckload" },
+      { item: "Commingled piles (tree parts & garbage)", price: "$200 min / $450 per truckload" },
+    ],
+    formFields: {
+      itemsReady: { question: "Are all items at the curb ready for collection?", type: "yesno", required: true },
+      itemCategory: { 
+        question: "Choose Item Category", 
+        type: "select", 
+        required: true,
+        options: [
+          "Bulk Item - Toilets",
+          "Bulk Item - Furniture",
+          "Bulk Item - Mattresses & box springs",
+          "Bulk Item - Household appliances",
+          "Special Collection - Commingled piles",
+          "Special Collection - Landlord evictions",
+          "Special Collection - Excess garbage bags",
+          "Special Collection - Wood/metal fences/decking",
+          "Special Collection - Improperly prepared yard trimmings",
+          "Special Collection - Large logs/limbs (>3\" diameter)",
+          "Special Collection - Large volumes of garbage/yard trimmings",
+          "Special Collection - Tree limbs (professional contractor)",
+        ],
+      },
+      details: { question: "Details", type: "text", placeholder: "Please describe the issue or request in detail...", required: false },
+      photo: { question: "Photo of Items at Curb", type: "photo", required: true, note: "Take a photo showing all items placed at the curb for collection" },
+    },
   },
   "res-new-service": {
     title: "Establish New Residential Garbage & Recycling Service",
@@ -655,14 +715,75 @@ const serviceDetails: Record<string, ServiceInfo> = {
     ],
   },
   "com-special-collection": {
-    title: "Commercial Special Collection",
-    description: "Schedule special commercial pickup for items outside your regular collection schedule.",
+    title: "Commercial Bulk & Special Collection",
+    description: "Please confirm your details and provide any additional information needed.",
     icon: "star",
     color: BrandColors.green,
     gradientColors: FuturisticGradients.commercial,
-    options: [
-      { id: "1", name: "Special Pickup Request", price: "Contact for quote", schedule: "By appointment" },
+    isBulkSpecialForm: true,
+    options: [],
+    contentSections: [
+      {
+        title: "Collection Process",
+        content: [
+          "Once items have been placed curbside, businesses must complete a bulky item or special collection request.",
+          "Bulky items are included in the business's annual sanitation assessment fees, but special collection items incur a prepaid special collection fee (see pricing below).",
+          "After a request has been submitted, an assessment will be completed, and businesses will be provided with further instructions for completing the process.",
+          "For all requests, a copy of the completed special collection form (SCAF) will be left at the business location.",
+        ],
+      },
     ],
+    bulkItems: {
+      title: "Bulk Items (Included in Annual Fee)",
+      items: [
+        "Toilets",
+        "Furniture",
+        "Mattresses & box springs",
+        "Household appliances (must be empty and all doors removed)",
+      ],
+    },
+    specialCollectionItems: {
+      title: "Special Collection Items (Prepaid Fee Required)",
+      items: [
+        "Commingled piles",
+        "Landlord evictions",
+        "Excess garbage bags",
+        "Wood, metal fences, decking",
+        "Improperly prepared yard trimmings",
+        "Logs/limbs too large or greater than 3\" diameter",
+        "Large volumes of garbage or yard trimmings",
+        "Tree limbs cut by hired/professional contractors",
+      ],
+    },
+    specialCollectionPricing: [
+      { item: "General special collection pile", price: "$100 min / $225 per truckload" },
+      { item: "Tree parts greater than 3\" diameter", price: "$200 min / $450 per truckload" },
+      { item: "Commingled piles (tree parts & garbage)", price: "$200 min / $450 per truckload" },
+    ],
+    formFields: {
+      itemsReady: { question: "Are all items at the curb ready for collection?", type: "yesno", required: true },
+      itemCategory: { 
+        question: "Choose Item Category", 
+        type: "select", 
+        required: true,
+        options: [
+          "Bulk Item - Toilets",
+          "Bulk Item - Furniture",
+          "Bulk Item - Mattresses & box springs",
+          "Bulk Item - Household appliances",
+          "Special Collection - Commingled piles",
+          "Special Collection - Landlord evictions",
+          "Special Collection - Excess garbage bags",
+          "Special Collection - Wood/metal fences/decking",
+          "Special Collection - Improperly prepared yard trimmings",
+          "Special Collection - Large logs/limbs (>3\" diameter)",
+          "Special Collection - Large volumes of garbage/yard trimmings",
+          "Special Collection - Tree limbs (professional contractor)",
+        ],
+      },
+      details: { question: "Details", type: "text", placeholder: "Please describe the issue or request in detail...", required: false },
+      photo: { question: "Photo of Items at Curb", type: "photo", required: true, note: "Take a photo showing all items placed at the curb for collection" },
+    },
   },
   "com-hand-pick": {
     title: "Commercial Hand-Pick Up",
@@ -1053,6 +1174,15 @@ export default function ServiceDetailScreen() {
   const [showPropertyTypeDropdown, setShowPropertyTypeDropdown] = useState(false);
   const [newServiceStep, setNewServiceStep] = useState(1);
 
+  // Bulk & Special Collection Form State
+  const [bulkItemsReady, setBulkItemsReady] = useState<string | null>(null);
+  const [bulkItemCategory, setBulkItemCategory] = useState("");
+  const [bulkDetails, setBulkDetails] = useState("");
+  const [bulkPhoto, setBulkPhoto] = useState<string | null>(null);
+  const [bulkServiceLocation, setBulkServiceLocation] = useState("");
+  const [showBulkCategoryDropdown, setShowBulkCategoryDropdown] = useState(false);
+  const [showBulkLocationDropdown, setShowBulkLocationDropdown] = useState(false);
+
   interface SavedAddress {
     id: string;
     street: string;
@@ -1395,6 +1525,110 @@ export default function ServiceDetailScreen() {
       showAlert(
         "Submission Error",
         "We couldn't submit your application. Please try again or contact us at (404) 294-2900.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBulkTakePhoto = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setBulkPhoto(result.assets[0].uri);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  const handleBulkChooseFile = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setBulkPhoto(result.assets[0].uri);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  const handleBulkSpecialSubmit = async () => {
+    if (bulkItemsReady === null) {
+      showAlert("Required Field", "Please indicate if all items are at the curb ready for collection.");
+      return;
+    }
+    if (!bulkItemCategory) {
+      showAlert("Required Field", "Please select an item category.");
+      return;
+    }
+    if (!bulkServiceLocation) {
+      showAlert("Required Field", "Please select a service location.");
+      return;
+    }
+    if (!bulkPhoto) {
+      showAlert("Photo Required", "Please upload a photo of items at the curb. This is required for all bulk and special collection requests.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    try {
+      const isSpecialCollection = bulkItemCategory.includes("Special Collection");
+      const formData = {
+        serviceId,
+        serviceTitle: service.title,
+        formAnswers: [
+          { question: "Are all items at the curb ready for collection?", answer: bulkItemsReady },
+          { question: "Item Category", answer: bulkItemCategory },
+          { question: "Service Location", answer: bulkServiceLocation },
+          { question: "Details", answer: bulkDetails || "None provided" },
+          { question: "Photo", answer: "Photo attached" },
+        ],
+        submittedAt: new Date().toISOString(),
+      };
+
+      const response = await apiRequest("POST", "/api/service-requests", {
+        serviceType: serviceId.startsWith("com-") ? "commercial" : "residential",
+        serviceId,
+        formData,
+        amount: isSpecialCollection ? null : null,
+      });
+
+      const result = await response.json();
+
+      if (Platform.OS === 'web') {
+        window.alert(
+          `Request Submitted Successfully!\n\nYour ${isSpecialCollection ? "special collection" : "bulk item"} request has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nAn assessment will be completed, and you will be provided with further instructions for completing the process. A copy of the completed special collection form (SCAF) will be left at your ${serviceId.startsWith("com-") ? "business location" : "home"}.\n\n${isSpecialCollection ? "Note: Special collection items require prepaid fees. You will receive pricing details after assessment." : "Bulk items are included in your annual sanitation assessment fee."}`
+        );
+      } else {
+        Alert.alert(
+          "Request Submitted Successfully!",
+          `Your ${isSpecialCollection ? "special collection" : "bulk item"} request has been received.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nAn assessment will be completed, and you will be provided with further instructions.\n\n${isSpecialCollection ? "Note: Special collection items require prepaid fees." : "Bulk items are included in your annual sanitation assessment fee."}`,
+          [
+            { text: "OK", style: "default" },
+            { text: "View My Requests", onPress: () => navigation.navigate("MyRequests") }
+          ]
+        );
+      }
+
+      // Reset form
+      setBulkItemsReady(null);
+      setBulkItemCategory("");
+      setBulkDetails("");
+      setBulkPhoto(null);
+      setBulkServiceLocation("");
+    } catch (error) {
+      console.error("Submit error:", error);
+      showAlert(
+        "Submission Error",
+        "We couldn't submit your request. Please try again or contact us at (404) 294-2900.",
         [{ text: "OK" }]
       );
     } finally {
@@ -2615,6 +2849,318 @@ export default function ServiceDetailScreen() {
                 </View>
               </Animated.View>
             ) : null}
+
+            {/* Bulk & Special Collection Form */}
+            {service.isBulkSpecialForm ? (
+              <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+                {/* Bulk Items Section */}
+                {service.bulkItems ? (
+                  <View style={[styles.contentSection, { backgroundColor: "#E8F5E9", borderColor: BrandColors.green + "40", marginBottom: Spacing.md }]}>
+                    <View style={styles.contentSectionHeader}>
+                      <View style={[styles.contentSectionIcon, { backgroundColor: BrandColors.green }]}>
+                        <Feather name="check-circle" size={18} color="#FFFFFF" />
+                      </View>
+                      <ThemedText type="h4" style={{ color: BrandColors.green, flex: 1 }}>
+                        {service.bulkItems.title}
+                      </ThemedText>
+                    </View>
+                    {service.bulkItems.items.map((item: string, idx: number) => (
+                      <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: Spacing.xs }}>
+                        <ThemedText type="body" style={{ color: BrandColors.green, marginRight: Spacing.sm }}>•</ThemedText>
+                        <ThemedText type="body" style={{ flex: 1 }}>{item}</ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+
+                {/* Special Collection Items Section */}
+                {service.specialCollectionItems ? (
+                  <View style={[styles.contentSection, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" + "40", marginBottom: Spacing.md }]}>
+                    <View style={styles.contentSectionHeader}>
+                      <View style={[styles.contentSectionIcon, { backgroundColor: "#FF9800" }]}>
+                        <Feather name="alert-triangle" size={18} color="#FFFFFF" />
+                      </View>
+                      <ThemedText type="h4" style={{ color: "#E65100", flex: 1 }}>
+                        {service.specialCollectionItems.title}
+                      </ThemedText>
+                    </View>
+                    {service.specialCollectionItems.items.map((item: string, idx: number) => (
+                      <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: Spacing.xs }}>
+                        <ThemedText type="body" style={{ color: "#FF9800", marginRight: Spacing.sm }}>•</ThemedText>
+                        <ThemedText type="body" style={{ flex: 1 }}>{item}</ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+
+                {/* Special Collection Pricing */}
+                {service.specialCollectionPricing ? (
+                  <View style={[styles.contentSection, { backgroundColor: theme.surface, borderColor: service.color + "40", marginBottom: Spacing.lg }]}>
+                    <View style={styles.contentSectionHeader}>
+                      <View style={[styles.contentSectionIcon, { backgroundColor: service.color }]}>
+                        <Feather name="dollar-sign" size={18} color="#FFFFFF" />
+                      </View>
+                      <ThemedText type="h4" style={{ color: service.color, flex: 1 }}>
+                        Special Collection Pricing
+                      </ThemedText>
+                    </View>
+                    {service.specialCollectionPricing.map((pricing: { item: string; price: string }, idx: number) => (
+                      <View key={idx} style={[styles.pricingRow, { borderBottomColor: theme.border }]}>
+                        <ThemedText type="body" style={{ flex: 1 }}>{pricing.item}</ThemedText>
+                        <ThemedText type="body" style={{ fontWeight: "700", color: service.color }}>{pricing.price}</ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+
+                {/* Request Form */}
+                <View style={[styles.newServiceFormContainer, { backgroundColor: theme.surface, borderColor: service.color + "40" }]}>
+                  <View style={[styles.formHeader, { backgroundColor: service.color + "15" }]}>
+                    <Feather name="clipboard" size={24} color={service.color} />
+                    <ThemedText type="h3" style={{ color: service.color, marginLeft: Spacing.sm }}>
+                      Submit Request
+                    </ThemedText>
+                  </View>
+
+                  <View style={styles.formBody}>
+                    {/* Service Location */}
+                    <ThemedText type="small" style={styles.formLabel}>
+                      <Feather name="map-pin" size={14} color={service.color} /> Service Location <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    {savedAddresses && savedAddresses.length > 0 ? (
+                      <>
+                        <Pressable
+                          onPress={() => setShowBulkLocationDropdown(!showBulkLocationDropdown)}
+                          style={[styles.locationDropdown, { borderColor: bulkServiceLocation ? service.color : theme.border }]}
+                        >
+                          <ThemedText type="body" style={{ color: bulkServiceLocation ? theme.text : theme.textSecondary, flex: 1 }}>
+                            {bulkServiceLocation || "Select your address..."}
+                          </ThemedText>
+                          <Feather name={showBulkLocationDropdown ? "chevron-up" : "chevron-down"} size={20} color={theme.textSecondary} />
+                        </Pressable>
+
+                        {showBulkLocationDropdown ? (
+                          <View style={styles.dropdownList}>
+                            {savedAddresses.map((addr) => (
+                              <Pressable
+                                key={addr.id}
+                                onPress={() => {
+                                  const fullAddr = `${addr.street}${addr.aptSuite ? `, ${addr.aptSuite}` : ""}, ${addr.city}, GA ${addr.zipCode}`;
+                                  setBulkServiceLocation(fullAddr);
+                                  setShowBulkLocationDropdown(false);
+                                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                }}
+                                style={[
+                                  styles.dropdownItem,
+                                  bulkServiceLocation?.includes(addr.street) && { backgroundColor: service.color + "15" }
+                                ]}
+                              >
+                                <Feather name="map-pin" size={16} color={service.color} />
+                                <View style={{ marginLeft: Spacing.sm, flex: 1 }}>
+                                  <ThemedText type="body" style={{ fontWeight: "600" }}>
+                                    {addr.street}{addr.aptSuite ? `, ${addr.aptSuite}` : ""}
+                                  </ThemedText>
+                                  <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                                    {addr.city}, GA {addr.zipCode}
+                                  </ThemedText>
+                                </View>
+                                {addr.isDefault ? (
+                                  <View style={[styles.defaultBadge, { backgroundColor: service.color }]}>
+                                    <ThemedText type="caption" style={{ color: "#FFF", fontWeight: "600" }}>Default</ThemedText>
+                                  </View>
+                                ) : null}
+                              </Pressable>
+                            ))}
+                          </View>
+                        ) : null}
+
+                        <Pressable 
+                          onPress={() => navigation.navigate("MyAddresses")}
+                          style={{ flexDirection: "row", alignItems: "center", marginTop: Spacing.sm }}
+                        >
+                          <Feather name="settings" size={14} color={service.color} />
+                          <ThemedText type="small" style={{ color: service.color, marginLeft: Spacing.xs }}>
+                            Manage my addresses
+                          </ThemedText>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <View style={[styles.infoBox, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
+                        <Feather name="alert-circle" size={20} color="#FF9800" />
+                        <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                          <ThemedText type="body" style={{ fontWeight: "600", color: "#E65100" }}>No Saved Addresses</ThemedText>
+                          <ThemedText type="small" style={{ color: "#795548", marginTop: Spacing.xs }}>
+                            Please add an address in "My Addresses" from the menu first.
+                          </ThemedText>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Items Ready Question */}
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                      Are all items at the curb ready for collection? <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <View style={{ flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm }}>
+                      <Pressable
+                        onPress={() => {
+                          setBulkItemsReady("Yes");
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.yesNoButton,
+                          bulkItemsReady === "Yes" && { borderColor: BrandColors.green, backgroundColor: BrandColors.green + "10" }
+                        ]}
+                      >
+                        <View style={[styles.radioCircle, bulkItemsReady === "Yes" && { borderColor: BrandColors.green }]}>
+                          {bulkItemsReady === "Yes" ? <View style={[styles.radioFill, { backgroundColor: BrandColors.green }]} /> : null}
+                        </View>
+                        <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>Yes</ThemedText>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          setBulkItemsReady("No");
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }}
+                        style={[
+                          styles.yesNoButton,
+                          bulkItemsReady === "No" && { borderColor: "#F44336", backgroundColor: "#F44336" + "10" }
+                        ]}
+                      >
+                        <View style={[styles.radioCircle, bulkItemsReady === "No" && { borderColor: "#F44336" }]}>
+                          {bulkItemsReady === "No" ? <View style={[styles.radioFill, { backgroundColor: "#F44336" }]} /> : null}
+                        </View>
+                        <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>No</ThemedText>
+                      </Pressable>
+                    </View>
+
+                    {/* Item Category */}
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                      Choose Item Category <ThemedText type="small" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <Pressable
+                      onPress={() => setShowBulkCategoryDropdown(!showBulkCategoryDropdown)}
+                      style={[styles.locationDropdown, { borderColor: bulkItemCategory ? service.color : theme.border }]}
+                    >
+                      <ThemedText type="body" style={{ color: bulkItemCategory ? theme.text : theme.textSecondary, flex: 1 }}>
+                        {bulkItemCategory || "Select a category..."}
+                      </ThemedText>
+                      <Feather name={showBulkCategoryDropdown ? "chevron-up" : "chevron-down"} size={20} color={theme.textSecondary} />
+                    </Pressable>
+
+                    {showBulkCategoryDropdown ? (
+                      <View style={styles.dropdownList}>
+                        {service.formFields?.itemCategory?.options?.map((category: string, idx: number) => (
+                          <Pressable
+                            key={idx}
+                            onPress={() => {
+                              setBulkItemCategory(category);
+                              setShowBulkCategoryDropdown(false);
+                              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                            }}
+                            style={[
+                              styles.dropdownItem,
+                              bulkItemCategory === category && { backgroundColor: service.color + "15" }
+                            ]}
+                          >
+                            <Feather 
+                              name={category.includes("Bulk") ? "check-circle" : "alert-triangle"} 
+                              size={16} 
+                              color={category.includes("Bulk") ? BrandColors.green : "#FF9800"} 
+                            />
+                            <ThemedText type="body" style={{ marginLeft: Spacing.sm, flex: 1 }}>{category}</ThemedText>
+                          </Pressable>
+                        ))}
+                      </View>
+                    ) : null}
+
+                    {/* Details */}
+                    <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                      Details
+                    </ThemedText>
+                    <TextInput
+                      style={[styles.descriptionInput, { backgroundColor: theme.background, borderColor: theme.border, color: theme.text }]}
+                      placeholder="Please describe the issue or request in detail..."
+                      placeholderTextColor={theme.textSecondary}
+                      value={bulkDetails}
+                      onChangeText={setBulkDetails}
+                      multiline
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                    />
+
+                    {/* Photo Required */}
+                    <View style={[styles.photoRequiredBox, { backgroundColor: "#E3F2FD", borderColor: BrandColors.blue, marginTop: Spacing.lg }]}>
+                      <Feather name="camera" size={24} color={BrandColors.blue} />
+                      <View style={{ flex: 1, marginLeft: Spacing.md }}>
+                        <ThemedText type="h4" style={{ color: BrandColors.blue }}>Photo Required</ThemedText>
+                        <ThemedText type="small" style={{ color: "#1565C0", marginTop: Spacing.xs }}>
+                          Please upload a photo of items at the curb. This is required for all bulk and special collection requests.
+                        </ThemedText>
+                      </View>
+                    </View>
+
+                    <ThemedText type="body" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
+                      Photo of Items at Curb <ThemedText type="body" style={{ color: "#F44336" }}>*</ThemedText>
+                    </ThemedText>
+                    <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.md }}>
+                      Take a photo showing all items placed at the curb for collection
+                    </ThemedText>
+
+                    {bulkPhoto ? (
+                      <View style={styles.photoPreview}>
+                        <Image source={{ uri: bulkPhoto }} style={styles.previewImage} />
+                        <Pressable
+                          onPress={() => setBulkPhoto(null)}
+                          style={styles.removePhotoButton}
+                        >
+                          <Feather name="x" size={18} color="#FFFFFF" />
+                        </Pressable>
+                      </View>
+                    ) : (
+                      <View style={styles.photoButtons}>
+                        <Pressable onPress={handleBulkTakePhoto} style={styles.photoButton}>
+                          <Feather name="camera" size={20} color={theme.textSecondary} />
+                          <ThemedText type="body" style={{ color: theme.text, marginLeft: Spacing.sm }}>Take Photo</ThemedText>
+                        </Pressable>
+                        <Pressable onPress={handleBulkChooseFile} style={styles.photoButton}>
+                          <Feather name="upload" size={20} color={theme.textSecondary} />
+                          <ThemedText type="body" style={{ color: theme.text, marginLeft: Spacing.sm }}>Choose File</ThemedText>
+                        </Pressable>
+                      </View>
+                    )}
+
+                    {!bulkPhoto ? (
+                      <ThemedText type="small" style={{ color: "#F44336", marginTop: Spacing.sm }}>
+                        A photo is required to submit this request
+                      </ThemedText>
+                    ) : null}
+
+                    {/* Submit Button */}
+                    <Pressable
+                      onPress={handleBulkSpecialSubmit}
+                      disabled={isSubmitting}
+                      style={{ marginTop: Spacing.xl }}
+                    >
+                      <LinearGradient
+                        colors={service.gradientColors as [string, string, ...string[]]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.submitButton}
+                      >
+                        {isSubmitting ? (
+                          <ActivityIndicator color="#FFFFFF" size="small" />
+                        ) : (
+                          <>
+                            <Feather name="send" size={20} color="#FFF" />
+                            <ThemedText type="h4" style={[styles.submitText, { marginLeft: Spacing.sm }]}>Submit Request</ThemedText>
+                          </>
+                        )}
+                      </LinearGradient>
+                    </Pressable>
+                  </View>
+                </View>
+              </Animated.View>
+            ) : null}
           </>
         ) : null}
 
@@ -3452,5 +3998,36 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.xs,
+  },
+  pricingRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  yesNoButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFFFFF",
+  },
+  radioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#E0E0E0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioFill: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
 });

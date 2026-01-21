@@ -168,8 +168,8 @@ const commercialServices: ServiceItem[] = [
   },
   {
     id: "com-special-collection",
-    title: "Commercial Special Collection",
-    description: "Schedule special commercial pickup",
+    title: "Commercial Bulk & Special Collection",
+    description: "Bulk items and special collection requests",
     icon: "star",
     category: "commercial",
   },
