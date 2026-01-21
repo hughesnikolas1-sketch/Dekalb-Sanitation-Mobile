@@ -188,6 +188,31 @@ const CURB_TIME_OPTIONS = [
   "The night before collection day",
 ];
 
+const BOX_COUNT_OPTIONS = [
+  "1-5 boxes",
+  "6-10 boxes",
+  "11-15 boxes",
+  "16-20 boxes",
+  "More than 20 boxes",
+];
+
+const DEBRIS_TYPE_OPTIONS = [
+  "Grass clippings",
+  "Leaves",
+  "Tree branches/limbs",
+  "Shrub trimmings",
+  "Mixed yard waste",
+  "Other",
+];
+
+const BAG_COUNT_OPTIONS = [
+  "1-5 bags",
+  "6-10 bags",
+  "11-15 bags",
+  "16-20 bags",
+  "More than 20 bags",
+];
+
 const serviceDetails: Record<string, ServiceInfo> = {
   "res-missed-trash": {
     title: "Missed Trash Pickup",
@@ -214,6 +239,12 @@ const serviceDetails: Record<string, ServiceInfo> = {
     options: [
       { id: "1", name: "Report Missed Recycling", price: "Free", schedule: "Response within 48 hours" },
     ],
+    formQuestions: [
+      { question: "Is there any glass in your roll cart?", type: "yesno" },
+      { question: "Is everything inside the cart considered recyclable?", type: "select", options: ["Yes", "No", "Not Sure"] },
+      { question: "How many boxes are at the curb?", type: "select", options: BOX_COUNT_OPTIONS },
+      { question: "What time was the roll cart placed at the curb?", type: "select", options: CURB_TIME_OPTIONS },
+    ],
   },
   "res-missed-yard-waste": {
     title: "Missed Yard Waste",
@@ -223,6 +254,14 @@ const serviceDetails: Record<string, ServiceInfo> = {
     gradientColors: FuturisticGradients.residential,
     options: [
       { id: "1", name: "Report Missed Yard Waste", price: "Free", schedule: "Response within 48 hours" },
+    ],
+    formQuestions: [
+      { question: "What type of debris is it?", type: "select", options: DEBRIS_TYPE_OPTIONS },
+      { question: "How many bags are at the curb currently?", type: "select", options: BAG_COUNT_OPTIONS },
+      { question: "Are there any dirt in the bags?", type: "yesno" },
+      { question: "Are the bags biodegradable?", type: "select", options: ["Yes", "No", "N/A (loose pile)"] },
+      { question: "Are the tree branches and limbs cut down to 4 feet or less?", type: "select", options: ["Yes", "No", "N/A (no branches)"] },
+      { question: "What time were items placed at the curb?", type: "select", options: CURB_TIME_OPTIONS },
     ],
   },
   "res-roll-cart": {
@@ -315,6 +354,12 @@ const serviceDetails: Record<string, ServiceInfo> = {
     options: [
       { id: "1", name: "Report Missed Recycling", price: "Free", schedule: "Response within 48 hours" },
     ],
+    formQuestions: [
+      { question: "Is there any glass in your roll cart?", type: "yesno" },
+      { question: "Is everything inside the cart considered recyclable?", type: "select", options: ["Yes", "No", "Not Sure"] },
+      { question: "How many boxes are at the curb?", type: "select", options: BOX_COUNT_OPTIONS },
+      { question: "What time was the roll cart placed at the curb?", type: "select", options: CURB_TIME_OPTIONS },
+    ],
   },
   "com-missed-yard-waste": {
     title: "Missed Yard Waste",
@@ -324,6 +369,14 @@ const serviceDetails: Record<string, ServiceInfo> = {
     gradientColors: FuturisticGradients.commercial,
     options: [
       { id: "1", name: "Report Missed Yard Waste", price: "Free", schedule: "Response within 48 hours" },
+    ],
+    formQuestions: [
+      { question: "What type of debris is it?", type: "select", options: DEBRIS_TYPE_OPTIONS },
+      { question: "How many bags are at the curb currently?", type: "select", options: BAG_COUNT_OPTIONS },
+      { question: "Are there any dirt in the bags?", type: "yesno" },
+      { question: "Are the bags biodegradable?", type: "select", options: ["Yes", "No", "N/A (loose pile)"] },
+      { question: "Are the tree branches and limbs cut down to 4 feet or less?", type: "select", options: ["Yes", "No", "N/A (no branches)"] },
+      { question: "What time were items placed at the curb?", type: "select", options: CURB_TIME_OPTIONS },
     ],
   },
   "com-roll-cart": {
