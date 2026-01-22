@@ -1,9 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "node:http";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, or, isNull } from "drizzle-orm";
 import crypto from "crypto";
 import { db } from "./db";
-import { users, serviceRequests, userAddresses, transactions, feedback, insertUserSchema, loginSchema, insertServiceRequestSchema } from "@shared/schema";
+import { users, serviceRequests, userAddresses, transactions, feedback, chatConversations, chatMessages, insertUserSchema, loginSchema, insertServiceRequestSchema } from "@shared/schema";
 import { stripeService } from "./stripeService";
 import { stripeStorage } from "./stripeStorage";
 import { getStripePublishableKey } from "./stripeClient";
@@ -395,6 +395,251 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Submit feedback error:", error);
       res.status(500).json({ message: "Failed to submit feedback" });
+    }
+  });
+
+  // ===== CHAT API ENDPOINTS =====
+
+  // Create or get existing conversation for a visitor
+  app.post("/api/chat/conversations", async (req, res) => {
+    try {
+      const { visitorId, userId, visitorName, visitorEmail } = req.body;
+      
+      if (!visitorId) {
+        return res.status(400).json({ message: "Visitor ID is required" });
+      }
+
+      // Check for existing active conversation
+      const [existing] = await db.select()
+        .from(chatConversations)
+        .where(and(
+          eq(chatConversations.visitorId, visitorId),
+          eq(chatConversations.status, "active")
+        ));
+
+      if (existing) {
+        return res.json({ conversation: existing });
+      }
+
+      // Create new conversation
+      const [conversation] = await db.insert(chatConversations).values({
+        visitorId,
+        userId: userId || null,
+        visitorName: visitorName || null,
+        visitorEmail: visitorEmail || null,
+        status: "active",
+      }).returning();
+
+      res.json({ conversation });
+    } catch (error) {
+      console.error("Create conversation error:", error);
+      res.status(500).json({ message: "Failed to create conversation" });
+    }
+  });
+
+  // Get messages for a conversation
+  app.get("/api/chat/conversations/:conversationId/messages", async (req, res) => {
+    try {
+      const { conversationId } = req.params;
+      
+      const messages = await db.select()
+        .from(chatMessages)
+        .where(eq(chatMessages.conversationId, conversationId))
+        .orderBy(chatMessages.createdAt);
+
+      res.json({ messages });
+    } catch (error) {
+      console.error("Get messages error:", error);
+      res.status(500).json({ message: "Failed to get messages" });
+    }
+  });
+
+  // Send a message
+  app.post("/api/chat/messages", async (req, res) => {
+    try {
+      const { conversationId, senderId, senderType, message } = req.body;
+
+      if (!conversationId || !senderId || !senderType || !message) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const [newMessage] = await db.insert(chatMessages).values({
+        conversationId,
+        senderId,
+        senderType,
+        message,
+      }).returning();
+
+      // Update conversation timestamp
+      await db.update(chatConversations)
+        .set({ updatedAt: new Date() })
+        .where(eq(chatConversations.id, conversationId));
+
+      res.json({ message: newMessage });
+    } catch (error) {
+      console.error("Send message error:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // ===== ADMIN API ENDPOINTS =====
+
+  // Get all conversations for admin
+  app.get("/api/admin/conversations", async (req, res) => {
+    try {
+      const conversations = await db.select()
+        .from(chatConversations)
+        .orderBy(desc(chatConversations.updatedAt));
+
+      // Get last message for each conversation
+      const conversationsWithLastMessage = await Promise.all(
+        conversations.map(async (conv) => {
+          const [lastMessage] = await db.select()
+            .from(chatMessages)
+            .where(eq(chatMessages.conversationId, conv.id))
+            .orderBy(desc(chatMessages.createdAt))
+            .limit(1);
+          
+          const unreadCount = await db.select()
+            .from(chatMessages)
+            .where(and(
+              eq(chatMessages.conversationId, conv.id),
+              eq(chatMessages.senderType, "user"),
+              eq(chatMessages.isRead, false)
+            ));
+
+          return {
+            ...conv,
+            lastMessage,
+            unreadCount: unreadCount.length,
+          };
+        })
+      );
+
+      res.json({ conversations: conversationsWithLastMessage });
+    } catch (error) {
+      console.error("Get admin conversations error:", error);
+      res.status(500).json({ message: "Failed to get conversations" });
+    }
+  });
+
+  // Mark messages as read
+  app.post("/api/admin/conversations/:conversationId/read", async (req, res) => {
+    try {
+      const { conversationId } = req.params;
+
+      await db.update(chatMessages)
+        .set({ isRead: true })
+        .where(and(
+          eq(chatMessages.conversationId, conversationId),
+          eq(chatMessages.senderType, "user")
+        ));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark read error:", error);
+      res.status(500).json({ message: "Failed to mark messages as read" });
+    }
+  });
+
+  // Get all service requests for admin
+  app.get("/api/admin/requests", async (req, res) => {
+    try {
+      const { status } = req.query;
+      
+      let requests;
+      if (status && status !== "all") {
+        requests = await db.select()
+          .from(serviceRequests)
+          .where(eq(serviceRequests.status, status as string))
+          .orderBy(desc(serviceRequests.createdAt));
+      } else {
+        requests = await db.select()
+          .from(serviceRequests)
+          .orderBy(desc(serviceRequests.createdAt));
+      }
+
+      // Get user info for each request
+      const requestsWithUser = await Promise.all(
+        requests.map(async (request) => {
+          let user = null;
+          if (request.userId) {
+            const [userRecord] = await db.select({
+              firstName: users.firstName,
+              lastName: users.lastName,
+              email: users.email,
+              phone: users.phone,
+            })
+            .from(users)
+            .where(eq(users.id, request.userId));
+            user = userRecord;
+          }
+          return { ...request, user };
+        })
+      );
+
+      res.json({ requests: requestsWithUser });
+    } catch (error) {
+      console.error("Get admin requests error:", error);
+      res.status(500).json({ message: "Failed to get requests" });
+    }
+  });
+
+  // Update request status
+  app.patch("/api/admin/requests/:requestId/status", async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      const { status } = req.body;
+
+      const [updated] = await db.update(serviceRequests)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(serviceRequests.id, requestId))
+        .returning();
+
+      res.json({ request: updated });
+    } catch (error) {
+      console.error("Update request status error:", error);
+      res.status(500).json({ message: "Failed to update request status" });
+    }
+  });
+
+  // Respond to a service request
+  app.post("/api/admin/requests/:requestId/respond", async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      const { response, newStatus } = req.body;
+
+      const [updated] = await db.update(serviceRequests)
+        .set({ 
+          adminResponse: response,
+          adminRespondedAt: new Date(),
+          status: newStatus || "responded",
+          updatedAt: new Date(),
+        })
+        .where(eq(serviceRequests.id, requestId))
+        .returning();
+
+      res.json({ request: updated });
+    } catch (error) {
+      console.error("Respond to request error:", error);
+      res.status(500).json({ message: "Failed to respond to request" });
+    }
+  });
+
+  // Close a conversation
+  app.patch("/api/admin/conversations/:conversationId/close", async (req, res) => {
+    try {
+      const { conversationId } = req.params;
+
+      const [updated] = await db.update(chatConversations)
+        .set({ status: "closed", updatedAt: new Date() })
+        .where(eq(chatConversations.id, conversationId))
+        .returning();
+
+      res.json({ conversation: updated });
+    } catch (error) {
+      console.error("Close conversation error:", error);
+      res.status(500).json({ message: "Failed to close conversation" });
     }
   });
 
