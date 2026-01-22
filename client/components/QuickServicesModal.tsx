@@ -26,7 +26,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, BrandColors, FuturisticGradients } from "@/constants/theme";
-import { getApiUrl, apiRequest } from "@/lib/queryClient";
+import { getApiUrl, apiRequest } from "@/lib/query-client";
 
 interface SavedAddress {
   id: string;
@@ -623,7 +623,7 @@ export function QuickServicesModal({ visible, onClose }: QuickServicesModalProps
           style={[
             styles.modalContainer,
             {
-              backgroundColor: theme.background,
+              backgroundColor: theme.backgroundSecondary,
               marginTop: insets.top + 60,
               marginBottom: insets.bottom + 20,
             },

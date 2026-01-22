@@ -17,8 +17,9 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
+import { QuickServicesModal } from "@/components/QuickServicesModal";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, FuturisticGradients } from "@/constants/theme";
+import { Spacing, BorderRadius, BrandColors, FuturisticGradients } from "@/constants/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -28,6 +29,7 @@ interface MenuItem {
   title: string;
   emoji: string;
   onPress: () => void;
+  highlight?: boolean;
 }
 
 interface NavigationMenuProps {
@@ -38,6 +40,7 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
+  const [showQuickServices, setShowQuickServices] = useState(false);
   const iconRotate = useSharedValue(0);
   const iconPulse = useSharedValue(1);
 
@@ -72,7 +75,15 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
     onNavigate(screen);
   };
 
+  const handleQuickServicesPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsOpen(false);
+    iconRotate.value = withSpring(0);
+    setShowQuickServices(true);
+  };
+
   const menuItems: MenuItem[] = [
+    { id: "quick-services", icon: "zap", title: "Quick Services", emoji: "⚡", onPress: handleQuickServicesPress, highlight: true },
     { id: "addresses", icon: "map-pin", title: "My Addresses", emoji: "📍", onPress: () => handleMenuPress("addresses") },
     { id: "requests", icon: "file-text", title: "My Requests", emoji: "📋", onPress: () => handleMenuPress("requests") },
     { id: "billing", icon: "credit-card", title: "Billing & Payments", emoji: "💳", onPress: () => handleMenuPress("billing") },
@@ -122,23 +133,32 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
                 entering={FadeIn.delay(index * 80).duration(300)}
               >
                 <Pressable
-                  style={[styles.menuItem, { borderBottomColor: theme.divider }]}
+                  style={[
+                    styles.menuItem, 
+                    { borderBottomColor: theme.divider },
+                    item.highlight ? styles.highlightedItem : null,
+                  ]}
                   onPress={item.onPress}
                   testID={`menu-item-${item.id}`}
                 >
                   <View style={styles.menuItemLeft}>
                     <ThemedText style={{ fontSize: 20 }}>{item.emoji}</ThemedText>
-                    <ThemedText type="body" style={[styles.menuItemText, { color: theme.text }]}>
+                    <ThemedText type="body" style={[styles.menuItemText, { color: item.highlight ? BrandColors.blue : theme.text, fontWeight: item.highlight ? "700" : "400" }]}>
                       {item.title}
                     </ThemedText>
                   </View>
-                  <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+                  <Feather name="chevron-right" size={20} color={item.highlight ? BrandColors.blue : theme.textSecondary} />
                 </Pressable>
               </Animated.View>
             ))}
           </Animated.View>
         </Pressable>
       </Modal>
+
+      <QuickServicesModal 
+        visible={showQuickServices} 
+        onClose={() => setShowQuickServices(false)} 
+      />
     </>
   );
 }
@@ -194,6 +214,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
+  },
+  highlightedItem: {
+    backgroundColor: BrandColors.blue + "10",
+    marginHorizontal: -Spacing.md,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
   },
   menuItemLeft: {
     flexDirection: "row",

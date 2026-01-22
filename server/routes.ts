@@ -139,6 +139,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/quick-service-requests", async (req, res) => {
+    try {
+      const { type, subType, address, problemDescription, callbackNumber, status } = req.body;
+
+      const serviceTypeMap: Record<string, string> = {
+        "missed-collection": "Quick Service - Missed Collection",
+        "service-day-inquiry": "Quick Service - Service Day Inquiry",
+        "account-number-request": "Quick Service - Account Number Request",
+        "supervisor-callback": "Quick Service - Supervisor Callback",
+      };
+
+      const [request] = await db.insert(serviceRequests).values({
+        userId: null,
+        serviceType: serviceTypeMap[type] || `Quick Service - ${type}`,
+        serviceId: `quick-${type}`,
+        formData: {
+          type,
+          subType,
+          address,
+          problemDescription,
+          callbackNumber,
+          submittedAt: new Date().toISOString(),
+        },
+        amount: 0,
+        status: status || "submitted",
+      }).returning();
+
+      res.json({ 
+        request, 
+        message: "Quick service request submitted successfully",
+        estimatedResponse: type === "missed-collection" ? "1-2 business days" : "24 hours"
+      });
+    } catch (error) {
+      console.error("Quick service request error:", error);
+      res.status(500).json({ message: "Failed to submit quick service request" });
+    }
+  });
+
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount, serviceId, serviceType, userId } = req.body;
