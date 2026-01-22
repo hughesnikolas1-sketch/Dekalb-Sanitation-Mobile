@@ -437,40 +437,55 @@ export default function AdminDashboardScreen() {
                   </View>
                 )}
                 
-                {selectedRequest.formData && (
-                  <View style={[styles.detailSection, { borderBottomColor: theme.divider }]}>
-                    <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Form Answers</ThemedText>
-                    {Array.isArray(selectedRequest.formData) ? (
-                      selectedRequest.formData.map((item: any, index: number) => (
-                        <View key={index} style={[styles.formAnswerCard, { backgroundColor: theme.backgroundDefault, borderColor: theme.divider }]}>
-                          <ThemedText type="small" style={{ color: BrandColors.blue, fontWeight: "600", marginBottom: Spacing.xs }}>
-                            Q: {item.question || `Question ${index + 1}`}
-                          </ThemedText>
-                          <ThemedText type="body" style={{ color: theme.text }}>
-                            A: {item.answer || "No answer"}
-                          </ThemedText>
-                        </View>
-                      ))
-                    ) : (
-                      Object.entries(selectedRequest.formData).map(([key, value]) => {
-                        const displayValue = typeof value === "object" && value !== null 
-                          ? JSON.stringify(value, null, 2) 
-                          : String(value || "N/A");
-                        const formattedKey = key.replace(/([A-Z])/g, " $1").replace(/_/g, " ");
-                        return (
-                          <View key={key} style={styles.formDataRow}>
-                            <ThemedText type="small" style={{ color: theme.textSecondary, textTransform: "capitalize", minWidth: 100 }}>
-                              {formattedKey}:
+                {selectedRequest.formData && (() => {
+                  let parsedData = selectedRequest.formData;
+                  if (typeof parsedData === "string") {
+                    try {
+                      parsedData = JSON.parse(parsedData);
+                    } catch (e) {
+                      parsedData = null;
+                    }
+                  }
+                  
+                  if (!parsedData) return null;
+                  
+                  const dataArray = Array.isArray(parsedData) ? parsedData : null;
+                  
+                  return (
+                    <View style={[styles.detailSection, { borderBottomColor: theme.divider }]}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Form Answers</ThemedText>
+                      {dataArray ? (
+                        dataArray.map((item: any, index: number) => (
+                          <View key={index} style={[styles.formAnswerCard, { backgroundColor: theme.backgroundDefault, borderColor: theme.divider }]}>
+                            <ThemedText type="small" style={{ color: BrandColors.blue, fontWeight: "600", marginBottom: Spacing.xs }}>
+                              {item.question || `Question ${index + 1}`}
                             </ThemedText>
-                            <ThemedText type="body" style={{ color: theme.text, flex: 1, marginLeft: Spacing.sm }}>
-                              {displayValue}
+                            <ThemedText type="body" style={{ color: theme.text, marginTop: Spacing.xs }}>
+                              {item.answer || "No answer provided"}
                             </ThemedText>
                           </View>
-                        );
-                      })
-                    )}
-                  </View>
-                )}
+                        ))
+                      ) : (
+                        Object.entries(parsedData).map(([key, value]) => {
+                          const displayValue = typeof value === "object" && value !== null 
+                            ? JSON.stringify(value, null, 2) 
+                            : String(value || "N/A");
+                          const formattedKey = key.replace(/([A-Z])/g, " $1").replace(/_/g, " ");
+                          return (
+                            <View key={key} style={[styles.formAnswerCard, { backgroundColor: theme.backgroundDefault, borderColor: theme.divider }]}>
+                              <ThemedText type="small" style={{ color: BrandColors.blue, fontWeight: "600", textTransform: "capitalize" }}>
+                                {formattedKey}
+                              </ThemedText>
+                              <ThemedText type="body" style={{ color: theme.text, marginTop: Spacing.xs }}>
+                                {displayValue}
+                              </ThemedText>
+                            </View>
+                          );
+                        })
+                      )}
+                    </View>
+                  );
+                })()}
                 
                 {selectedRequest.adminResponse && (
                   <View style={[styles.detailSection, { borderBottomColor: theme.divider, backgroundColor: BrandColors.green + "10" }]}>
