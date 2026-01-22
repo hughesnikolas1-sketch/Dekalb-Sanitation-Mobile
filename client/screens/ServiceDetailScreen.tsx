@@ -3513,7 +3513,7 @@ export default function ServiceDetailScreen() {
           </>
         ) : null}
 
-        {service.options.length > 0 && !showFrontLoadApplication ? (
+        {service.options.length > 0 && !showFrontLoadApplication && !serviceId.includes("missed") ? (
           <>
             <Animated.View entering={FadeInDown.delay(150).duration(400)}>
               <ThemedText type="h3" style={styles.sectionTitle}>
