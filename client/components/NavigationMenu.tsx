@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { View, Pressable, StyleSheet, Modal } from "react-native";
+import { View, Pressable, StyleSheet, Modal, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -35,6 +36,7 @@ interface NavigationMenuProps {
 
 export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
   const iconRotate = useSharedValue(0);
   const iconPulse = useSharedValue(1);
@@ -80,7 +82,7 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
 
   return (
     <>
-      <View style={styles.menuButton}>
+      <View style={[styles.menuButton, { top: insets.top + 60 }]}>
         <Pressable onPress={handleToggle} testID="menu-toggle-button">
           <Animated.View style={iconStyle}>
             <LinearGradient
@@ -107,7 +109,7 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
         <Pressable style={styles.overlay} onPress={() => setIsOpen(false)}>
           <Animated.View
             entering={SlideInLeft.duration(300)}
-            style={[styles.menuContainer, { backgroundColor: theme.backgroundSecondary }]}
+            style={[styles.menuContainer, { backgroundColor: theme.backgroundSecondary, top: insets.top + 110 }]}
           >
             <View style={styles.menuHeader}>
               <ThemedText type="h3" style={{ color: theme.text }}>
@@ -144,9 +146,8 @@ export function NavigationMenu({ onNavigate }: NavigationMenuProps) {
 const styles = StyleSheet.create({
   menuButton: {
     position: "absolute",
-    top: 50,
     left: 16,
-    zIndex: 100,
+    zIndex: 1000,
   },
   menuButtonGradient: {
     width: 48,
@@ -171,7 +172,6 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     position: "absolute",
-    top: 100,
     left: 16,
     width: 280,
     borderRadius: BorderRadius.xl,
