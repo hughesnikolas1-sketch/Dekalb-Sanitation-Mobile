@@ -152,7 +152,7 @@ export default function AnimatedGarbageTrucks({ variant = "double", height = 120
           startDelay={0}
           duration={8000}
           direction="right"
-          yPosition={height / 2 - 20}
+          yPosition={40}
         />
       </View>
     );
@@ -167,7 +167,7 @@ export default function AnimatedGarbageTrucks({ variant = "double", height = 120
           startDelay={0}
           duration={9000}
           direction="right"
-          yPosition={15}
+          yPosition={35}
         />
         <AnimatedTruck
           color={BrandColors.blue}
@@ -175,21 +175,21 @@ export default function AnimatedGarbageTrucks({ variant = "double", height = 120
           startDelay={4500}
           duration={7500}
           direction="left"
-          yPosition={65}
+          yPosition={75}
         />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { height: height + 30 }]} pointerEvents="none">
+    <View style={[styles.container, { height: height + 50 }]} pointerEvents="none">
       <AnimatedTruck
         color={BrandColors.green}
         size={34}
         startDelay={0}
         duration={10000}
         direction="right"
-        yPosition={10}
+        yPosition={30}
       />
       <AnimatedTruck
         color={BrandColors.blue}
@@ -197,7 +197,7 @@ export default function AnimatedGarbageTrucks({ variant = "double", height = 120
         startDelay={2500}
         duration={8000}
         direction="left"
-        yPosition={55}
+        yPosition={70}
       />
       <AnimatedTruck
         color="#FF6B35"
@@ -205,7 +205,7 @@ export default function AnimatedGarbageTrucks({ variant = "double", height = 120
         startDelay={5000}
         duration={7000}
         direction="right"
-        yPosition={95}
+        yPosition={110}
       />
     </View>
   );
@@ -213,14 +213,19 @@ export default function AnimatedGarbageTrucks({ variant = "double", height = 120
 
 const styles = StyleSheet.create({
   container: {
-    position: "relative",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     width: "100%",
-    overflow: "hidden",
-    marginVertical: 10,
+    overflow: "visible",
+    zIndex: 1000,
+    elevation: 1000,
   },
   truckContainer: {
     position: "absolute",
     left: 0,
+    zIndex: 1001,
   },
   truckBody: {
     flexDirection: "row",
