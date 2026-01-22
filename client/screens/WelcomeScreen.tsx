@@ -452,13 +452,13 @@ export default function WelcomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <AnimatedGarbageTrucks variant="parade" height={130} />
       <LinearGradient
         colors={FuturisticGradients.hero as unknown as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
       >
+        <AnimatedGarbageTrucks variant="parade" height={140} />
         <AnimatedShiningSun x={280} y={15} />
         <AnimatedBranchCutting y={60} />
         <AnimatedRecycleBottle y={120} />

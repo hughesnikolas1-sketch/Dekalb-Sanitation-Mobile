@@ -477,6 +477,7 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <View>
+      <AnimatedGarbageTrucks variant="double" height={100} />
       <WelcomeHeader userName={userName} />
 
       <View style={styles.mascotSection}>
@@ -562,16 +563,16 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <AnimatedGarbageTrucks variant="double" height={100} />
       <FloatingParticles count={12} />
       <NavigationMenu onNavigate={handleMenuNavigate} />
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingTop: headerHeight + Spacing.lg,
+          paddingTop: headerHeight + Spacing.sm,
           paddingBottom: tabBarHeight + Spacing.xl,
           paddingHorizontal: Spacing.lg,
         }}
+        ListHeaderComponentStyle={{ marginBottom: Spacing.md }}
         scrollIndicatorInsets={{ bottom: insets.bottom }}
         data={[]}
         keyExtractor={() => "header"}

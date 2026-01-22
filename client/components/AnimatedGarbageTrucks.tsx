@@ -213,19 +213,14 @@ export default function AnimatedGarbageTrucks({ variant = "double", height = 120
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    position: "relative",
     width: "100%",
     overflow: "visible",
-    zIndex: 1000,
-    elevation: 1000,
+    marginBottom: 10,
   },
   truckContainer: {
     position: "absolute",
     left: 0,
-    zIndex: 1001,
   },
   truckBody: {
     flexDirection: "row",

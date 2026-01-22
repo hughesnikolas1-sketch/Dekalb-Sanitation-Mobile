@@ -142,12 +142,11 @@ export default function ProfileScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <AnimatedGarbageTrucks variant="double" height={100} />
       <FloatingParticles count={8} />
       <KeyboardAwareScrollViewCompat
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingTop: headerHeight + Spacing.xl,
+          paddingTop: headerHeight + Spacing.sm,
           paddingBottom: tabBarHeight + Spacing.xl,
           paddingHorizontal: Spacing.xl,
         }}

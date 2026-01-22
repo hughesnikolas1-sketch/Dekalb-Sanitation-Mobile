@@ -393,6 +393,7 @@ export default function ServicesScreen() {
 
   const renderHeader = () => (
     <View>
+      <AnimatedGarbageTrucks variant="double" height={100} />
       <CategoryTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       <Animated.View entering={FadeInDown.delay(150).duration(400)}>
@@ -452,12 +453,11 @@ export default function ServicesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <AnimatedGarbageTrucks variant="double" height={100} />
       <FloatingParticles count={10} />
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{
-          paddingTop: headerHeight + Spacing.lg,
+          paddingTop: headerHeight + Spacing.sm,
           paddingBottom: tabBarHeight + Spacing.xl,
           paddingHorizontal: Spacing.lg,
         }}
