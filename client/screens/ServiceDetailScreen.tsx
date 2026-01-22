@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, Platform, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as WebBrowser from "expo-web-browser";
 import { apiRequest, getApiUrl } from "@/lib/query-client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -4533,14 +4534,21 @@ export default function ServiceDetailScreen() {
             {service.links.map((link, index) => (
               <Pressable
                 key={index}
-                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  if (link.text.includes("Annual Prorated Fee")) {
+                    navigation.navigate("ProratedFees");
+                  } else {
+                    WebBrowser.openBrowserAsync(link.url);
+                  }
+                }}
                 style={[styles.linkButton, { borderColor: service.color }]}
               >
                 <LinearGradient
                   colors={service.gradientColors as [string, string, ...string[]]}
                   style={styles.linkIcon}
                 >
-                  <Feather name="external-link" size={16} color="#FFFFFF" />
+                  <Feather name={link.text.includes("Annual Prorated Fee") ? "file-text" : "external-link"} size={16} color="#FFFFFF" />
                 </LinearGradient>
                 <ThemedText type="body" style={{ color: service.color, flex: 1 }}>{link.text}</ThemedText>
                 <Feather name="chevron-right" size={20} color={service.color} />
