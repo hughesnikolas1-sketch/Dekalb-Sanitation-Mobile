@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -24,10 +25,14 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BrandColors, Spacing, BorderRadius, FontSizes } from '@/constants/theme';
+import { useAuth } from '@/hooks/useAuth';
+import { apiRequest } from '@/lib/query-client';
 
 
 const BUBBLE_POSITION = { right: 16, bottom: 20 };
+const VISITOR_ID_KEY = '@dekalb_visitor_id';
 
 interface Message {
   id: string;
@@ -36,28 +41,26 @@ interface Message {
   timestamp: Date;
 }
 
+interface DBMessage {
+  id: string;
+  message: string;
+  senderType: string;
+  createdAt: string;
+}
+
 const INITIAL_MESSAGES: Message[] = [
   {
-    id: '1',
+    id: 'welcome-1',
     text: "👋 Hi there! I'm your live DeKalb Sanitation assistant. How can I help you today?",
     sender: 'agent',
     timestamp: new Date(),
   },
   {
-    id: '2', 
+    id: 'welcome-2', 
     text: "I can help you with service requests, billing questions, pickup schedules, and more. Just type your question below! 💬",
     sender: 'agent',
     timestamp: new Date(),
   },
-];
-
-const AGENT_RESPONSES = [
-  "I understand! Let me look into that for you. One moment please... 🔍",
-  "Great question! Our team typically responds within 1-2 business days. Is there anything else I can help with? 📋",
-  "I've noted your concern. A representative will follow up with you shortly via email or phone. 📞",
-  "Thank you for reaching out! Your satisfaction is our priority. 🌟",
-  "I can definitely help with that! Let me connect you with the right department. 🤝",
-  "That's a common question! Here's what you need to know... 📚",
 ];
 
 export function LiveChatBubble() {
@@ -65,8 +68,75 @@ export function LiveChatBubble() {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [visitorId, setVisitorId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+
+  const getOrCreateVisitorId = useCallback(async () => {
+    try {
+      let id = await AsyncStorage.getItem(VISITOR_ID_KEY);
+      if (!id) {
+        id = `visitor_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        await AsyncStorage.setItem(VISITOR_ID_KEY, id);
+      }
+      setVisitorId(id);
+      return id;
+    } catch (error) {
+      console.error('Failed to get visitor ID:', error);
+      return `visitor_${Date.now()}`;
+    }
+  }, []);
+
+  const fetchMessages = useCallback(async (convId: string) => {
+    try {
+      const response = await apiRequest('GET', `/api/chat/conversations/${convId}/messages`);
+      if (response.messages && response.messages.length > 0) {
+        const dbMessages: Message[] = response.messages.map((m: DBMessage) => ({
+          id: m.id,
+          text: m.message,
+          sender: m.senderType === 'admin' ? 'agent' : 'user',
+          timestamp: new Date(m.createdAt),
+        }));
+        setMessages([...INITIAL_MESSAGES, ...dbMessages]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    }
+  }, []);
+
+  const createConversation = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const vId = await getOrCreateVisitorId();
+      const response = await apiRequest('POST', '/api/chat/conversations', {
+        visitorId: vId,
+        visitorName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : null,
+        visitorEmail: user?.email || null,
+      });
+      setConversationId(response.conversation.id);
+      return response.conversation.id;
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getOrCreateVisitorId, user]);
+
+  useEffect(() => {
+    getOrCreateVisitorId();
+  }, [getOrCreateVisitorId]);
+
+  useEffect(() => {
+    if (isOpen && conversationId) {
+      fetchMessages(conversationId);
+      const interval = setInterval(() => fetchMessages(conversationId), 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isOpen, conversationId, fetchMessages]);
 
   
   const pulseScale = useSharedValue(1);
@@ -136,41 +206,80 @@ export function LiveChatBubble() {
     setIsOpen(false);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const messageText = inputText.trim();
+    setInputText('');
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText.trim(),
+    const tempMessage: Message = {
+      id: `temp_${Date.now()}`,
+      text: messageText,
       sender: 'user',
       timestamp: new Date(),
     };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
-    setIsTyping(true);
+    setMessages(prev => [...prev, tempMessage]);
 
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    setTimeout(() => {
-      setIsTyping(false);
-      const randomResponse = AGENT_RESPONSES[Math.floor(Math.random() * AGENT_RESPONSES.length)];
-      const agentMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: randomResponse,
-        sender: 'agent',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, agentMessage]);
-      
+    try {
+      let convId = conversationId;
+      if (!convId) {
+        convId = await createConversation();
+        if (!convId) {
+          setIsTyping(true);
+          setTimeout(() => {
+            setIsTyping(false);
+            const autoResponse: Message = {
+              id: `auto_${Date.now()}`,
+              text: "Thanks for your message! A live agent will respond shortly. Your message has been recorded. 📝",
+              sender: 'agent',
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, autoResponse]);
+          }, 1500);
+          return;
+        }
+      }
+
+      await apiRequest('POST', '/api/chat/messages', {
+        conversationId: convId,
+        senderId: visitorId || user?.id || 'anonymous',
+        senderType: 'user',
+        message: messageText,
+      });
+
+      setIsTyping(true);
       setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }, 1500 + Math.random() * 1000);
+        setIsTyping(false);
+        const autoResponse: Message = {
+          id: `auto_${Date.now()}`,
+          text: "Thanks for your message! A live agent has been notified and will respond shortly. Keep an eye on this chat! 🔔",
+          sender: 'agent',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, autoResponse]);
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setIsTyping(true);
+      setTimeout(() => {
+        setIsTyping(false);
+        const errorResponse: Message = {
+          id: `error_${Date.now()}`,
+          text: "I'm having trouble connecting right now. Please try again or call us at (404) 687-4040 for immediate assistance. 📞",
+          sender: 'agent',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorResponse]);
+      }, 1000);
+    }
   };
 
   const renderMessage = ({ item }: { item: Message }) => (

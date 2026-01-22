@@ -6,18 +6,23 @@ import { Platform, StyleSheet } from "react-native";
 import HomeStackNavigator from "@/navigation/HomeStackNavigator";
 import ServicesStackNavigator from "@/navigation/ServicesStackNavigator";
 import ProfileStackNavigator from "@/navigation/ProfileStackNavigator";
+import AdminDashboardScreen from "@/screens/AdminDashboardScreen";
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/hooks/useAuth";
+import { BrandColors } from "@/constants/theme";
 
 export type MainTabParamList = {
   HomeTab: undefined;
   ServicesTab: undefined;
   ProfileTab: undefined;
+  AdminTab: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainTabNavigator() {
   const { theme, isDark } = useTheme();
+  const { user } = useAuth();
 
   return (
     <Tab.Navigator
@@ -75,6 +80,19 @@ export default function MainTabNavigator() {
           ),
         }}
       />
+      {user?.isAdmin ? (
+        <Tab.Screen
+          name="AdminTab"
+          component={AdminDashboardScreen}
+          options={{
+            title: "Admin",
+            tabBarIcon: ({ color, size }) => (
+              <Feather name="shield" size={size} color={color} />
+            ),
+            tabBarActiveTintColor: BrandColors.green,
+          }}
+        />
+      ) : null}
     </Tab.Navigator>
   );
 }
