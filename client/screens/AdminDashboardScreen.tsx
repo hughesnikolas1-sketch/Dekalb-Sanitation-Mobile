@@ -296,8 +296,14 @@ export default function AdminDashboardScreen() {
         </View>
       ) : null}
       
-      <View style={styles.requestFooter}>
-        <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+      <View style={[styles.requestFooter, { borderTopWidth: 1, borderTopColor: theme.divider, marginTop: Spacing.md, paddingTop: Spacing.md }]}>
+        <View style={[styles.reviewButton, { backgroundColor: BrandColors.blue + "15" }]}>
+          <Feather name="eye" size={16} color={BrandColors.blue} />
+          <ThemedText type="body" style={{ color: BrandColors.blue, marginLeft: Spacing.sm, fontWeight: "600" }}>
+            Tap to Review & Respond
+          </ThemedText>
+        </View>
+        <Feather name="chevron-right" size={20} color={BrandColors.blue} />
       </View>
     </Pressable>
   );
@@ -795,8 +801,16 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   requestFooter: {
-    alignItems: "flex-end",
-    marginTop: Spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  reviewButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.md,
   },
   conversationCard: {
     padding: Spacing.md,
