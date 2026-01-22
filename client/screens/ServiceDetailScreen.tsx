@@ -38,6 +38,8 @@ import { DCLogo, SelectionCelebration } from "@/components/DCLogo";
 import { LiveAgentBanner } from "@/components/LiveAgentBanner";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { SecurePaymentModal } from "@/components/SecurePaymentModal";
+import GarbageTruckLoader from "@/components/GarbageTruckLoader";
+import SuccessTruckAnimation from "@/components/SuccessTruckAnimation";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Spacing,
@@ -1236,6 +1238,9 @@ export default function ServiceDetailScreen() {
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [paymentServiceName, setPaymentServiceName] = useState('');
   const [paymentFormData, setPaymentFormData] = useState<Record<string, unknown> | undefined>(undefined);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("Request Submitted!");
+  const [successSubMessage, setSuccessSubMessage] = useState("Our team is on the way!");
 
   // New Service Form State
   const [newServiceResidentName, setNewServiceResidentName] = useState("");
@@ -1379,23 +1384,17 @@ export default function ServiceDetailScreen() {
           );
         }
       } else if (amount > 0) {
-        showAlert(
-          "Request Submitted",
-          `Your ${service.title} request has been submitted. Total: ${option?.price}.\n\nYou will receive payment instructions via email, or you can pay online at myaccount.dekalbcountyga.gov`,
-          [{ text: "OK", style: "default" }]
-        );
+        setSuccessMessage("Request Submitted!");
+        setSuccessSubMessage(`Total: ${option?.price} - Payment instructions sent to your email`);
+        setShowSuccessAnimation(true);
       } else if (serviceId.includes("missed")) {
-        showAlert(
-          "We've Received Your Request!",
-          `We have received your request and it's on the way to the correct lot for missed collection!\n\nWe're truly sorry you were missed! Our team will address this within 24-48 hours.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}\n\nFor future pickups, please ensure your cart is at the curb by 6:00 AM.`,
-          [{ text: "Thank You!", style: "default" }]
-        );
+        setSuccessMessage("We've Received Your Request!");
+        setSuccessSubMessage("Our truck is on the way! We'll address this within 24-48 hours.");
+        setShowSuccessAnimation(true);
       } else {
-        showAlert(
-          "Request Submitted Successfully!",
-          `Your ${service.title} request has been received. Our team will process it within 24-48 hours.\n\nReference ID: ${result.request?.id?.slice(0, 8) || "Pending"}`,
-          [{ text: "Great!", style: "default" }]
-        );
+        setSuccessMessage("Request Submitted!");
+        setSuccessSubMessage(`Your ${service.title} request is being processed!`);
+        setShowSuccessAnimation(true);
       }
 
       setFormValues({});
@@ -4645,6 +4644,16 @@ export default function ServiceDetailScreen() {
         serviceType={serviceId.startsWith("com-") ? "commercial" : "residential"}
         serviceId={serviceId}
         formData={paymentFormData}
+      />
+
+      <SuccessTruckAnimation
+        visible={showSuccessAnimation}
+        onComplete={() => {
+          setShowSuccessAnimation(false);
+          navigation.navigate("MyRequests");
+        }}
+        message={successMessage}
+        subMessage={successSubMessage}
       />
     </ThemedView>
   );
