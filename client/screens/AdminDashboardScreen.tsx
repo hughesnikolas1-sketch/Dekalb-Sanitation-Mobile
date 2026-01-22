@@ -388,22 +388,34 @@ export default function AdminDashboardScreen() {
                 </View>
                 
                 <View style={[styles.detailSection, { borderBottomColor: theme.divider }]}>
-                  <ThemedText type="small" style={{ color: theme.textSecondary }}>Status</ThemedText>
+                  <ThemedText type="small" style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}>Update Status</ThemedText>
                   <View style={styles.statusActions}>
-                    {["pending", "in_progress", "completed"].map((status) => (
+                    {[
+                      { key: "pending", label: "⏳ Pending", color: "#FF9800" },
+                      { key: "in_progress", label: "🔄 In Progress", color: "#9C27B0" },
+                      { key: "completed", label: "✅ Completed", color: "#4CAF50" },
+                    ].map((statusOption) => (
                       <Pressable
-                        key={status}
+                        key={statusOption.key}
                         style={[
                           styles.statusButton,
                           { 
-                            backgroundColor: selectedRequest.status === status ? getStatusColor(status) : "transparent",
-                            borderColor: getStatusColor(status),
+                            backgroundColor: selectedRequest.status === statusOption.key ? statusOption.color : "transparent",
+                            borderColor: statusOption.color,
+                            borderWidth: 2,
                           }
                         ]}
-                        onPress={() => handleUpdateStatus(selectedRequest.id, status)}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          handleUpdateStatus(selectedRequest.id, statusOption.key);
+                        }}
                       >
-                        <ThemedText type="small" style={{ color: selectedRequest.status === status ? "#FFF" : getStatusColor(status) }}>
-                          {status.replace("_", " ")}
+                        <ThemedText style={{ 
+                          color: selectedRequest.status === statusOption.key ? "#FFF" : statusOption.color,
+                          fontWeight: "600",
+                          fontSize: 13,
+                        }}>
+                          {statusOption.label}
                         </ThemedText>
                       </Pressable>
                     ))}
@@ -428,16 +440,22 @@ export default function AdminDashboardScreen() {
                 {selectedRequest.formData && (
                   <View style={[styles.detailSection, { borderBottomColor: theme.divider }]}>
                     <ThemedText type="small" style={{ color: theme.textSecondary }}>Request Details</ThemedText>
-                    {Object.entries(selectedRequest.formData).map(([key, value]) => (
-                      <View key={key} style={styles.formDataRow}>
-                        <ThemedText type="small" style={{ color: theme.textSecondary, textTransform: "capitalize" }}>
-                          {key.replace(/([A-Z])/g, " $1")}:
-                        </ThemedText>
-                        <ThemedText type="body" style={{ color: theme.text, flex: 1, marginLeft: Spacing.sm }}>
-                          {String(value)}
-                        </ThemedText>
-                      </View>
-                    ))}
+                    {Object.entries(selectedRequest.formData).map(([key, value]) => {
+                      const displayValue = typeof value === "object" && value !== null 
+                        ? JSON.stringify(value, null, 2) 
+                        : String(value || "N/A");
+                      const formattedKey = key.replace(/([A-Z])/g, " $1").replace(/_/g, " ");
+                      return (
+                        <View key={key} style={styles.formDataRow}>
+                          <ThemedText type="small" style={{ color: theme.textSecondary, textTransform: "capitalize", minWidth: 100 }}>
+                            {formattedKey}:
+                          </ThemedText>
+                          <ThemedText type="body" style={{ color: theme.text, flex: 1, marginLeft: Spacing.sm }}>
+                            {displayValue}
+                          </ThemedText>
+                        </View>
+                      );
+                    })}
                   </View>
                 )}
                 
