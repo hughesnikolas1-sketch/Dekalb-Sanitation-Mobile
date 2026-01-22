@@ -24,6 +24,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LiveAgentBanner } from "@/components/LiveAgentBanner";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import AnimatedGarbageTrucks from "@/components/AnimatedGarbageTrucks";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Spacing,
@@ -451,6 +452,7 @@ export default function ServicesScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <AnimatedGarbageTrucks height={45} />
       <FloatingParticles count={10} />
       <FlatList
         style={{ flex: 1 }}

@@ -33,6 +33,7 @@ import { NavigationMenu } from "@/components/NavigationMenu";
 import { LiveChatButton } from "@/components/LiveChatButton";
 import { LiveAgentBanner } from "@/components/LiveAgentBanner";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import AnimatedGarbageTrucks from "@/components/AnimatedGarbageTrucks";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -561,6 +562,7 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <AnimatedGarbageTrucks height={45} />
       <FloatingParticles count={12} />
       <NavigationMenu onNavigate={handleMenuNavigate} />
       <FlatList
