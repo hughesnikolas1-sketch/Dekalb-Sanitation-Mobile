@@ -3211,19 +3211,19 @@ export default function ServiceDetailScreen() {
               <Animated.View entering={FadeInDown.delay(400).duration(400)}>
                 {/* Bulk Items Section */}
                 {service.bulkItems ? (
-                  <View style={[styles.contentSection, { backgroundColor: "#E8F5E9", borderColor: BrandColors.green + "40", marginBottom: Spacing.md }]}>
+                  <View style={[styles.contentSection, { backgroundColor: "#E8F5E9", borderColor: "#1B5E20" + "40", marginBottom: Spacing.md }]}>
                     <View style={styles.contentSectionHeader}>
-                      <View style={[styles.contentSectionIcon, { backgroundColor: BrandColors.green }]}>
+                      <View style={[styles.contentSectionIcon, { backgroundColor: "#1B5E20" }]}>
                         <Feather name="check-circle" size={18} color="#FFFFFF" />
                       </View>
-                      <ThemedText type="h4" style={{ color: BrandColors.green, flex: 1 }}>
+                      <ThemedText type="h4" style={{ color: "#1B5E20", flex: 1 }}>
                         {service.bulkItems.title}
                       </ThemedText>
                     </View>
                     {service.bulkItems.items.map((item: string, idx: number) => (
                       <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: Spacing.xs }}>
-                        <ThemedText type="body" style={{ color: BrandColors.green, marginRight: Spacing.sm }}>•</ThemedText>
-                        <ThemedText type="body" style={{ flex: 1 }}>{item}</ThemedText>
+                        <ThemedText type="body" style={{ color: "#1B5E20", marginRight: Spacing.sm }}>•</ThemedText>
+                        <ThemedText type="body" style={{ flex: 1, color: "#2E7D32" }}>{item}</ThemedText>
                       </View>
                     ))}
                   </View>
@@ -3231,19 +3231,19 @@ export default function ServiceDetailScreen() {
 
                 {/* Special Collection Items Section */}
                 {service.specialCollectionItems ? (
-                  <View style={[styles.contentSection, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" + "40", marginBottom: Spacing.md }]}>
+                  <View style={[styles.contentSection, { backgroundColor: "#FFF3E0", borderColor: "#E65100" + "40", marginBottom: Spacing.md }]}>
                     <View style={styles.contentSectionHeader}>
-                      <View style={[styles.contentSectionIcon, { backgroundColor: "#FF9800" }]}>
+                      <View style={[styles.contentSectionIcon, { backgroundColor: "#E65100" }]}>
                         <Feather name="alert-triangle" size={18} color="#FFFFFF" />
                       </View>
-                      <ThemedText type="h4" style={{ color: "#E65100", flex: 1 }}>
+                      <ThemedText type="h4" style={{ color: "#BF360C", flex: 1 }}>
                         {service.specialCollectionItems.title}
                       </ThemedText>
                     </View>
                     {service.specialCollectionItems.items.map((item: string, idx: number) => (
                       <View key={idx} style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: Spacing.xs }}>
-                        <ThemedText type="body" style={{ color: "#FF9800", marginRight: Spacing.sm }}>•</ThemedText>
-                        <ThemedText type="body" style={{ flex: 1 }}>{item}</ThemedText>
+                        <ThemedText type="body" style={{ color: "#BF360C", marginRight: Spacing.sm }}>•</ThemedText>
+                        <ThemedText type="body" style={{ flex: 1, color: "#5D4037" }}>{item}</ThemedText>
                       </View>
                     ))}
                   </View>
