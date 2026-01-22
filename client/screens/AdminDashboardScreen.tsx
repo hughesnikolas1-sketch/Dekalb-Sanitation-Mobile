@@ -16,14 +16,13 @@ import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeIn, FadeInDown, SlideInRight } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { Spacing, BorderRadius, BrandColors, FuturisticGradients } from "@/constants/theme";
-import { apiRequest, getApiUrl } from "@/lib/query-client";
+import { apiRequest } from "@/lib/query-client";
 
 type TabType = "requests" | "chat";
 type RequestStatus = "all" | "pending" | "submitted" | "in_progress" | "completed" | "responded";
@@ -73,7 +72,7 @@ interface ChatMessage {
 }
 
 export default function AdminDashboardScreen() {
-  const theme = useTheme();
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   
@@ -250,93 +249,90 @@ export default function AdminDashboardScreen() {
   };
 
   const renderRequestItem = ({ item }: { item: ServiceRequest }) => (
-    <Animated.View entering={FadeIn.duration(200)}>
-      <Pressable
-        style={[styles.requestCard, { backgroundColor: theme.backgroundSecondary }]}
-        onPress={() => setSelectedRequest(item)}
-      >
-        <View style={styles.requestHeader}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + "20" }]}>
-            <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
-            <ThemedText type="small" style={{ color: getStatusColor(item.status), textTransform: "capitalize" }}>
-              {item.status.replace("_", " ")}
-            </ThemedText>
-          </View>
-          <ThemedText type="small" style={{ color: theme.textSecondary }}>
-            {formatDate(item.createdAt)}
+    <Pressable
+      style={[styles.requestCard, { backgroundColor: theme.backgroundSecondary }]}
+      onPress={() => setSelectedRequest(item)}
+    >
+      <View style={styles.requestHeader}>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + "20" }]}>
+          <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
+          <ThemedText type="small" style={{ color: getStatusColor(item.status), textTransform: "capitalize" }}>
+            {item.status.replace("_", " ")}
           </ThemedText>
         </View>
-        
-        <ThemedText type="h4" style={{ color: theme.text, marginTop: Spacing.sm }}>
-          {item.serviceType}
+        <ThemedText type="small" style={{ color: theme.textSecondary }}>
+          {formatDate(item.createdAt)}
         </ThemedText>
-        
-        {item.user && (
-          <View style={styles.userInfo}>
-            <Feather name="user" size={14} color={theme.textSecondary} />
-            <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
-              {item.user.firstName} {item.user.lastName} • {item.user.email || item.user.phone}
-            </ThemedText>
-          </View>
-        )}
-        
-        {item.formData?.address && (
-          <View style={styles.userInfo}>
-            <Feather name="map-pin" size={14} color={theme.textSecondary} />
-            <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }} numberOfLines={1}>
-              {item.formData.address}
-            </ThemedText>
-          </View>
-        )}
-        
-        {item.adminResponse && (
-          <View style={[styles.responsePreview, { backgroundColor: BrandColors.green + "15" }]}>
-            <Feather name="message-circle" size={14} color={BrandColors.green} />
-            <ThemedText type="small" style={{ color: BrandColors.green, marginLeft: Spacing.xs, flex: 1 }} numberOfLines={1}>
-              Response sent
-            </ThemedText>
-          </View>
-        )}
-        
-        <View style={styles.requestFooter}>
-          <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+      </View>
+      
+      <ThemedText type="h4" style={{ color: theme.text, marginTop: Spacing.sm }}>
+        {item.serviceType}
+      </ThemedText>
+      
+      {item.user ? (
+        <View style={styles.userInfo}>
+          <Feather name="user" size={14} color={theme.textSecondary} />
+          <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
+            {item.user.firstName} {item.user.lastName} - {item.user.email || item.user.phone}
+          </ThemedText>
         </View>
-      </Pressable>
-    </Animated.View>
+      ) : null}
+      
+      {item.formData?.address ? (
+        <View style={styles.userInfo}>
+          <Feather name="map-pin" size={14} color={theme.textSecondary} />
+          <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }} numberOfLines={1}>
+            {item.formData.address}
+          </ThemedText>
+        </View>
+      ) : null}
+      
+      {item.adminResponse ? (
+        <View style={[styles.responsePreview, { backgroundColor: BrandColors.green + "15" }]}>
+          <Feather name="message-circle" size={14} color={BrandColors.green} />
+          <ThemedText type="small" style={{ color: BrandColors.green, marginLeft: Spacing.xs, flex: 1 }} numberOfLines={1}>
+            Response sent
+          </ThemedText>
+        </View>
+      ) : null}
+      
+      <View style={styles.requestFooter}>
+        <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+      </View>
+    </Pressable>
   );
 
   const renderConversationItem = ({ item }: { item: ChatConversation }) => (
-    <Animated.View entering={FadeIn.duration(200)}>
-      <Pressable
-        style={[styles.conversationCard, { backgroundColor: theme.backgroundSecondary }]}
-        onPress={() => setSelectedConversation(item)}
-      >
-        <View style={styles.conversationHeader}>
-          <View style={[styles.avatar, { backgroundColor: BrandColors.blue + "30" }]}>
-            <Feather name="user" size={20} color={BrandColors.blue} />
-          </View>
-          <View style={{ flex: 1, marginLeft: Spacing.md }}>
-            <View style={styles.conversationTitleRow}>
-              <ThemedText type="h4" style={{ color: theme.text, flex: 1 }}>
-                {item.visitorName || "Anonymous User"}
-              </ThemedText>
-              {item.unreadCount > 0 && (
-                <View style={styles.unreadBadge}>
-                  <ThemedText type="small" style={{ color: "#FFF", fontWeight: "bold" }}>
-                    {item.unreadCount}
-                  </ThemedText>
-                </View>
-              )}
+    <Pressable
+      style={[styles.conversationCard, { backgroundColor: theme.backgroundSecondary }]}
+      onPress={() => setSelectedConversation(item)}
+    >
+      <View style={styles.conversationHeader}>
+        <View style={[styles.avatar, { backgroundColor: BrandColors.blue + "30" }]}>
+          <Feather name="user" size={20} color={BrandColors.blue} />
+        </View>
+        <View style={{ flex: 1, marginLeft: Spacing.md }}>
+          <View style={styles.conversationTitleRow}>
+            <ThemedText type="h4" style={{ color: theme.text, flex: 1 }}>
+              {item.visitorName || "Anonymous User"}
+            </ThemedText>
+            {item.unreadCount > 0 ? (
+              <View style={styles.unreadBadge}>
+                <ThemedText type="small" style={{ color: "#FFF", fontWeight: "bold" }}>
+                  {item.unreadCount}
+                </ThemedText>
+              </View>
+            ) : null}
             </View>
-            {item.visitorEmail && (
+            {item.visitorEmail ? (
               <ThemedText type="small" style={{ color: theme.textSecondary }}>
                 {item.visitorEmail}
               </ThemedText>
-            )}
+            ) : null}
           </View>
         </View>
         
-        {item.lastMessage && (
+        {item.lastMessage ? (
           <View style={styles.lastMessageContainer}>
             <ThemedText type="body" style={{ color: theme.text }} numberOfLines={2}>
               {item.lastMessage.senderType === "admin" ? "You: " : ""}
@@ -346,7 +342,7 @@ export default function AdminDashboardScreen() {
               {formatDate(item.lastMessage.createdAt)}
             </ThemedText>
           </View>
-        )}
+        ) : null}
         
         <View style={[styles.statusRow, { borderTopColor: theme.divider }]}>
           <View style={[styles.statusBadge, { backgroundColor: item.status === "active" ? BrandColors.green + "20" : theme.textSecondary + "20" }]}>
@@ -357,7 +353,6 @@ export default function AdminDashboardScreen() {
           </View>
         </View>
       </Pressable>
-    </Animated.View>
   );
 
   const renderRequestModal = () => (
@@ -589,7 +584,7 @@ export default function AdminDashboardScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       <LinearGradient
-        colors={FuturisticGradients.blueGreen as [string, string, ...string[]]}
+        colors={[BrandColors.blue, BrandColors.green] as [string, string]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
@@ -662,23 +657,43 @@ export default function AdminDashboardScreen() {
         </ScrollView>
       )}
       
-      <FlatList
-        data={activeTab === "requests" ? requests : conversations}
-        keyExtractor={(item) => item.id}
-        renderItem={activeTab === "requests" ? renderRequestItem : renderConversationItem}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BrandColors.blue} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Feather name={activeTab === "requests" ? "inbox" : "message-circle"} size={60} color={theme.textSecondary} />
-            <ThemedText type="h4" style={{ color: theme.textSecondary, marginTop: Spacing.md }}>
-              No {activeTab === "requests" ? "requests" : "conversations"} yet
-            </ThemedText>
-          </View>
-        }
-      />
+      {activeTab === "requests" ? (
+        <FlatList
+          data={requests}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRequestItem}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BrandColors.blue} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Feather name="inbox" size={60} color={theme.textSecondary} />
+              <ThemedText type="h4" style={{ color: theme.textSecondary, marginTop: Spacing.md }}>
+                No requests yet
+              </ThemedText>
+            </View>
+          }
+        />
+      ) : (
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.id}
+          renderItem={renderConversationItem}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BrandColors.blue} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Feather name="message-circle" size={60} color={theme.textSecondary} />
+              <ThemedText type="h4" style={{ color: theme.textSecondary, marginTop: Spacing.md }}>
+                No conversations yet
+              </ThemedText>
+            </View>
+          }
+        />
+      )}
       
       {renderRequestModal()}
       {renderChatModal()}

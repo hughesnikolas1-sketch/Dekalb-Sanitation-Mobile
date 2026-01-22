@@ -26,7 +26,7 @@ async function throwIfResNotOk(res: Response) {
 
 async function getUserId(): Promise<string | null> {
   try {
-    const userData = await AsyncStorage.getItem("user");
+    const userData = await AsyncStorage.getItem("@dekalb_user");
     if (userData) {
       const user = JSON.parse(userData);
       return user.id || null;
