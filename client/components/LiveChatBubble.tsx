@@ -31,7 +31,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { apiRequest } from '@/lib/query-client';
 
 
-const BUBBLE_POSITION = { right: 16, bottom: 20 };
+const BUBBLE_POSITION = { right: 16, bottom: 100 };
 const VISITOR_ID_KEY = '@dekalb_visitor_id';
 
 interface Message {
