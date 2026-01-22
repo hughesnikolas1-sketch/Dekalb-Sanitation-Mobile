@@ -20,6 +20,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { LiveAgentBanner } from "@/components/LiveAgentBanner";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import AnimatedGarbageTrucks from "@/components/AnimatedGarbageTrucks";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { Spacing, BorderRadius, BrandColors } from "@/constants/theme";
@@ -141,6 +142,7 @@ export default function ProfileScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <AnimatedGarbageTrucks height={45} />
       <FloatingParticles count={8} />
       <KeyboardAwareScrollViewCompat
         style={{ flex: 1 }}
