@@ -5,9 +5,11 @@ import Animated, {
   useAnimatedStyle,
   withRepeat,
   withTiming,
+  withSequence,
   withDelay,
   Easing,
   interpolate,
+  ReduceMotion,
 } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { BrandColors } from "@/constants/theme";
@@ -15,136 +17,266 @@ import { BrandColors } from "@/constants/theme";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface TruckProps {
-  delay: number;
-  duration: number;
-  topOffset: number;
+  color: string;
   size: number;
-  opacity: number;
+  startDelay: number;
+  duration: number;
+  direction: "left" | "right";
+  yPosition: number;
 }
 
-const GarbageTruck = ({ delay, duration, topOffset, size, opacity }: TruckProps) => {
-  const position = useSharedValue(-size * 2);
-  
+const AnimatedTruck = ({ color, size, startDelay, duration, direction, yPosition }: TruckProps) => {
+  const position = useSharedValue(direction === "left" ? SCREEN_WIDTH + 100 : -100);
+  const wheelRotation = useSharedValue(0);
+  const bounce = useSharedValue(0);
+  const exhaustPuff = useSharedValue(0);
+
   useEffect(() => {
+    const startPos = direction === "left" ? SCREEN_WIDTH + 100 : -100;
+    const endPos = direction === "left" ? -100 : SCREEN_WIDTH + 100;
+
     position.value = withDelay(
-      delay,
+      startDelay,
       withRepeat(
-        withTiming(SCREEN_WIDTH + size * 2, {
-          duration,
-          easing: Easing.linear,
-        }),
+        withSequence(
+          withTiming(startPos, { duration: 0 }),
+          withTiming(endPos, {
+            duration: duration,
+            easing: Easing.linear,
+          })
+        ),
         -1,
-        false
+        false,
+        undefined,
+        ReduceMotion.Never
       )
     );
-  }, [delay, duration, size]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: position.value }],
+    wheelRotation.value = withRepeat(
+      withTiming(360, {
+        duration: 400,
+        easing: Easing.linear,
+      }),
+      -1,
+      false,
+      undefined,
+      ReduceMotion.Never
+    );
+
+    bounce.value = withRepeat(
+      withSequence(
+        withTiming(-2, { duration: 100 }),
+        withTiming(0, { duration: 100 })
+      ),
+      -1,
+      false,
+      undefined,
+      ReduceMotion.Never
+    );
+
+    exhaustPuff.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 200 }),
+        withTiming(0, { duration: 200 })
+      ),
+      -1,
+      false,
+      undefined,
+      ReduceMotion.Never
+    );
+  }, []);
+
+  const truckStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: position.value },
+      { translateY: bounce.value },
+      { scaleX: direction === "left" ? -1 : 1 },
+    ],
   }));
 
+  const wheelStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${wheelRotation.value}deg` }],
+  }));
+
+  const exhaustStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(exhaustPuff.value, [0, 1], [0.3, 0.8]),
+    transform: [
+      { scale: interpolate(exhaustPuff.value, [0, 1], [0.6, 1.3]) },
+    ],
+  }));
+
+  const truckWidth = size * 2.5;
+  const truckHeight = size * 1.2;
+  const wheelSize = size * 0.4;
+
   return (
-    <Animated.View style={[styles.truck, { top: topOffset, opacity }, animatedStyle]}>
-      <View style={[styles.truckBody, { width: size, height: size * 0.6 }]}>
-        <Feather name="truck" size={size} color={BrandColors.green} />
+    <Animated.View style={[styles.truckContainer, { top: yPosition }, truckStyle]}>
+      <Animated.View style={[styles.exhaust, { left: direction === "left" ? truckWidth - 5 : -12 }, exhaustStyle]}>
+        <View style={[styles.exhaustPuff, { backgroundColor: "#888", width: size * 0.35, height: size * 0.35, borderRadius: size * 0.175 }]} />
+        <View style={[styles.exhaustPuff2, { backgroundColor: "#AAA", width: size * 0.25, height: size * 0.25, borderRadius: size * 0.125 }]} />
+      </Animated.View>
+      
+      <View style={styles.truckBody}>
+        <View style={[styles.truckBack, { backgroundColor: color, width: size * 1.3, height: truckHeight, borderTopLeftRadius: size * 0.2, borderTopRightRadius: size * 0.1 }]}>
+          <Feather name="trash-2" size={size * 0.5} color="#FFFFFF" />
+        </View>
+        <View style={[styles.truckCab, { backgroundColor: color, width: size * 1, height: truckHeight * 0.85, borderTopRightRadius: size * 0.25 }]}>
+          <View style={[styles.window, { width: size * 0.4, height: size * 0.35, borderRadius: size * 0.08 }]} />
+        </View>
+      </View>
+      
+      <View style={[styles.wheelsContainer, { left: size * 0.2 }]}>
+        <Animated.View style={[styles.wheel, { width: wheelSize, height: wheelSize, borderRadius: wheelSize / 2 }, wheelStyle]}>
+          <View style={[styles.wheelHub, { width: wheelSize * 0.4, height: wheelSize * 0.4, borderRadius: wheelSize * 0.2 }]} />
+        </Animated.View>
+        <Animated.View style={[styles.wheel, { width: wheelSize, height: wheelSize, borderRadius: wheelSize / 2, marginLeft: size * 1 }, wheelStyle]}>
+          <View style={[styles.wheelHub, { width: wheelSize * 0.4, height: wheelSize * 0.4, borderRadius: wheelSize * 0.2 }]} />
+        </Animated.View>
       </View>
     </Animated.View>
   );
 };
 
-interface TrashItemProps {
-  delay: number;
-  left: number;
-  topOffset: number;
-}
-
-const TrashItem = ({ delay, left, topOffset }: TrashItemProps) => {
-  const opacity = useSharedValue(1);
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    // Animate trash disappearing and reappearing
-    opacity.value = withDelay(
-      delay,
-      withRepeat(
-        withTiming(0, { duration: 500, easing: Easing.out(Easing.ease) }),
-        -1,
-        true
-      )
-    );
-    scale.value = withDelay(
-      delay,
-      withRepeat(
-        withTiming(0.5, { duration: 500, easing: Easing.out(Easing.ease) }),
-        -1,
-        true
-      )
-    );
-  }, [delay]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
-
-  return (
-    <Animated.View style={[styles.trash, { left, top: topOffset }, animatedStyle]}>
-      <Feather name="trash-2" size={12} color={BrandColors.blue} />
-    </Animated.View>
-  );
-};
-
 interface AnimatedGarbageTrucksProps {
+  variant?: "single" | "double" | "parade";
   height?: number;
 }
 
-export default function AnimatedGarbageTrucks({ height = 50 }: AnimatedGarbageTrucksProps) {
-  const trucks: TruckProps[] = [
-    { delay: 0, duration: 8000, topOffset: 5, size: 20, opacity: 0.7 },
-    { delay: 2000, duration: 10000, topOffset: 25, size: 16, opacity: 0.5 },
-    { delay: 4000, duration: 7000, topOffset: 15, size: 18, opacity: 0.6 },
-    { delay: 6000, duration: 9000, topOffset: 30, size: 14, opacity: 0.4 },
-  ];
+export default function AnimatedGarbageTrucks({ variant = "double", height = 120 }: AnimatedGarbageTrucksProps) {
+  if (variant === "single") {
+    return (
+      <View style={[styles.container, { height }]} pointerEvents="none">
+        <AnimatedTruck
+          color={BrandColors.green}
+          size={32}
+          startDelay={0}
+          duration={8000}
+          direction="right"
+          yPosition={height / 2 - 20}
+        />
+      </View>
+    );
+  }
 
-  const trashItems: TrashItemProps[] = [
-    { delay: 1000, left: SCREEN_WIDTH * 0.15, topOffset: 10 },
-    { delay: 3000, left: SCREEN_WIDTH * 0.35, topOffset: 25 },
-    { delay: 5000, left: SCREEN_WIDTH * 0.55, topOffset: 8 },
-    { delay: 7000, left: SCREEN_WIDTH * 0.75, topOffset: 20 },
-    { delay: 2500, left: SCREEN_WIDTH * 0.45, topOffset: 32 },
-    { delay: 4500, left: SCREEN_WIDTH * 0.65, topOffset: 15 },
-  ];
+  if (variant === "double") {
+    return (
+      <View style={[styles.container, { height }]} pointerEvents="none">
+        <AnimatedTruck
+          color={BrandColors.green}
+          size={30}
+          startDelay={0}
+          duration={9000}
+          direction="right"
+          yPosition={15}
+        />
+        <AnimatedTruck
+          color={BrandColors.blue}
+          size={28}
+          startDelay={4500}
+          duration={7500}
+          direction="left"
+          yPosition={65}
+        />
+      </View>
+    );
+  }
 
   return (
-    <View style={[styles.container, { height }]} pointerEvents="none">
-      {trashItems.map((trash, index) => (
-        <TrashItem key={`trash-${index}`} {...trash} />
-      ))}
-      {trucks.map((truck, index) => (
-        <GarbageTruck key={`truck-${index}`} {...truck} />
-      ))}
+    <View style={[styles.container, { height: height + 30 }]} pointerEvents="none">
+      <AnimatedTruck
+        color={BrandColors.green}
+        size={34}
+        startDelay={0}
+        duration={10000}
+        direction="right"
+        yPosition={10}
+      />
+      <AnimatedTruck
+        color={BrandColors.blue}
+        size={28}
+        startDelay={2500}
+        duration={8000}
+        direction="left"
+        yPosition={55}
+      />
+      <AnimatedTruck
+        color="#FF6B35"
+        size={26}
+        startDelay={5000}
+        duration={7000}
+        direction="right"
+        yPosition={95}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    position: "relative",
+    width: "100%",
     overflow: "hidden",
-    zIndex: 10,
+    marginVertical: 10,
   },
-  truck: {
+  truckContainer: {
     position: "absolute",
     left: 0,
   },
   truckBody: {
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
-  trash: {
+  truckBack: {
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  truckCab: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: -4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  window: {
+    backgroundColor: "rgba(135, 206, 235, 0.8)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.5)",
+  },
+  wheelsContainer: {
+    flexDirection: "row",
     position: "absolute",
+    bottom: -6,
+  },
+  wheel: {
+    backgroundColor: "#222",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 3,
+    borderColor: "#444",
+  },
+  wheelHub: {
+    backgroundColor: "#666",
+  },
+  exhaust: {
+    position: "absolute",
+    bottom: 12,
+    flexDirection: "row",
+  },
+  exhaustPuff: {
+    opacity: 0.6,
+  },
+  exhaustPuff2: {
+    position: "absolute",
+    left: -6,
+    top: 4,
+    opacity: 0.4,
   },
 });

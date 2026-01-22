@@ -562,7 +562,7 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <AnimatedGarbageTrucks height={45} />
+      <AnimatedGarbageTrucks variant="double" height={100} />
       <FloatingParticles count={12} />
       <NavigationMenu onNavigate={handleMenuNavigate} />
       <FlatList

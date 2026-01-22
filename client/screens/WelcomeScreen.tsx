@@ -26,6 +26,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
+import AnimatedGarbageTrucks from "@/components/AnimatedGarbageTrucks";
 import { useTheme } from "@/hooks/useTheme";
 import {
   Spacing,
@@ -451,6 +452,7 @@ export default function WelcomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      <AnimatedGarbageTrucks variant="parade" height={130} />
       <LinearGradient
         colors={FuturisticGradients.hero as unknown as [string, string, ...string[]]}
         start={{ x: 0, y: 0 }}

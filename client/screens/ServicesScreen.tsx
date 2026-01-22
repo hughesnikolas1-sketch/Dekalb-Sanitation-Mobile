@@ -452,7 +452,7 @@ export default function ServicesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <AnimatedGarbageTrucks height={45} />
+      <AnimatedGarbageTrucks variant="double" height={100} />
       <FloatingParticles count={10} />
       <FlatList
         style={{ flex: 1 }}
