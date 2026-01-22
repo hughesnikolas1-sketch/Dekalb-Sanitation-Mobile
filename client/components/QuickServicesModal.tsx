@@ -628,19 +628,21 @@ export function QuickServicesModal({ visible, onClose }: QuickServicesModalProps
               marginBottom: insets.bottom + 20,
             },
           ]}
+          onStartShouldSetResponder={() => true}
+          onTouchEnd={(e) => e.stopPropagation()}
         >
-          <Pressable onPress={(e) => e.stopPropagation()}>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Feather name="x" size={24} color={theme.textSecondary} />
-            </Pressable>
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {renderContent()}
-            </ScrollView>
+          <Pressable style={styles.closeButton} onPress={onClose}>
+            <Feather name="x" size={24} color={theme.textSecondary} />
           </Pressable>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+            nestedScrollEnabled={true}
+          >
+            {renderContent()}
+          </ScrollView>
         </Animated.View>
       </Pressable>
     </Modal>
