@@ -18,6 +18,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { LiveAgentBanner } from "@/components/LiveAgentBanner";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import GarbageTruckLoader from "@/components/GarbageTruckLoader";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { Spacing, BorderRadius, BrandColors, FuturisticGradients } from "@/constants/theme";
@@ -209,7 +210,7 @@ export default function MyRequestsScreen() {
         }
         ListEmptyComponent={isLoading ? (
           <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color={BrandColors.blue} />
+            <GarbageTruckLoader message="Loading your requests..." size="large" color={BrandColors.blue} />
           </View>
         ) : renderEmptyState()}
         ListFooterComponent={<LiveAgentBanner />}

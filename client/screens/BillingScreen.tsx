@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import GarbageTruckLoader from "@/components/GarbageTruckLoader";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 import { Spacing, BorderRadius, BrandColors, FuturisticGradients } from "@/constants/theme";
@@ -191,7 +192,7 @@ export default function BillingScreen() {
         }
         ListEmptyComponent={isLoading ? (
           <View style={styles.loadingState}>
-            <ActivityIndicator size="large" color={BrandColors.green} />
+            <GarbageTruckLoader message="Loading transactions..." size="large" color={BrandColors.green} />
           </View>
         ) : renderEmptyState()}
       />
