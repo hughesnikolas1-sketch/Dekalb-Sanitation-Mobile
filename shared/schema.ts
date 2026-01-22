@@ -15,6 +15,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   serviceAddress: text("service_address"),
   stripeCustomerId: text("stripe_customer_id"),
+  isAdmin: boolean("is_admin").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -29,6 +30,8 @@ export const serviceRequests = pgTable("service_requests", {
   formData: jsonb("form_data"),
   paymentIntentId: text("payment_intent_id"),
   amount: integer("amount"),
+  adminResponse: text("admin_response"),
+  adminRespondedAt: timestamp("admin_responded_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -72,6 +75,32 @@ export const feedback = pgTable("feedback", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const chatConversations = pgTable("chat_conversations", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  visitorId: text("visitor_id").notNull(),
+  userId: varchar("user_id").references(() => users.id),
+  visitorName: text("visitor_name"),
+  visitorEmail: text("visitor_email"),
+  status: text("status").notNull().default("active"),
+  assignedAdminId: varchar("assigned_admin_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").references(() => chatConversations.id).notNull(),
+  senderId: text("sender_id").notNull(),
+  senderType: text("sender_type").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -97,3 +126,5 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type ServiceRequest = typeof serviceRequests.$inferSelect;
 export type InsertServiceRequest = z.infer<typeof insertServiceRequestSchema>;
+export type ChatConversation = typeof chatConversations.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
