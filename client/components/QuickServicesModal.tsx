@@ -4,11 +4,11 @@ import {
   Pressable,
   StyleSheet,
   Modal,
-  ScrollView,
   TextInput,
   ActivityIndicator,
   Platform,
   Alert,
+  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -617,7 +617,8 @@ export function QuickServicesModal({ visible, onClose }: QuickServicesModalProps
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <Animated.View
           entering={FadeIn.duration(200)}
           style={[
@@ -628,8 +629,6 @@ export function QuickServicesModal({ visible, onClose }: QuickServicesModalProps
               marginBottom: insets.bottom + 20,
             },
           ]}
-          onStartShouldSetResponder={() => true}
-          onTouchEnd={(e) => e.stopPropagation()}
         >
           <Pressable style={styles.closeButton} onPress={onClose}>
             <Feather name="x" size={24} color={theme.textSecondary} />
@@ -639,12 +638,12 @@ export function QuickServicesModal({ visible, onClose }: QuickServicesModalProps
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={true}
             bounces={true}
-            nestedScrollEnabled={true}
+            keyboardShouldPersistTaps="handled"
           >
             {renderContent()}
           </ScrollView>
         </Animated.View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }
