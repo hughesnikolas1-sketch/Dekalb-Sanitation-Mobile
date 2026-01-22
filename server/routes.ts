@@ -179,6 +179,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/disabled-service-applications", async (req, res) => {
+    try {
+      const applicationData = req.body;
+
+      const [request] = await db.insert(serviceRequests).values({
+        userId: applicationData.userId || null,
+        serviceType: "Disabled Resident Service Application",
+        serviceId: "disabled-service",
+        formData: {
+          name: applicationData.name,
+          telephone: applicationData.telephone,
+          residentialAddress: applicationData.residentialAddress,
+          residenceType: applicationData.residenceType,
+          cartLocation: applicationData.cartLocation,
+          cartLocationOther: applicationData.cartLocationOther,
+          applicantSignature: applicationData.applicantSignature,
+          applicantDate: applicationData.applicantDate,
+          notarySignature: applicationData.notarySignature,
+          notaryDate: applicationData.notaryDate,
+          patientName: applicationData.patientName,
+          functionalLimitations: applicationData.functionalLimitations,
+          disabilityType: applicationData.disabilityType,
+          tempDisabilityFrom: applicationData.tempDisabilityFrom,
+          tempDisabilityTo: applicationData.tempDisabilityTo,
+          physicianName: applicationData.physicianName,
+          physicianTelephone: applicationData.physicianTelephone,
+          physicianLicense: applicationData.physicianLicense,
+          physicianAddress: applicationData.physicianAddress,
+          physicianCityStateZip: applicationData.physicianCityStateZip,
+          physicianSignature: applicationData.physicianSignature,
+          physicianDate: applicationData.physicianDate,
+          submittedAt: applicationData.submittedAt || new Date().toISOString(),
+        },
+        amount: 0,
+        status: "submitted",
+      }).returning();
+
+      res.json({ 
+        request, 
+        message: "Disabled service application submitted successfully" 
+      });
+    } catch (error) {
+      console.error("Disabled service application error:", error);
+      res.status(500).json({ message: "Failed to submit disabled service application" });
+    }
+  });
+
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount, serviceId, serviceType, userId } = req.body;

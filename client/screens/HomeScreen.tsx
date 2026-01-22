@@ -531,6 +531,13 @@ export default function HomeScreen() {
           gradientColors={["#FF9100", "#FF6D00"]}
           delay={800}
         />
+        <QuickActionCard
+          icon="heart"
+          title="♿ Disabled Services"
+          onPress={() => (navigation as any).navigate("DisabledService")}
+          gradientColors={["#9C27B0", "#7B1FA2"]}
+          delay={850}
+        />
       </View>
 
       <LiveAgentBanner />
