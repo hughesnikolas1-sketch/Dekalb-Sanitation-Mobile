@@ -3536,67 +3536,6 @@ export default function ServiceDetailScreen() {
               />
             ))}
 
-            {serviceId.includes("missed") ? (
-              <>
-                <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-                  <View style={[styles.reasonsCard, { backgroundColor: "#FFF3E0", borderColor: "#FF9800" }]}>
-                    <View style={styles.reasonsHeader}>
-                      <Feather name="help-circle" size={24} color="#F57C00" />
-                      <ThemedText type="h4" style={{ color: "#E65100", marginLeft: Spacing.sm, flex: 1 }}>
-                        Want to know reasons why you could have been missed?
-                      </ThemedText>
-                    </View>
-                  </View>
-                </Animated.View>
-
-                <Animated.View entering={FadeInDown.delay(450).duration(400)}>
-                  <View style={styles.proceduresSection}>
-                    <ThemedText type="h3" style={[styles.sectionTitle, { color: BrandColors.green }]}>
-                      {COLLECTION_PROCEDURES.title}
-                    </ThemedText>
-                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginBottom: Spacing.lg }}>
-                      1 of 2 - Roll Cart Curbside Procedures
-                    </ThemedText>
-
-                    {COLLECTION_PROCEDURES.curbsideProcedures.map((proc, index) => (
-                      <View key={index} style={styles.procedureItem}>
-                        <View style={[styles.procedureIcon, { backgroundColor: BrandColors.green + "20" }]}>
-                          <Feather name={proc.icon} size={20} color={BrandColors.green} />
-                        </View>
-                        <ThemedText type="body" style={{ flex: 1, lineHeight: 22 }}>{proc.text}</ThemedText>
-                      </View>
-                    ))}
-
-                    <ThemedText type="caption" style={{ color: theme.textSecondary, marginTop: Spacing.lg, marginBottom: Spacing.md }}>
-                      2 of 2 - Residential Collection Procedures
-                    </ThemedText>
-
-                    {COLLECTION_PROCEDURES.procedures.map((proc, index) => (
-                      <View key={index} style={styles.procedureItem}>
-                        <View style={[styles.procedureIcon, { backgroundColor: BrandColors.green + "20" }]}>
-                          <Feather name={proc.icon} size={20} color={BrandColors.green} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <ThemedText type="body" style={{ fontWeight: "700", color: BrandColors.green }}>
-                            {proc.title}
-                          </ThemedText>
-                          <ThemedText type="small" style={{ color: theme.textSecondary, lineHeight: 20, marginTop: 2 }}>
-                            {proc.text}
-                          </ThemedText>
-                        </View>
-                      </View>
-                    ))}
-
-                    <View style={styles.websiteFooter}>
-                      <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                        www.dekalbsanitation.com • @DKalbSanitation on X
-                      </ThemedText>
-                    </View>
-                  </View>
-                </Animated.View>
-              </>
-            ) : null}
-
             {service.rollOffInfo ? (
               <Animated.View entering={FadeInDown.delay(450).duration(400)}>
                 <View style={[styles.rollOffInfoCard, { backgroundColor: "#FFF8E1", borderColor: "#FF9800" }]}>
