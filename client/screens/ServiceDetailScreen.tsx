@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, ScrollView, StyleSheet, Pressable, TextInput, Alert, ActivityIndicator, Platform, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as WebBrowser from "expo-web-browser";
-import { apiRequest, getApiUrl } from "@/lib/query-client";
+import { apiRequest, getApiUrl, queryClient } from "@/lib/query-client";
 import { useQuery } from "@tanstack/react-query";
 
 const showAlert = (title: string, message: string, buttons?: { text: string; style?: string }[]) => {
@@ -1357,6 +1357,8 @@ export default function ServiceDetailScreen() {
       });
 
       const result = await response.json();
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/service-requests"] });
 
       if (serviceId.includes("roll-cart")) {
         if (Platform.OS === 'web') {
@@ -1613,6 +1615,8 @@ export default function ServiceDetailScreen() {
       });
 
       const result = await response.json();
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/service-requests"] });
 
       if (Platform.OS === 'web') {
         window.alert(
@@ -1721,6 +1725,8 @@ export default function ServiceDetailScreen() {
       });
 
       const result = await response.json();
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/service-requests"] });
 
       if (Platform.OS === 'web') {
         window.alert(
@@ -1811,6 +1817,8 @@ export default function ServiceDetailScreen() {
       });
 
       const result = await response.json();
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/service-requests"] });
 
       if (Platform.OS === 'web') {
         window.alert(
@@ -1919,6 +1927,8 @@ export default function ServiceDetailScreen() {
       });
 
       const result = await response.json();
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/service-requests"] });
 
       if (Platform.OS === 'web') {
         window.alert(

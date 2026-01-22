@@ -112,7 +112,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/service-requests", async (req, res) => {
     try {
-      const { userId, serviceType, serviceId, formData, amount } = req.body;
+      const { serviceType, serviceId, formData, amount } = req.body;
+      const userId = req.body.userId || req.headers["x-user-id"] as string;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
 
       const [request] = await db.insert(serviceRequests).values({
         userId,
