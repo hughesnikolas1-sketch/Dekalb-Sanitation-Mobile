@@ -8,6 +8,7 @@ interface User {
   lastName?: string;
   phone?: string;
   serviceAddress?: string;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {

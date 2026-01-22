@@ -51,6 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: user.lastName,
           phone: user.phone,
           serviceAddress: user.serviceAddress,
+          isAdmin: user.isAdmin || false,
         },
         token,
       });
@@ -89,6 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: user.lastName,
           phone: user.phone,
           serviceAddress: user.serviceAddress,
+          isAdmin: user.isAdmin || false,
         },
         token,
       });
