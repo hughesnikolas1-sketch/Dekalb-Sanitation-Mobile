@@ -93,8 +93,9 @@ export default function AdminDashboardScreen() {
 
   const fetchRequests = useCallback(async () => {
     try {
-      const response = await apiRequest("GET", `/api/admin/requests?status=${statusFilter}`);
-      setRequests(response.requests || []);
+      const res = await apiRequest("GET", `/api/admin/requests?status=${statusFilter}`);
+      const data = await res.json();
+      setRequests(data.requests || []);
     } catch (error) {
       console.error("Failed to fetch requests:", error);
     }
@@ -102,8 +103,9 @@ export default function AdminDashboardScreen() {
 
   const fetchConversations = useCallback(async () => {
     try {
-      const response = await apiRequest("GET", "/api/admin/conversations");
-      setConversations(response.conversations || []);
+      const res = await apiRequest("GET", "/api/admin/conversations");
+      const data = await res.json();
+      setConversations(data.conversations || []);
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
     }
@@ -111,8 +113,9 @@ export default function AdminDashboardScreen() {
 
   const fetchMessages = useCallback(async (conversationId: string) => {
     try {
-      const response = await apiRequest("GET", `/api/chat/conversations/${conversationId}/messages`);
-      setMessages(response.messages || []);
+      const res = await apiRequest("GET", `/api/chat/conversations/${conversationId}/messages`);
+      const data = await res.json();
+      setMessages(data.messages || []);
       await apiRequest("POST", `/api/admin/conversations/${conversationId}/read`);
     } catch (error) {
       console.error("Failed to fetch messages:", error);

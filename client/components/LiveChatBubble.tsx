@@ -92,9 +92,10 @@ export function LiveChatBubble() {
 
   const fetchMessages = useCallback(async (convId: string) => {
     try {
-      const response = await apiRequest('GET', `/api/chat/conversations/${convId}/messages`);
-      if (response.messages && response.messages.length > 0) {
-        const dbMessages: Message[] = response.messages.map((m: DBMessage) => ({
+      const res = await apiRequest('GET', `/api/chat/conversations/${convId}/messages`);
+      const data = await res.json();
+      if (data.messages && data.messages.length > 0) {
+        const dbMessages: Message[] = data.messages.map((m: DBMessage) => ({
           id: m.id,
           text: m.message,
           sender: m.senderType === 'admin' ? 'agent' : 'user',
@@ -111,13 +112,14 @@ export function LiveChatBubble() {
     try {
       setIsLoading(true);
       const vId = await getOrCreateVisitorId();
-      const response = await apiRequest('POST', '/api/chat/conversations', {
+      const res = await apiRequest('POST', '/api/chat/conversations', {
         visitorId: vId,
         visitorName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : null,
         visitorEmail: user?.email || null,
       });
-      setConversationId(response.conversation.id);
-      return response.conversation.id;
+      const data = await res.json();
+      setConversationId(data.conversation.id);
+      return data.conversation.id;
     } catch (error) {
       console.error('Failed to create conversation:', error);
       return null;
