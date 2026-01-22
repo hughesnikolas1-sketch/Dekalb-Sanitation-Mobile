@@ -3250,11 +3250,13 @@ export default function ServiceDetailScreen() {
                       </ThemedText>
                     </View>
                     {service.specialCollectionPricing.map((pricing: { item: string; price: string }, idx: number) => (
-                      <View key={idx} style={[styles.pricingRow, { borderBottomColor: theme.border }]}>
-                        <View style={{ flex: 1, marginRight: Spacing.sm }}>
-                          <ThemedText type="body">{pricing.item}</ThemedText>
+                      <View key={idx} style={styles.pricingTableRow}>
+                        <View style={styles.pricingItemCell}>
+                          <ThemedText type="body" style={styles.pricingItemText}>{pricing.item}</ThemedText>
                         </View>
-                        <ThemedText type="body" style={{ fontWeight: "700", color: service.color, flexShrink: 0 }}>{pricing.price}</ThemedText>
+                        <View style={styles.pricingPriceCell}>
+                          <ThemedText type="body" style={[styles.pricingPriceText, { color: service.color }]}>{pricing.price}</ThemedText>
+                        </View>
                       </View>
                     ))}
                   </View>
@@ -5296,6 +5298,27 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
+  },
+  pricingTableRow: {
+    flexDirection: "row",
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.1)",
+  },
+  pricingItemCell: {
+    flex: 2,
+    paddingRight: Spacing.md,
+  },
+  pricingItemText: {
+    flexWrap: "wrap",
+  },
+  pricingPriceCell: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+  pricingPriceText: {
+    fontWeight: "700",
+    textAlign: "right",
   },
   yesNoButton: {
     flex: 1,
