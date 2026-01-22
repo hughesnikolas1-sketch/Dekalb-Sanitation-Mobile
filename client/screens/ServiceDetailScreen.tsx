@@ -353,7 +353,7 @@ const serviceDetails: Record<string, ServiceInfo> = {
     ],
     links: [
       { text: "View Annual Prorated Fee Assessments", url: "https://www.dekalbcountyga.gov/sanitation/garbage-roll-cart-application" },
-      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/dekalbcountygapayments" },
     ],
   },
   "res-roll-off": {
@@ -369,7 +369,7 @@ const serviceDetails: Record<string, ServiceInfo> = {
       { id: "4", name: "40 Yard Container", size: "2-week rental period", price: "$902" },
     ],
     links: [
-      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/dekalbcountygapayments" },
     ],
     rollOffInfo: {
       importantNotes: [
@@ -607,7 +607,7 @@ const serviceDetails: Record<string, ServiceInfo> = {
     ],
     links: [
       { text: "View Annual Prorated Fee Assessments", url: "https://www.dekalbcountyga.gov/sanitation/garbage-roll-cart-application" },
-      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/dekalbcountygapayments" },
     ],
   },
   "com-roll-off": {
@@ -624,7 +624,7 @@ const serviceDetails: Record<string, ServiceInfo> = {
       { id: "5", name: "Request Early Pickup", size: "If your container is full before the 2-week period ends, request an early pickup", price: "Included" },
     ],
     links: [
-      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/portal/(S(yjnv2fenvzusksodjbig42md))/2/cloudstore.aspx?cs=EA8433D6-3EAA-4147-87BC-D9FF94D3306C&bg=0b13fbf9-01c5-41f3-8549-2d5277a00a99&return=1" },
+      { text: "Pay via InvoiceCloud Portal", url: "https://www.invoicecloud.com/dekalbcountygapayments" },
     ],
     rollOffInfo: {
       importantNotes: [
@@ -2103,7 +2103,6 @@ export default function ServiceDetailScreen() {
                     onPress={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       setAdditionalCartReason(reason);
-                      setAdditionalCartStep(2);
                     }}
                     style={[
                       styles.reasonOption,
@@ -2116,6 +2115,60 @@ export default function ServiceDetailScreen() {
                     ) : null}
                   </Pressable>
                 ))}
+
+                {additionalCartReason ? (
+                  <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ marginTop: Spacing.lg }}>
+                    <View style={[styles.infoBox, { backgroundColor: service.color + "10", borderColor: service.color + "40" }]}>
+                      <Feather name="edit-3" size={20} color={service.color} />
+                      <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+                        <ThemedText type="h4" style={{ color: service.color, marginBottom: Spacing.xs }}>
+                          {selectedOption.name.toLowerCase().includes("damaged") 
+                            ? "Describe the Damage"
+                            : selectedOption.name.toLowerCase().includes("stolen")
+                            ? "Describe What Happened"
+                            : selectedOption.name.toLowerCase().includes("return")
+                            ? "Reason for Return"
+                            : "Additional Details"}
+                        </ThemedText>
+                        <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                          Please provide more details about your cart's condition or situation
+                        </ThemedText>
+                      </View>
+                    </View>
+                    
+                    <TextInput
+                      style={[styles.descriptionInput, { backgroundColor: theme.surface, borderColor: service.color + "40", color: theme.text, marginTop: Spacing.md }]}
+                      placeholder={selectedOption.name.toLowerCase().includes("damaged") 
+                        ? "Describe the damage to your cart (e.g., cracked lid, broken wheels, holes in body)..."
+                        : selectedOption.name.toLowerCase().includes("stolen")
+                        ? "Describe when and how your cart was stolen..."
+                        : selectedOption.name.toLowerCase().includes("return")
+                        ? "Explain why you are returning the cart..."
+                        : "Provide any additional details about your cart request..."}
+                      placeholderTextColor={theme.textSecondary}
+                      value={additionalCartDescription}
+                      onChangeText={setAdditionalCartDescription}
+                      multiline
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                    />
+                    
+                    <Pressable
+                      onPress={() => setAdditionalCartStep(2)}
+                      style={{ marginTop: Spacing.lg }}
+                    >
+                      <LinearGradient
+                        colors={service.gradientColors || [service.color, service.color]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.submitButton}
+                      >
+                        <ThemedText type="h4" style={styles.submitText}>Continue to Address</ThemedText>
+                        <Feather name="arrow-right" size={20} color="#FFFFFF" style={{ marginLeft: Spacing.sm }} />
+                      </LinearGradient>
+                    </Pressable>
+                  </Animated.View>
+                ) : null}
               </Animated.View>
             ) : additionalCartStep === 2 ? (
               <Animated.View entering={FadeInDown.delay(100).duration(400)}>
@@ -2185,20 +2238,6 @@ export default function ServiceDetailScreen() {
                     </View>
                   </View>
                 )}
-
-                <ThemedText type="small" style={[styles.formLabel, { marginTop: Spacing.lg }]}>
-                  Please describe the issue or request in detail...
-                </ThemedText>
-                <TextInput
-                  style={[styles.descriptionInput, { backgroundColor: theme.surface, borderColor: theme.border, color: theme.text }]}
-                  placeholder="Enter additional details here..."
-                  placeholderTextColor={theme.textSecondary}
-                  value={additionalCartDescription}
-                  onChangeText={setAdditionalCartDescription}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                />
 
                 <Pressable
                   onPress={() => setAdditionalCartStep(3)}
