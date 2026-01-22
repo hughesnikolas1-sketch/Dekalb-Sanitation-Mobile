@@ -3251,8 +3251,10 @@ export default function ServiceDetailScreen() {
                     </View>
                     {service.specialCollectionPricing.map((pricing: { item: string; price: string }, idx: number) => (
                       <View key={idx} style={[styles.pricingRow, { borderBottomColor: theme.border }]}>
-                        <ThemedText type="body" style={{ flex: 1 }}>{pricing.item}</ThemedText>
-                        <ThemedText type="body" style={{ fontWeight: "700", color: service.color }}>{pricing.price}</ThemedText>
+                        <View style={{ flex: 1, marginRight: Spacing.sm }}>
+                          <ThemedText type="body">{pricing.item}</ThemedText>
+                        </View>
+                        <ThemedText type="body" style={{ fontWeight: "700", color: service.color, flexShrink: 0 }}>{pricing.price}</ThemedText>
                       </View>
                     ))}
                   </View>
@@ -5291,7 +5293,7 @@ const styles = StyleSheet.create({
   pricingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
   },
