@@ -217,10 +217,12 @@ const styles = StyleSheet.create({
     width: "100%",
     overflow: "visible",
     marginBottom: 10,
+    pointerEvents: "none",
   },
   truckContainer: {
     position: "absolute",
     left: 0,
+    pointerEvents: "none",
   },
   truckBody: {
     flexDirection: "row",
