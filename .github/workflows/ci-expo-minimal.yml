@@ -1,0 +1,30 @@
+name: CI — Expo (minimal: install)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  install:
+    name: Install dependencies (minimal)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Show repo root (for debugging)
+        run: |
+          echo "PWD: $(pwd)"
+          ls -la
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        # If your Expo project is in a subfolder (e.g. "client"), set working-directory: client
+        run: npm ci
