@@ -1,4 +1,3 @@
-# paste the YAML exactly as shown above starting with "name: CI — Expo..."
 name: CI — Expo (test & optional EAS build)
 
 on:
@@ -30,6 +29,7 @@ jobs:
       - name: Run tests
         run: npm test --if-present
 
+  # Optional EAS build job — runs only if you add EAS_TOKEN as a repo secret
   eas-build:
     name: EAS Build (Android)
     needs: test
